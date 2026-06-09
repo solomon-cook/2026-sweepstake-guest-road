@@ -1,7 +1,23 @@
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
+import { config as loadEnv } from 'dotenv'
+import { getDatabaseUrl } from '../src/lib/database-url'
 import { TEAM_SEED_SCORES } from '../src/lib/team-source'
 
-const prisma = new PrismaClient()
+loadEnv({ path: '.env.preview' })
+loadEnv({ path: '.env.local' })
+loadEnv()
+
+const databaseUrl = getDatabaseUrl()
+
+if (!databaseUrl) {
+  throw new Error(
+    'No database URL is configured for seeding. Set DATABASE_URL, PRISMA_DATABASE_URL, or POSTGRES_URL.',
+  )
+}
+
+const adapter = new PrismaPg({ connectionString: databaseUrl })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   await prisma.team.createMany({

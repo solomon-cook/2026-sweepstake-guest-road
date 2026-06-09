@@ -1,11 +1,15 @@
-import 'dotenv/config'
+import { config as loadEnv } from 'dotenv'
 import { defineConfig } from 'prisma/config'
+import { getDatabaseUrl } from './src/lib/database-url'
+
+loadEnv({ path: '.env.preview' })
+loadEnv({ path: '.env.local' })
+loadEnv()
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    url:
-      process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:5432/sweepstake',
+    url: getDatabaseUrl() || 'postgresql://postgres:postgres@127.0.0.1:5432/sweepstake',
   },
   migrations: {
     seed: 'tsx prisma/seed.ts',

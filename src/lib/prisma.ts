@@ -1,15 +1,18 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
+import { getDatabaseUrl } from './database-url'
 
 declare global {
   var prismaClientSingleton: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  const databaseUrl = process.env.DATABASE_URL
+  const databaseUrl = getDatabaseUrl()
 
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL is not configured.')
+    throw new Error(
+      'No database URL is configured. Set DATABASE_URL, PRISMA_DATABASE_URL, or POSTGRES_URL.',
+    )
   }
 
   const adapter = new PrismaPg({ connectionString: databaseUrl })
