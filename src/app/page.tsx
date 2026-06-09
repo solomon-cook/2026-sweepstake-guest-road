@@ -1,4 +1,5 @@
 import { SweepstakeClient } from '@/components/sweepstake-client'
+import { getOrCreateDraw } from '@/lib/draw-repository'
 import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
@@ -25,7 +26,8 @@ export default async function Page() {
   const result = await loadTeamScores()
 
   if (result.status === 'ready') {
-    return <SweepstakeClient teamScores={result.teams} />
+    const initialDraw = await getOrCreateDraw(7, result.teams)
+    return <SweepstakeClient initialDraw={initialDraw} teamScores={result.teams} />
   }
 
   if (result.status === 'empty') {

@@ -1,9 +1,8 @@
 'use client'
 
-import { startTransition, useEffect, useState } from 'react'
-import { generateBalancedAllocation, rankAllocation } from '@/lib/allocator'
+import { useState } from 'react'
 import { SCORE_SNAPSHOT } from '@/lib/team-source'
-import type { AllocationResult, PlayerCount, TeamScore } from '@/lib/types'
+import type { PersistedDraw, PlayerCount, TeamScore } from '@/lib/types'
 
 const PLAYER_OPTIONS: PlayerCount[] = [7, 8, 9]
 const INITIAL_NAMES = [
@@ -22,27 +21,123 @@ function formatScore(value: number) {
   return value.toFixed(2)
 }
 
-export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
-  const [playerCount, setPlayerCount] = useState<PlayerCount>(7)
-  const [playerNames, setPlayerNames] = useState(INITIAL_NAMES)
-  const [shuffleCount, setShuffleCount] = useState(0)
-  const [allocation, setAllocation] = useState<AllocationResult>(() =>
-    generateBalancedAllocation(teamScores, INITIAL_NAMES, 7),
-  )
+export function SweepstakeClient({
+  initialDraw,
+  teamScores,
+}: {
+  initialDraw: PersistedDraw
+  teamScores: TeamScore[]
+}) {
+  const [playerCount, setPlayerCount] = useState<PlayerCount>(initialDraw.playerCount)
+  const [playerNames, setPlayerNames] = useState([
+    ...initialDraw.allocation.bundles.map((bundle) => bundle.playerName),
+    ...INITIAL_NAMES,
+  ])
+  const [draw, setDraw] = useState(initialDraw)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    startTransition(() => {
-      setAllocation(generateBalancedAllocation(teamScores, playerNames, playerCount))
-    })
-  }, [playerCount, playerNames, shuffleCount, teamScores])
-
-  const metrics = rankAllocation(allocation)
+  const allocation = draw.allocation
+  const metrics = allocation
   const visibleNames = playerNames.slice(0, playerCount)
   const topTeams = teamScores.slice(0, 12)
   const rankedBundles = [...allocation.bundles].sort(
     (left, right) =>
       right.totalScore - left.totalScore || left.playerName.localeCompare(right.playerName),
   )
+
+  async function loadDraw(nextPlayerCount: PlayerCount) {
+    setIsSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}`, {
+        cache: 'no-store',
+      })
+      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+      if (!response.ok || 'error' in nextDraw) {
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to load draw.')
+      }
+
+      setDraw(nextDraw)
+      setPlayerCount(nextPlayerCount)
+      setPlayerNames([
+        ...nextDraw.allocation.bundles.map((bundle) => bundle.playerName),
+        '',
+        '',
+      ])
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to load draw.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function saveNames() {
+    setIsSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/draw', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerCount,
+          names: visibleNames,
+        }),
+      })
+      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+      if (!response.ok || 'error' in nextDraw) {
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to save names.')
+      }
+
+      setDraw(nextDraw)
+      setPlayerNames([
+        ...nextDraw.allocation.bundles.map((bundle) => bundle.playerName),
+        '',
+        '',
+      ])
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to save names.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function shufflePersistedDraw() {
+    setIsSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/draw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ playerCount }),
+      })
+      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+      if (!response.ok || 'error' in nextDraw) {
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to shuffle draw.')
+      }
+
+      setDraw(nextDraw)
+      setPlayerNames([
+        ...nextDraw.allocation.bundles.map((bundle) => bundle.playerName),
+        '',
+        '',
+      ])
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to shuffle draw.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <main className="page-shell">
@@ -55,9 +150,10 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
         <button
           type="button"
           className="shuffle-button"
-          onClick={() => setShuffleCount((count) => count + 1)}
+          onClick={shufflePersistedDraw}
+          disabled={isSaving}
         >
-          Shuffle draw
+          {isSaving ? 'Saving...' : 'Shuffle draw'}
         </button>
       </section>
 
@@ -75,7 +171,8 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
                 key={option}
                 type="button"
                 className={option === playerCount ? 'is-active' : ''}
-                onClick={() => setPlayerCount(option)}
+                onClick={() => void loadDraw(option)}
+                disabled={isSaving}
               >
                 {option} players
               </button>
@@ -118,6 +215,13 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
             </p>
           </div>
 
+          <div className="panel-actions">
+            <button type="button" className="secondary-button" onClick={saveNames} disabled={isSaving}>
+              Save names to shared draw
+            </button>
+            <p className="sync-copy">This draw is shared across devices.</p>
+          </div>
+
           <div className="name-grid">
             {visibleNames.map((name, index) => (
               <label key={index} className="name-field">
@@ -134,6 +238,8 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
               </label>
             ))}
           </div>
+
+          {error ? <p className="error-copy">{error}</p> : null}
         </div>
 
         <div className="metrics-card">

@@ -16,4 +16,39 @@ model Team {
   rank               Int      @unique
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  slotAssignments    DrawSlotTeam[]
+}
+
+model Draw {
+  id         String     @id @default(cuid())
+  playerCount Int       @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  slots      DrawSlot[]
+}
+
+model DrawSlot {
+  id             String        @id @default(cuid())
+  drawId         String
+  slotIndex      Int
+  playerName     String
+  totalScore     Float
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  draw           Draw          @relation(fields: [drawId], references: [id], onDelete: Cascade)
+  teamAssignments DrawSlotTeam[]
+
+  @@unique([drawId, slotIndex])
+}
+
+model DrawSlotTeam {
+  id        String   @id @default(cuid())
+  slotId    String
+  teamId    String
+  teamOrder Int
+  slot      DrawSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Restrict)
+
+  @@unique([slotId, teamId])
+  @@unique([slotId, teamOrder])
 }

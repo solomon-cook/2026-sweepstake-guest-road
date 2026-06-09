@@ -7,6 +7,7 @@ export type TeamSeed = {
 }
 
 export type TeamScore = TeamSeed & {
+  id?: string
   impliedProbability: number
   score: number
   rank: number
@@ -25,4 +26,9 @@ export type AllocationResult = {
   teamCountSpread: number
   percentDeviation: number
   balanceLabel: 'Very Balanced' | 'Balanced' | 'Loose'
+}
+
+export type PersistedDraw = {
+  playerCount: PlayerCount
+  allocation: AllocationResult
 }
