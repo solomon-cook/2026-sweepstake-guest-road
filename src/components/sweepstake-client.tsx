@@ -39,47 +39,36 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
   const metrics = rankAllocation(allocation)
   const visibleNames = playerNames.slice(0, playerCount)
   const topTeams = teamScores.slice(0, 12)
+  const rankedBundles = [...allocation.bundles].sort(
+    (left, right) =>
+      right.totalScore - left.totalScore || left.playerName.localeCompare(right.playerName),
+  )
 
   return (
     <main className="page-shell">
-      <section className="hero-panel">
-        <div className="hero-copy">
+      <section className="top-bar">
+        <div>
           <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
-          <h1>Balanced bundles, not pure luck of the draw.</h1>
-          <p className="intro">
-            Teams are grouped by strength, then each player gets a mix from across those groups so
-            every bundle has a fair spread of stronger, middle, and weaker sides.
-          </p>
+          <h1>Players and bundles</h1>
         </div>
 
-        <div className="snapshot-card">
-          <p className="snapshot-label">{SCORE_SNAPSHOT.sourceLabel}</p>
-          <p className="snapshot-date">{SCORE_SNAPSHOT.date}</p>
-          <p className="snapshot-note">{SCORE_SNAPSHOT.sourceNote}</p>
-          <dl className="snapshot-grid">
-            <div>
-              <dt>Teams</dt>
-              <dd>{teamScores.length}</dd>
-            </div>
-            <div>
-              <dt>Total score</dt>
-              <dd>{SCORE_SNAPSHOT.totalScore.toFixed(0)}</dd>
-            </div>
-            <div>
-              <dt>Best balance</dt>
-              <dd>{metrics.balanceLabel}</dd>
-            </div>
-            <div>
-              <dt>Spread</dt>
-              <dd>{formatScore(metrics.scoreSpread)}</dd>
-            </div>
-          </dl>
-        </div>
+        <button
+          type="button"
+          className="shuffle-button"
+          onClick={() => setShuffleCount((count) => count + 1)}
+        >
+          Shuffle draw
+        </button>
       </section>
 
-      <section className="control-panel">
-        <div className="picker-card">
-          <p className="section-kicker">Players</p>
+      <section className="results-panel">
+        <div className="results-heading">
+          <div>
+            <p className="section-kicker">Allocation</p>
+            <h2>{playerCount} players</h2>
+            <p>Ordered by most likely to win.</p>
+          </div>
+
           <div className="count-switcher" aria-label="Player count">
             {PLAYER_OPTIONS.map((option) => (
               <button
@@ -91,6 +80,42 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
                 {option} players
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="bundle-grid">
+          {rankedBundles.map((bundle, index) => (
+            <article key={`${bundle.playerName}-${index}`} className="bundle-card">
+              <header>
+                <div>
+                  <p>{bundle.playerName}</p>
+                </div>
+                <span>{bundle.teams.length} teams</span>
+              </header>
+
+              <ul>
+                {bundle.teams.map((team) => (
+                  <li key={team.name}>
+                    <span>{team.name}</span>
+                    <span>G{team.group}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="details-panel">
+        <div className="picker-card">
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">Participants</p>
+              <h2>Edit names</h2>
+            </div>
+            <p>
+              Blank slots automatically fall back to <code>Player n</code>.
+            </p>
           </div>
 
           <div className="name-grid">
@@ -109,18 +134,17 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
               </label>
             ))}
           </div>
-
-          <button
-            type="button"
-            className="shuffle-button"
-            onClick={() => setShuffleCount((count) => count + 1)}
-          >
-            Shuffle / Re-draw
-          </button>
         </div>
 
         <div className="metrics-card">
-          <p className="section-kicker">Fairness</p>
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">More info</p>
+              <h2>Fairness and source data</h2>
+            </div>
+            <p>{SCORE_SNAPSHOT.date}</p>
+          </div>
+
           <div className="metric-strip">
             <article>
               <span>Average bundle</span>
@@ -138,12 +162,25 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
               <span>Team count spread</span>
               <strong>{metrics.teamCountSpread}</strong>
             </article>
+            <article>
+              <span>Balance</span>
+              <strong>{metrics.balanceLabel}</strong>
+            </article>
+            <article>
+              <span>Total teams</span>
+              <strong>{teamScores.length}</strong>
+            </article>
+          </div>
+
+          <div className="snapshot-card">
+            <p className="snapshot-label">{SCORE_SNAPSHOT.sourceLabel}</p>
+            <p className="snapshot-note">{SCORE_SNAPSHOT.sourceNote}</p>
           </div>
 
           <div className="favorites-card">
             <div className="favorites-heading">
-              <h2>Most likely teams</h2>
-              <p>Top 12 by normalized title score</p>
+              <h2>Top teams</h2>
+              <p>Highest normalized scores in the draw pool.</p>
             </div>
 
             <div className="favorites-list">
@@ -161,43 +198,6 @@ export function SweepstakeClient({ teamScores }: { teamScores: TeamScore[] }) {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="results-panel">
-        <div className="results-heading">
-          <div>
-            <p className="section-kicker">Allocation</p>
-            <h2>Balanced bundles for {playerCount} players</h2>
-          </div>
-          <p>
-            Blank slots automatically fall back to <code>Player n</code>.
-          </p>
-        </div>
-
-        <div className="bundle-grid">
-          {allocation.bundles.map((bundle, index) => (
-            <article key={`${bundle.playerName}-${index}`} className="bundle-card">
-              <header>
-                <div>
-                  <p>{bundle.playerName}</p>
-                  <h3>{formatScore(bundle.totalScore)} pts</h3>
-                </div>
-                <span>{bundle.teams.length} teams</span>
-              </header>
-
-              <ul>
-                {bundle.teams.map((team) => (
-                  <li key={team.name}>
-                    <span>{team.name}</span>
-                    <span>
-                      G{team.group} · {formatScore(team.score)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
         </div>
       </section>
     </main>
