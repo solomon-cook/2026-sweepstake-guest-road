@@ -1,6 +1,12 @@
 import { generateBalancedAllocation } from './allocator'
 import { getPrismaClient } from './prisma'
-import type { AllocationResult, PersistedDraw, PlayerCount, TeamScore } from './types'
+import type {
+  AllocationResult,
+  PersistedAllocationResult,
+  PersistedDraw,
+  PlayerCount,
+  TeamScore,
+} from './types'
 
 const DEFAULT_NAMES = [
   'Sam Felton',
@@ -18,7 +24,7 @@ function defaultNames(playerCount: PlayerCount) {
   return DEFAULT_NAMES.slice(0, playerCount)
 }
 
-function calculateMetrics(bundles: AllocationResult['bundles']) {
+export function calculateMetrics(bundles: AllocationResult['bundles']) {
   const totals = bundles.map((bundle) => bundle.totalScore)
   const averageScore = totals.reduce((sum, total) => sum + total, 0) / bundles.length
   const maxScore = Math.max(...totals)
@@ -39,23 +45,28 @@ function calculateMetrics(bundles: AllocationResult['bundles']) {
   } as const
 }
 
-function toPersistedDraw(
+export function toPersistedDraw(
   playerCount: PlayerCount,
   slots: Array<{
+    id: string
     playerName: string
     totalScore: number
     slotIndex: number
+    isRevealed: boolean
     teamAssignments: Array<{
       teamOrder: number
       team: TeamScore
     }>
   }>,
 ): PersistedDraw {
-  const bundles = [...slots]
+  const bundles: PersistedAllocationResult['bundles'] = [...slots]
     .sort((left, right) => left.slotIndex - right.slotIndex)
     .map((slot) => ({
+      slotId: slot.id,
+      slotIndex: slot.slotIndex,
       playerName: slot.playerName,
       totalScore: slot.totalScore,
+      isRevealed: slot.isRevealed,
       teams: [...slot.teamAssignments]
         .sort((left, right) => left.teamOrder - right.teamOrder)
         .map((assignment) => assignment.team),
@@ -100,6 +111,7 @@ async function replaceDrawAllocation(
         slotIndex,
         playerName: bundle.playerName,
         totalScore: bundle.totalScore,
+        isRevealed: false,
       },
     })
 
@@ -198,6 +210,49 @@ export async function updateDrawNames(playerCount: PlayerCount, names: string[],
       },
     })
   }
+
+  const refreshed = await loadPersistedDraw(playerCount)
+  return toPersistedDraw(playerCount, refreshed!.slots as never)
+}
+
+export async function revealDrawSlot(playerCount: PlayerCount, slotId: string, teamScores: TeamScore[]) {
+  const prisma = getPrismaClient()
+  await getOrCreateDraw(playerCount, teamScores)
+
+  const draw = await prisma.draw.findUniqueOrThrow({
+    where: { playerCount },
+    include: {
+      slots: {
+        select: { id: true },
+      },
+    },
+  })
+
+  const matchingSlot = draw.slots.find((slot) => slot.id === slotId)
+
+  if (!matchingSlot) {
+    throw new Error('Slot does not belong to this draw.')
+  }
+
+  await prisma.drawSlot.update({
+    where: { id: slotId },
+    data: { isRevealed: true },
+  })
+
+  const refreshed = await loadPersistedDraw(playerCount)
+  return toPersistedDraw(playerCount, refreshed!.slots as never)
+}
+
+export async function resetDrawRevealState(playerCount: PlayerCount, teamScores: TeamScore[]) {
+  const prisma = getPrismaClient()
+  await getOrCreateDraw(playerCount, teamScores)
+
+  await prisma.drawSlot.updateMany({
+    where: {
+      draw: { playerCount },
+    },
+    data: { isRevealed: false },
+  })
 
   const refreshed = await loadPersistedDraw(playerCount)
   return toPersistedDraw(playerCount, refreshed!.slots as never)

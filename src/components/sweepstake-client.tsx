@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SCORE_SNAPSHOT } from '@/lib/team-source'
-import type { PersistedDraw, PlayerCount, TeamScore } from '@/lib/types'
+import type { PersistedBundle, PersistedDraw, PlayerCount, TeamScore } from '@/lib/types'
 
 const PLAYER_OPTIONS: PlayerCount[] = [7, 8, 9]
 const INITIAL_NAMES = [
@@ -17,8 +18,30 @@ const INITIAL_NAMES = [
   '',
 ]
 
+type RevealPhase = 'closed' | 'confirm' | 'opening' | 'cards' | 'finishing'
+
 function formatScore(value: number) {
   return value.toFixed(2)
+}
+
+function formatProbability(value: number) {
+  return `${(value * 100).toFixed(1)}%`
+}
+
+function getGlowTier(rank: number) {
+  if (rank <= 10) {
+    return 'great'
+  }
+
+  if (rank <= 24) {
+    return 'good'
+  }
+
+  return 'standard'
+}
+
+function isBundleFullyFlipped(bundle: PersistedBundle, flippedCards: number[]) {
+  return bundle.teams.every((_, index) => flippedCards.includes(index))
 }
 
 export function SweepstakeClient({
@@ -36,6 +59,11 @@ export function SweepstakeClient({
   const [draw, setDraw] = useState(initialDraw)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
+  const [revealPhase, setRevealPhase] = useState<RevealPhase>('closed')
+  const [activeSlotId, setActiveSlotId] = useState<string | null>(null)
+  const [flippedCards, setFlippedCards] = useState<number[]>([])
+  const [isPersistingReveal, setIsPersistingReveal] = useState(false)
+  const timeoutIds = useRef<number[]>([])
 
   const allocation = draw.allocation
   const metrics = allocation
@@ -45,13 +73,45 @@ export function SweepstakeClient({
     (left, right) =>
       right.totalScore - left.totalScore || left.playerName.localeCompare(right.playerName),
   )
+  const activeBundle = rankedBundles.find((bundle) => bundle.slotId === activeSlotId) ?? null
+
+  useEffect(() => {
+    return () => {
+      for (const timeoutId of timeoutIds.current) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [])
+
+  function clearRevealTimers() {
+    for (const timeoutId of timeoutIds.current) {
+      window.clearTimeout(timeoutId)
+    }
+
+    timeoutIds.current = []
+  }
+
+  function closeRevealFlow() {
+    clearRevealTimers()
+    setRevealPhase('closed')
+    setActiveSlotId(null)
+    setFlippedCards([])
+    setIsPersistingReveal(false)
+  }
+
+  function scheduleRevealStep(callback: () => void, delayMs: number) {
+    const timeoutId = window.setTimeout(callback, delayMs)
+    timeoutIds.current.push(timeoutId)
+  }
 
   async function loadDraw(nextPlayerCount: PlayerCount) {
     setIsSaving(true)
     setError('')
+    closeRevealFlow()
 
     try {
-      const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}`, {
+      const resetReveals = nextPlayerCount !== playerCount ? '&resetReveals=1' : ''
+      const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}${resetReveals}`, {
         cache: 'no-store',
       })
       const nextDraw = (await response.json()) as PersistedDraw | { error: string }
@@ -108,34 +168,70 @@ export function SweepstakeClient({
     }
   }
 
-  async function shufflePersistedDraw() {
-    setIsSaving(true)
+  function startReveal(bundle: PersistedBundle) {
+    if (bundle.isRevealed || isSaving || isPersistingReveal) {
+      return
+    }
+
+    clearRevealTimers()
+    setError('')
+    setActiveSlotId(bundle.slotId)
+    setFlippedCards([])
+    setRevealPhase('confirm')
+  }
+
+  function confirmReveal() {
+    setRevealPhase('opening')
+    clearRevealTimers()
+    scheduleRevealStep(() => {
+      setRevealPhase('cards')
+    }, 1350)
+  }
+
+  async function persistRevealCompletion(bundle: PersistedBundle) {
+    setIsPersistingReveal(true)
+    setRevealPhase('finishing')
     setError('')
 
     try {
       const response = await fetch('/api/draw', {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ playerCount }),
+        body: JSON.stringify({
+          action: 'reveal-slot',
+          playerCount,
+          slotId: bundle.slotId,
+        }),
       })
       const nextDraw = (await response.json()) as PersistedDraw | { error: string }
 
       if (!response.ok || 'error' in nextDraw) {
-        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to shuffle draw.')
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to reveal teams.')
       }
 
       setDraw(nextDraw)
-      setPlayerNames([
-        ...nextDraw.allocation.bundles.map((bundle) => bundle.playerName),
-        '',
-        '',
-      ])
+      scheduleRevealStep(() => {
+        closeRevealFlow()
+      }, 850)
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to shuffle draw.')
-    } finally {
-      setIsSaving(false)
+      setIsPersistingReveal(false)
+      setRevealPhase('cards')
+      setError(nextError instanceof Error ? nextError.message : 'Failed to reveal teams.')
+    }
+  }
+
+  function handleCardFlip(bundle: PersistedBundle, cardIndex: number) {
+    if (revealPhase !== 'cards' || isPersistingReveal || flippedCards.includes(cardIndex)) {
+      return
+    }
+
+    const nextFlippedCards = [...flippedCards, cardIndex]
+    setFlippedCards(nextFlippedCards)
+
+    if (isBundleFullyFlipped(bundle, nextFlippedCards)) {
+      void persistRevealCompletion(bundle)
     }
   }
 
@@ -146,15 +242,6 @@ export function SweepstakeClient({
           <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
           <h1>Players and bundles</h1>
         </div>
-
-        <button
-          type="button"
-          className="shuffle-button"
-          onClick={shufflePersistedDraw}
-          disabled={isSaving}
-        >
-          {isSaving ? 'Saving...' : 'Shuffle draw'}
-        </button>
       </section>
 
       <section className="results-panel">
@@ -162,7 +249,7 @@ export function SweepstakeClient({
           <div>
             <p className="section-kicker">Allocation</p>
             <h2>{playerCount} players</h2>
-            <p>Ordered by most likely to win.</p>
+            <p>Reveal each player&apos;s teams one pack at a time.</p>
           </div>
 
           <div className="count-switcher" aria-label="Player count">
@@ -172,7 +259,7 @@ export function SweepstakeClient({
                 type="button"
                 className={option === playerCount ? 'is-active' : ''}
                 onClick={() => void loadDraw(option)}
-                disabled={isSaving}
+                disabled={isSaving || isPersistingReveal}
               >
                 {option} players
               </button>
@@ -181,23 +268,51 @@ export function SweepstakeClient({
         </div>
 
         <div className="bundle-grid">
-          {rankedBundles.map((bundle, index) => (
-            <article key={`${bundle.playerName}-${index}`} className="bundle-card">
+          {rankedBundles.map((bundle) => (
+            <article
+              key={bundle.slotId}
+              className={`bundle-card ${bundle.isRevealed ? 'is-revealed' : 'is-hidden'}`}
+            >
               <header>
                 <div>
                   <p>{bundle.playerName}</p>
+                  <h3>{formatScore(bundle.totalScore)}</h3>
                 </div>
                 <span>{bundle.teams.length} teams</span>
               </header>
 
-              <ul>
-                {bundle.teams.map((team) => (
-                  <li key={team.name}>
-                    <span>{team.name}</span>
-                    <span>G{team.group}</span>
-                  </li>
-                ))}
-              </ul>
+              {bundle.isRevealed ? (
+                <ul className="bundle-team-list">
+                  {bundle.teams.map((team) => (
+                    <li key={team.name}>
+                      <div>
+                        <span>{team.name}</span>
+                        <small>
+                          Rank #{team.rank} · Group {team.group}
+                        </small>
+                      </div>
+                      <strong>{formatScore(team.score)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="bundle-hidden-state">
+                  <div className="bundle-pack-preview" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <p>Teams stay hidden until this player opens their pack.</p>
+                  <button
+                    type="button"
+                    className="reveal-button"
+                    onClick={() => startReveal(bundle)}
+                    disabled={isSaving || isPersistingReveal}
+                  >
+                    Reveal teams
+                  </button>
+                </div>
+              )}
             </article>
           ))}
         </div>
@@ -219,7 +334,7 @@ export function SweepstakeClient({
             <button type="button" className="secondary-button" onClick={saveNames} disabled={isSaving}>
               Save names to shared draw
             </button>
-            <p className="sync-copy">This draw is shared across devices.</p>
+            <p className="sync-copy">Revealed teams stay visible across devices.</p>
           </div>
 
           <div className="name-grid">
@@ -286,7 +401,7 @@ export function SweepstakeClient({
           <div className="favorites-card">
             <div className="favorites-heading">
               <h2>Top teams</h2>
-              <p>Highest normalized scores in the draw pool.</p>
+              <p>Top 10 cards glow red. The rest of the top half glow blue.</p>
             </div>
 
             <div className="favorites-list">
@@ -306,6 +421,115 @@ export function SweepstakeClient({
           </div>
         </div>
       </section>
+
+      {activeBundle ? (
+        <div className="reveal-overlay" role="dialog" aria-modal="true" aria-labelledby="reveal-title">
+          <div className={`reveal-modal reveal-phase-${revealPhase}`}>
+            {revealPhase === 'confirm' ? (
+              <div className="confirm-pane">
+                <p className="section-kicker">Private reveal</p>
+                <h2 id="reveal-title">Reveal {activeBundle.playerName}&rsquo;s teams?</h2>
+                <p>This shows the teams for this player and keeps them visible from now on.</p>
+                <div className="confirm-actions">
+                  <button type="button" className="reveal-button" onClick={confirmReveal}>
+                    Yes, I am &quot;{activeBundle.playerName}&quot;
+                  </button>
+                  <button type="button" className="secondary-button" onClick={closeRevealFlow}>
+                    No
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {revealPhase === 'opening' ? (
+              <div className="opening-pane">
+                <p className="section-kicker">Pack opening</p>
+                <div className="pack-scene" aria-hidden="true">
+                  <div className="pack-shell">
+                    <div className="pack-flare" />
+                    <div className="pack-logo">Guest Road</div>
+                  </div>
+                  <div className="pack-burst" />
+                  <div className="pack-card-fan">
+                    {activeBundle.teams.slice(0, Math.min(activeBundle.teams.length, 5)).map((team, index) => (
+                      <span
+                        key={team.name}
+                        className="fan-card"
+                        style={{ '--fan-index': index } as CSSProperties}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <h2 id="reveal-title">Opening {activeBundle.playerName}&rsquo;s pack</h2>
+                <p>The cards are about to spill out.</p>
+              </div>
+            ) : null}
+
+            {revealPhase === 'cards' || revealPhase === 'finishing' ? (
+              <div className="cards-pane">
+                <div className="cards-pane-header">
+                  <div>
+                    <p className="section-kicker">Reveal board</p>
+                    <h2 id="reveal-title">{activeBundle.playerName}&rsquo;s teams</h2>
+                  </div>
+                  <div className="center-finale">
+                    <span>{flippedCards.length}</span>
+                    <small>
+                      {isPersistingReveal
+                        ? 'Locking in reveal...'
+                        : `${activeBundle.teams.length - flippedCards.length} cards left`}
+                    </small>
+                  </div>
+                </div>
+
+                <div className="reveal-card-grid">
+                  {activeBundle.teams.map((team, index) => {
+                    const isFlipped = flippedCards.includes(index)
+                    const glowTier = getGlowTier(team.rank)
+
+                    return (
+                      <button
+                        key={team.name}
+                        type="button"
+                        className={`team-reveal-card is-${glowTier} ${isFlipped ? 'is-flipped' : ''}`}
+                        onClick={() => handleCardFlip(activeBundle, index)}
+                        disabled={isFlipped || isPersistingReveal || revealPhase !== 'cards'}
+                      >
+                        <span className="team-reveal-card-inner">
+                          <span className="team-reveal-card-face team-reveal-card-back">
+                            <span className="card-back-badge">World Cup</span>
+                            <strong>Reveal</strong>
+                            <small>Click to flip</small>
+                          </span>
+                          <span className="team-reveal-card-face team-reveal-card-front">
+                            <span className="card-rank">#{team.rank}</span>
+                            <strong>{team.name}</strong>
+                            <small>Group {team.group}</small>
+                            <dl>
+                              <div>
+                                <dt>Score</dt>
+                                <dd>{formatScore(team.score)}</dd>
+                              </div>
+                              <div>
+                                <dt>Odds</dt>
+                                <dd>+{team.odds}</dd>
+                              </div>
+                              <div>
+                                <dt>Implied</dt>
+                                <dd>{formatProbability(team.impliedProbability)}</dd>
+                              </div>
+                            </dl>
+                          </span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }

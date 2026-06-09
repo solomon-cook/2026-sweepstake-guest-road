@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server'
-import { getOrCreateDraw, shuffleDraw, updateDrawNames } from '@/lib/draw-repository'
+import {
+  getOrCreateDraw,
+  resetDrawRevealState,
+  revealDrawSlot,
+  shuffleDraw,
+  updateDrawNames,
+} from '@/lib/draw-repository'
 import { loadTeamScores } from '@/lib/team-repository'
 import type { PlayerCount } from '@/lib/types'
 
@@ -23,6 +29,7 @@ async function loadTeamState() {
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const playerCount = parsePlayerCount(Number(url.searchParams.get('playerCount')))
+  const resetReveals = url.searchParams.get('resetReveals') === '1'
 
   if (!playerCount) {
     return NextResponse.json({ error: 'Invalid playerCount.' }, { status: 400 })
@@ -34,15 +41,19 @@ export async function GET(request: Request) {
     return teams
   }
 
-  const draw = await getOrCreateDraw(playerCount, teams)
+  const draw = resetReveals
+    ? await resetDrawRevealState(playerCount, teams)
+    : await getOrCreateDraw(playerCount, teams)
   return NextResponse.json(draw)
 }
 
 export async function PATCH(request: Request) {
-  const body = (await request.json()) as { names?: string[]; playerCount?: number }
+  const body = (await request.json()) as
+    | { names?: string[]; playerCount?: number }
+    | { slotId?: string; playerCount?: number; action?: string }
   const playerCount = parsePlayerCount(body.playerCount)
 
-  if (!playerCount || !Array.isArray(body.names)) {
+  if (!playerCount) {
     return NextResponse.json({ error: 'Invalid payload.' }, { status: 400 })
   }
 
@@ -50,6 +61,20 @@ export async function PATCH(request: Request) {
 
   if (teams instanceof NextResponse) {
     return teams
+  }
+
+  if ('action' in body && body.action === 'reveal-slot' && typeof body.slotId === 'string') {
+    try {
+      const draw = await revealDrawSlot(playerCount, body.slotId, teams)
+      return NextResponse.json(draw)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reveal teams.'
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
+  }
+
+  if (!('names' in body) || !Array.isArray(body.names)) {
+    return NextResponse.json({ error: 'Invalid payload.' }, { status: 400 })
   }
 
   const draw = await updateDrawNames(playerCount, body.names, teams)

@@ -33,6 +33,7 @@ model DrawSlot {
   slotIndex      Int
   playerName     String
   totalScore     Float
+  isRevealed     Boolean       @default(false)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   draw           Draw          @relation(fields: [drawId], references: [id], onDelete: Cascade)

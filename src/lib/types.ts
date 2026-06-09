@@ -19,6 +19,12 @@ export type Bundle = {
   totalScore: number
 }
 
+export type PersistedBundle = Bundle & {
+  slotId: string
+  slotIndex: number
+  isRevealed: boolean
+}
+
 export type AllocationResult = {
   bundles: Bundle[]
   averageScore: number
@@ -28,7 +34,11 @@ export type AllocationResult = {
   balanceLabel: 'Very Balanced' | 'Balanced' | 'Loose'
 }
 
+export type PersistedAllocationResult = Omit<AllocationResult, 'bundles'> & {
+  bundles: PersistedBundle[]
+}
+
 export type PersistedDraw = {
   playerCount: PlayerCount
-  allocation: AllocationResult
+  allocation: PersistedAllocationResult
 }
