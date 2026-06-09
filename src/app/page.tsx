@@ -26,7 +26,22 @@ export default async function Page() {
   const result = await loadTeamScores()
 
   if (result.status === 'ready') {
-    const initialDraw = await getOrCreateDraw(7, result.teams)
+    let initialDraw
+
+    try {
+      initialDraw = await getOrCreateDraw(7, result.teams)
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown database error while loading the draw.'
+
+      return (
+        <SetupState
+          title="The app cannot read the persisted draw yet."
+          body={message}
+        />
+      )
+    }
+
     return <SweepstakeClient initialDraw={initialDraw} teamScores={result.teams} />
   }
 
