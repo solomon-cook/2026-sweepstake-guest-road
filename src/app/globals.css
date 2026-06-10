@@ -205,26 +205,23 @@ input {
 }
 
 .bundle-grid {
-  margin-top: 18px;
+  gap: 40px 28px;
+  margin-top: 28px;
 }
 
 .bundle-card {
-  background: #fff;
-  border: 1px solid rgba(56, 67, 154, 0.14);
-  border-radius: 20px;
+  background: transparent;
+  border-top: 1px solid rgba(79, 82, 81, 0.22);
   display: grid;
-  overflow: hidden;
+  padding-top: 18px;
 }
 
 .bundle-card header {
-  align-items: flex-end;
-  background:
-    linear-gradient(135deg, rgba(56, 67, 154, 0.08), rgba(57, 173, 56, 0.14)),
-    #fff;
+  align-items: flex-start;
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  padding: 16px 16px 14px;
+  padding: 0 0 10px;
 }
 
 .bundle-card header p,
@@ -242,24 +239,21 @@ input {
 }
 
 .bundle-card header p {
+  color: var(--color-ink);
   font-size: 1.15rem;
   font-weight: 700;
 }
 
-.bundle-card.is-hidden header {
-  background: var(--color-blue);
-}
-
 .bundle-card.is-hidden header p,
 .bundle-card.is-hidden header span {
-  color: #fff;
+  color: var(--color-ink);
 }
 
 .bundle-team-list,
 .bundle-card ul {
   list-style: none;
   margin: 0;
-  padding: 8px 16px 14px;
+  padding: 10px 0 0;
 }
 
 .bundle-card li {
@@ -288,32 +282,29 @@ input {
 }
 
 .bundle-hidden-state {
-  align-content: center;
+  align-content: start;
   display: grid;
   gap: 0;
-  justify-items: center;
-  min-height: 128px;
-  padding: 20px;
-  text-align: center;
+  justify-items: start;
+  min-height: 0;
+  padding: 34px 0 8px;
+  text-align: left;
 }
 
 .reveal-button {
-  background: var(--color-blue);
-  border: 1px solid var(--color-blue);
-  border-radius: 999px;
-  color: #fff;
-  min-height: 48px;
-  padding: 0 22px;
+  background: transparent;
+  border-bottom: 2px solid var(--color-blue);
+  color: var(--color-blue);
+  min-height: 0;
+  padding: 0 0 12px;
   transition:
-    transform 140ms ease,
-    background-color 140ms ease,
+    color 140ms ease,
     border-color 140ms ease;
 }
 
 .reveal-button:hover {
-  background: #2f3985;
-  border-color: #2f3985;
-  transform: translateY(-1px);
+  border-color: var(--color-red);
+  color: var(--color-red);
 }
 
 .details-panel {
