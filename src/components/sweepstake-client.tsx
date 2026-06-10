@@ -65,8 +65,8 @@ export function SweepstakeClient({
     <main className="page-shell">
       <section className="top-bar">
         <div>
-          <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
-          <h1>Players and bundles</h1>
+          <p className="eyebrow">2026 World Cup - Guest Road</p>
+          <h1>Sweepstake</h1>
         </div>
         <HeaderLinks />
       </section>
