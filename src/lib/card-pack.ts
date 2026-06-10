@@ -16,6 +16,7 @@ export function toPrizeCard(team: PersistedBundle['teams'][number]): PrizeCard {
     id: team.id ?? team.name,
     name: team.name,
     flag: team.flag,
+    flagImageUrl: team.flagImageUrl,
     imageLabel: `Group ${team.group}`,
     rank: team.rank,
     metadata: [

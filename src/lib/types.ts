@@ -3,12 +3,14 @@ export type PlayerCount = 7 | 8 | 9
 export type TeamSeed = {
   name: string
   flag: string
+  flagCode: string
   group: string
   odds: number
 }
 
 export type TeamScore = TeamSeed & {
   id?: string
+  flagImageUrl?: string
   impliedProbability: number
   score: number
   rank: number
@@ -18,6 +20,7 @@ export type PrizeCard = {
   id: string
   name: string
   flag: string
+  flagImageUrl?: string
   imageLabel: string
   metadata: Array<{
     label: string

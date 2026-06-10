@@ -10,6 +10,9 @@ model Team {
   id                 String   @id @default(cuid())
   name               String   @unique
   flag               String   @default("")
+  flagCode           String   @default("")
+  flagImageBytes     Bytes?
+  flagImageMimeType  String   @default("image/jpeg")
   group              String
   odds               Int
   impliedProbability Float

@@ -299,7 +299,22 @@ export function CardPackOpening({
           </span>
           <span className="team-reveal-card-face team-reveal-card-front">
             <span className="card-rank">{card.rank ? `#${card.rank}` : card.imageLabel}</span>
-            <strong>{card.flag} {card.name}</strong>
+            <span className="team-card-heading">
+              {card.flagImageUrl ? (
+                <img
+                  className="team-card-flag"
+                  src={card.flagImageUrl}
+                  alt={`${card.name} flag`}
+                  width={20}
+                  height={15}
+                />
+              ) : (
+                <span className="team-card-flag team-card-flag-fallback" aria-hidden="true">
+                  {card.flag}
+                </span>
+              )}
+              <strong>{card.name}</strong>
+            </span>
             <small>{card.imageLabel}</small>
             <dl>
               {card.metadata.map((item) => (

@@ -18,7 +18,16 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/team-flags/[teamId]",
+      "regex": "^/api/team\\-flags/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPteamId": "nxtPteamId"
+      },
+      "namedRegex": "^/api/team\\-flags/(?<nxtPteamId>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",

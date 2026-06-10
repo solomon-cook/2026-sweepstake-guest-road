@@ -1,6 +1,10 @@
 import { getPrismaClient } from './prisma'
 import type { TeamScore } from './types'
 
+function buildFlagImageUrl(teamId: string) {
+  return `/api/team-flags/${teamId}`
+}
+
 type TeamLoadResult =
   | { status: 'ready'; teams: TeamScore[] }
   | { status: 'empty' }
@@ -25,6 +29,8 @@ export async function loadTeamScores(): Promise<TeamLoadResult> {
         id: team.id,
         name: team.name,
         flag: team.flag,
+        flagCode: team.flagCode,
+        flagImageUrl: buildFlagImageUrl(team.id),
         group: team.group,
         odds: team.odds,
         impliedProbability: team.impliedProbability,
