@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { CardPackOpening } from '@/components/card-pack-opening'
 import { HeaderLinks } from '@/components/header-links'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
-import { formatScore } from '@/lib/formatters'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
 function hasPlayerName(bundle: PersistedBundle) {
@@ -180,7 +179,7 @@ export function SweepstakeClient({
                             Rank #{team.rank} · Group {team.group}
                           </small>
                         </div>
-                        <strong>{formatScore(team.score)}</strong>
+                        <strong>#{team.rank}</strong>
                       </li>
                     ))}
                   </ul>
