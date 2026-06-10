@@ -448,13 +448,13 @@ input {
 .pack-shell {
   align-items: center;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 36%),
-    linear-gradient(140deg, #21306a, #3346a5 48%, #111b42);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), transparent 34%),
+    linear-gradient(145deg, rgba(57, 173, 56, 0.18), rgba(56, 67, 154, 0.82) 48%, rgba(79, 82, 81, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 24px;
   box-shadow:
-    0 30px 60px rgba(25, 33, 63, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 24px 44px rgba(79, 82, 81, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
   display: grid;
   height: 198px;
   justify-items: center;
@@ -467,15 +467,17 @@ input {
 }
 
 .pack-flare {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent 68%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), transparent 68%);
   filter: blur(6px);
   inset: 18% 10%;
-  opacity: 0.55;
+  opacity: 0.7;
   position: absolute;
 }
 
 .pack-logo {
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(8px);
+  background: rgba(239, 239, 236, 0.18);
+  border: 1px solid rgba(239, 239, 236, 0.54);
   border-radius: 999px;
   color: #fff;
   font-family: var(--font-title);
@@ -488,8 +490,8 @@ input {
 
 .pack-burst {
   background:
-    radial-gradient(circle, rgba(255, 212, 92, 0.88), rgba(255, 163, 29, 0.5) 45%, transparent 66%),
-    radial-gradient(circle, rgba(72, 161, 255, 0.32), transparent 70%);
+    radial-gradient(circle, rgba(237, 239, 236, 0.95), rgba(217, 217, 217, 0.5) 22%, rgba(237, 28, 36, 0.22) 44%, transparent 66%),
+    radial-gradient(circle, rgba(56, 67, 154, 0.26), transparent 72%);
   border-radius: 50%;
   height: 280px;
   opacity: 0;
@@ -515,10 +517,13 @@ input {
 
 .reveal-arena {
   background:
-    radial-gradient(circle at center, rgba(15, 22, 51, 0.86), rgba(12, 16, 36, 0.94)),
-    linear-gradient(180deg, #1b2146, #10162f);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+    radial-gradient(circle at 50% 24%, rgba(56, 67, 154, 0.18), transparent 28%),
+    radial-gradient(circle at 84% 18%, rgba(237, 28, 36, 0.12), transparent 20%),
+    radial-gradient(circle at 14% 78%, rgba(57, 173, 56, 0.12), transparent 18%),
+    linear-gradient(180deg, rgba(239, 239, 236, 0.96), rgba(217, 217, 217, 0.92));
+  border: 1px solid rgba(79, 82, 81, 0.12);
   border-radius: 28px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
   min-height: 780px;
   overflow: hidden;
   position: relative;
@@ -526,16 +531,17 @@ input {
 
 .arena-backdrop {
   background:
-    radial-gradient(circle at 50% 46%, rgba(72, 118, 255, 0.12), transparent 33%),
-    radial-gradient(circle at 50% 58%, rgba(255, 180, 71, 0.08), transparent 26%);
+    radial-gradient(circle at 50% 48%, rgba(56, 67, 154, 0.08), transparent 34%),
+    radial-gradient(circle at 50% 57%, rgba(237, 28, 36, 0.06), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.36), transparent 45%);
   inset: 0;
   position: absolute;
 }
 
 .arena-energy-ring {
-  background: radial-gradient(circle, transparent 58%, rgba(255, 178, 49, 0.7) 60%, transparent 74%);
+  background: radial-gradient(circle, transparent 58%, rgba(56, 67, 154, 0.26) 60%, rgba(57, 173, 56, 0.16) 66%, transparent 76%);
   border-radius: 50%;
-  filter: blur(2px);
+  filter: blur(6px);
   height: 500px;
   left: calc(50% - 250px);
   opacity: 0.7;
@@ -547,10 +553,10 @@ input {
 
 .arena-energy-core {
   background:
-    radial-gradient(circle, rgba(255, 222, 135, 0.95), rgba(255, 161, 24, 0.7) 34%, transparent 62%),
-    radial-gradient(circle, rgba(70, 156, 255, 0.55), transparent 64%);
+    radial-gradient(circle, rgba(239, 239, 236, 0.98), rgba(217, 217, 217, 0.78) 28%, rgba(56, 67, 154, 0.18) 48%, transparent 64%),
+    radial-gradient(circle, rgba(57, 173, 56, 0.18), transparent 74%);
   border-radius: 50%;
-  filter: blur(2px);
+  filter: blur(5px);
   height: 180px;
   left: calc(50% - 90px);
   opacity: 0.92;
@@ -591,13 +597,13 @@ input {
 .center-finale {
   align-items: center;
   background:
-    radial-gradient(circle at top, rgba(188, 238, 255, 0.95), rgba(113, 185, 255, 0.78)),
-    linear-gradient(180deg, #8dd3ff, #5a9ff2);
-  border: 2px solid rgba(194, 236, 255, 0.75);
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.96), rgba(217, 217, 217, 0.7)),
+    linear-gradient(180deg, rgba(56, 67, 154, 0.72), rgba(56, 67, 154, 0.56));
+  border: 2px solid rgba(239, 239, 236, 0.86);
   border-radius: 999px;
   box-shadow:
-    0 0 28px rgba(102, 192, 255, 0.45),
-    inset 0 2px 0 rgba(255, 255, 255, 0.7);
+    0 14px 28px rgba(79, 82, 81, 0.12),
+    inset 0 2px 0 rgba(255, 255, 255, 0.72);
   display: grid;
   justify-items: center;
   left: calc(50% - 78px);
@@ -698,8 +704,8 @@ input {
   backface-visibility: hidden;
   border-radius: 30px;
   box-shadow:
-    0 20px 36px rgba(5, 8, 22, 0.38),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+    0 18px 28px rgba(79, 82, 81, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.46);
   inset: 0;
   padding: 16px 16px 18px;
   position: absolute;
@@ -708,45 +714,92 @@ input {
 .team-reveal-card-back {
   align-content: space-between;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.22), transparent 32%),
-    linear-gradient(160deg, #243775, #3b55b5 42%, #0d1532);
-  border: 2px solid rgba(215, 180, 88, 0.74);
-  color: #fff;
+    radial-gradient(circle at 22% 18%, rgba(57, 173, 56, 0.22), transparent 20%),
+    radial-gradient(circle at 78% 20%, rgba(237, 28, 36, 0.16), transparent 22%),
+    radial-gradient(circle at 58% 76%, rgba(56, 67, 154, 0.16), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(239, 239, 236, 0.96));
+  border: 2px solid rgba(56, 67, 154, 0.28);
+  color: var(--color-blue);
   display: grid;
   gap: 12px;
   justify-items: center;
+  overflow: hidden;
   padding-top: 18px;
   text-align: center;
 }
 
+.team-reveal-card-back::after {
+  background:
+    repeating-linear-gradient(
+      var(--pattern-rotation),
+      rgba(56, 67, 154, 0.09) 0 12px,
+      transparent 12px 28px
+    ),
+    repeating-linear-gradient(
+      calc(var(--pattern-rotation) + 90deg),
+      rgba(57, 173, 56, 0.08) 0 10px,
+      transparent 10px 24px
+    ),
+    conic-gradient(
+      from var(--pattern-rotation) at 50% 50%,
+      rgba(237, 28, 36, 0.12),
+      rgba(239, 239, 236, 0) 22%,
+      rgba(56, 67, 154, 0.1) 46%,
+      rgba(239, 239, 236, 0) 74%,
+      rgba(57, 173, 56, 0.12)
+    );
+  content: '';
+  inset: 0;
+  opacity: 0.9;
+  position: absolute;
+  transform: translateX(var(--pattern-shift));
+  z-index: 0;
+}
+
 .card-back-badge {
-  border: 1px solid rgba(255, 233, 173, 0.48);
+  backdrop-filter: blur(6px);
+  background: rgba(239, 239, 236, 0.52);
+  border: 1px solid rgba(56, 67, 154, 0.24);
   border-radius: 999px;
+  color: rgba(56, 67, 154, 0.8);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   padding: 6px 10px;
+  position: relative;
   text-transform: uppercase;
+  z-index: 1;
 }
 
 .team-reveal-card-back::before {
   background:
-    radial-gradient(circle at center, rgba(250, 204, 94, 0.95), rgba(225, 145, 31, 0.88) 40%, transparent 46%),
-    radial-gradient(circle at center, rgba(78, 171, 255, 0.85), transparent 62%);
+    radial-gradient(circle at center, rgba(237, 28, 36, 0.85), rgba(237, 28, 36, 0.18) 32%, transparent 42%),
+    radial-gradient(circle at center, rgba(56, 67, 154, 0.9), rgba(56, 67, 154, 0.2) 56%, transparent 62%),
+    radial-gradient(circle at center, rgba(57, 173, 56, 0.68), transparent 74%);
+  box-shadow:
+    0 0 0 10px rgba(255, 255, 255, 0.38),
+    0 0 36px rgba(56, 67, 154, 0.16);
   border-radius: 50%;
   content: '';
   height: 94px;
   margin-top: 4px;
+  position: relative;
   width: 94px;
+  z-index: 1;
 }
 
 .team-reveal-card-back strong {
+  color: var(--color-blue);
   font-family: var(--font-title);
   font-size: 1.8rem;
+  position: relative;
+  z-index: 1;
 }
 
 .team-reveal-card-back small {
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(79, 82, 81, 0.74);
   padding-bottom: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .card-impact-ripple {
