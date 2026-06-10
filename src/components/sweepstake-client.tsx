@@ -139,7 +139,7 @@ export function SweepstakeClient({
           <div>
             <p className="section-kicker">Allocation</p>
             <h2>{claimedPlayerCount} of 7 players in</h2>
-            <p>Claim a pack, then reveal the teams already assigned to it.</p>
+            <p>Claim a place in the sweepstake and unpack some teams.</p>
           </div>
         </div>
 
@@ -242,7 +242,7 @@ export function SweepstakeClient({
                 onClick={() => setShowJoinForm(true)}
                 disabled={isSaving}
               >
-                Join
+                Join Sweepstake
               </button>
             )}
           </div>
