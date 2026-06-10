@@ -527,39 +527,32 @@ input {
 }
 
 .mobile-reveal-stage {
+  align-content: center;
   display: grid;
-  gap: 16px;
+  gap: 14px;
+  justify-items: center;
+  min-height: 0;
 }
 
-.mobile-reveal-status {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(79, 82, 81, 0.12);
-  border-radius: 16px;
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 14px;
-}
-
-.mobile-reveal-status span {
-  color: rgba(79, 82, 81, 0.72);
-  font-size: 0.92rem;
-}
-
-.mobile-reveal-status strong {
+.mobile-reveal-progress {
   color: var(--color-blue);
-  font-size: 0.98rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin: 0;
+  text-transform: uppercase;
 }
 
 .mobile-single-card {
-  height: 420px;
+  height: min(420px, calc(100vh - 260px));
   left: auto;
   margin: 0 auto;
   max-width: 290px;
+  min-height: 360px;
   position: relative;
   top: auto;
   transform: none;
-  width: 100%;
+  width: min(100%, 290px);
 }
 
 .mobile-single-card.is-flipped.is-good,
@@ -592,18 +585,13 @@ input {
 
 .mobile-reveal-controls {
   display: grid;
-  gap: 12px;
+  justify-items: center;
+  width: 100%;
 }
 
 .desktop-reveal-actions {
   display: grid;
   justify-content: center;
-}
-
-.mobile-reveal-controls p {
-  color: rgba(79, 82, 81, 0.76);
-  margin: 0;
-  text-align: center;
 }
 
 .cards-pane-heading {
@@ -1111,6 +1099,12 @@ code {
 }
 
 @media (max-width: 699px) {
+  .reveal-overlay {
+    align-items: stretch;
+    background: rgba(239, 239, 236, 0.96);
+    padding: 0;
+  }
+
   .top-bar {
     align-items: flex-start;
     flex-direction: column;
@@ -1127,8 +1121,70 @@ code {
   }
 
   .reveal-modal {
-    max-height: calc(100vh - 40px);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    max-height: 100vh;
     overflow: auto;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+    width: 100%;
+  }
+
+  .cards-pane {
+    min-height: calc(100vh - 36px - env(safe-area-inset-bottom));
+  }
+
+  .cards-pane-heading {
+    gap: 6px;
+    text-align: center;
+  }
+
+  .cards-pane-heading .section-kicker {
+    margin-bottom: 4px;
+  }
+
+  .cards-pane-heading h2 {
+    font-size: clamp(2rem, 12vw, 3.2rem);
+  }
+
+  .cards-pane-heading p:last-child {
+    display: none;
+  }
+
+  .mobile-reveal-stage {
+    grid-template-rows: auto minmax(360px, 1fr) auto;
+  }
+
+  .mobile-reveal-controls {
+    align-self: end;
+    background: linear-gradient(180deg, rgba(239, 239, 236, 0), rgba(239, 239, 236, 0.96) 28%);
+    bottom: 0;
+    margin: 0 -18px;
+    padding: 22px 18px calc(18px + env(safe-area-inset-bottom));
+    position: sticky;
+  }
+
+  .mobile-reveal-controls .reveal-button {
+    background: var(--color-blue);
+    border: 1px solid var(--color-blue);
+    border-radius: 999px;
+    color: #fff;
+    min-height: 52px;
+    padding: 0 24px;
+    width: min(100%, 320px);
+  }
+
+  .mobile-reveal-controls .reveal-button:hover {
+    background: var(--color-red);
+    border-color: var(--color-red);
+    color: #fff;
+  }
+
+  .mobile-reveal-controls .reveal-button:disabled {
+    background: rgba(79, 82, 81, 0.16);
+    border-color: transparent;
+    color: rgba(79, 82, 81, 0.58);
   }
 
   .reveal-arena {

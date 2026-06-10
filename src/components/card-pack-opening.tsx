@@ -352,23 +352,13 @@ export function CardPackOpening({
         <>
           {isMobileViewport && phase !== 'opening' && activeMobileRevealCard ? (
             <div className="mobile-reveal-stage">
-              <div className="mobile-reveal-status">
-                <span>
-                  Card {mobileRevealIndex + 1} of {revealCards.length}
-                </span>
-                <strong>{flippedCards.length} revealed</strong>
-              </div>
+              <p className="mobile-reveal-progress">
+                Team {mobileRevealIndex + 1} of {revealCards.length}
+              </p>
 
               {renderCard(activeMobileRevealCard, true)}
 
               <div className="mobile-reveal-controls">
-                <p>
-                  {phase === 'revealed'
-                    ? 'Pack reveal complete.'
-                    : flippedCards.includes(activeMobileRevealCard.originalIndex)
-                      ? 'Take a look, then continue.'
-                      : 'Tap the card to reveal this prize.'}
-                </p>
                 {phase === 'revealed' && onClose ? (
                   <button type="button" className="reveal-button" onClick={onClose}>
                     Done
@@ -380,7 +370,7 @@ export function CardPackOpening({
                     onClick={advanceMobileReveal}
                     disabled={!flippedCards.includes(activeMobileRevealCard.originalIndex)}
                   >
-                    {mobileRevealIndex >= revealCards.length - 1 ? 'Finish reveal' : 'Next card'}
+                    {mobileRevealIndex >= revealCards.length - 1 ? 'Finish reveal' : 'Next team'}
                   </button>
                 )}
               </div>
