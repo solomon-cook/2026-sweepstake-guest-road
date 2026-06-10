@@ -383,8 +383,6 @@ export function CardPackOpening({
                 }`}
               >
                 <div className="arena-backdrop" aria-hidden="true" />
-                <div className="arena-energy-ring" aria-hidden="true" />
-                <div className="arena-energy-core" aria-hidden="true" />
                 <div className={`pack-shell arena-pack ${phase === 'opening' ? 'is-live' : 'is-spent'}`}>
                   <div className="pack-flare" />
                   <div className="pack-logo">Guest Road</div>
@@ -393,26 +391,23 @@ export function CardPackOpening({
 
                 {revealCards.map((card) => renderCard(card))}
 
-                <div className="center-finale">
-                  <span>{flippedCards.length}</span>
-                  <small>
-                    {phase === 'opening'
-                      ? result
-                        ? 'Opening pack...'
-                        : 'Requesting pack...'
-                      : phase === 'revealed'
-                        ? 'Pack complete'
-                        : `${Math.max((result?.cards.length ?? 0) - flippedCards.length, 0)} cards left`}
-                  </small>
-                </div>
-              </div>
-              {phase === 'revealed' && onClose ? (
-                <div className="desktop-reveal-actions">
-                  <button type="button" className="reveal-button" onClick={onClose}>
+                {phase === 'revealed' && onClose ? (
+                  <button type="button" className="center-finale center-finale-button" onClick={onClose}>
                     Done
                   </button>
-                </div>
-              ) : null}
+                ) : (
+                  <div className="center-finale" aria-live="polite">
+                    <span>{flippedCards.length}</span>
+                    <small>
+                      {phase === 'opening'
+                        ? result
+                          ? 'Opening pack...'
+                          : 'Requesting pack...'
+                        : `${Math.max((result?.cards.length ?? 0) - flippedCards.length, 0)} cards left`}
+                    </small>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </>

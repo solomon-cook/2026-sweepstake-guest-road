@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
 import type { PersistedDraw, PlayerCount } from '@/lib/types'
 
+const PLAYER_OPTIONS: PlayerCount[] = [7, 8, 9]
+
 const INITIAL_NAMES = [
   'Sam Felton',
   'Sam Robinson',
@@ -17,7 +19,7 @@ const INITIAL_NAMES = [
 ]
 
 export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }) {
-  const [playerCount] = useState<PlayerCount>(initialDraw.playerCount)
+  const [playerCount, setPlayerCount] = useState<PlayerCount>(initialDraw.playerCount)
   const [playerNames, setPlayerNames] = useState([
     ...initialDraw.allocation.bundles.map((bundle) => bundle.playerName),
     ...INITIAL_NAMES,
@@ -28,35 +30,96 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
 
   const visibleNames = playerNames.slice(0, playerCount)
 
+  function namesFromDraw(nextDraw: PersistedDraw) {
+    return [
+      ...nextDraw.allocation.bundles.map((bundle) => bundle.playerName),
+      ...INITIAL_NAMES,
+    ]
+  }
+
+  async function persistNames() {
+    const response = await fetch('/api/draw', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        playerCount,
+        names: visibleNames,
+      }),
+    })
+    const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+    if (!response.ok || 'error' in nextDraw) {
+      throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to save names.')
+    }
+
+    return nextDraw
+  }
+
+  async function loadDraw(nextPlayerCount: PlayerCount) {
+    setIsSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}`, {
+        cache: 'no-store',
+      })
+      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+      if (!response.ok || 'error' in nextDraw) {
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to load draw.')
+      }
+
+      setDraw(nextDraw)
+      setPlayerCount(nextPlayerCount)
+      setPlayerNames(namesFromDraw(nextDraw))
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to load draw.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   async function saveNames() {
     setIsSaving(true)
     setError('')
 
     try {
+      const nextDraw = await persistNames()
+      setDraw(nextDraw)
+      setPlayerNames(namesFromDraw(nextDraw))
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to save names.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function redoTeams() {
+    setIsSaving(true)
+    setError('')
+
+    try {
+      await persistNames()
+
       const response = await fetch('/api/draw', {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          playerCount,
-          names: visibleNames,
-        }),
+        body: JSON.stringify({ playerCount }),
       })
       const nextDraw = (await response.json()) as PersistedDraw | { error: string }
 
       if (!response.ok || 'error' in nextDraw) {
-        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to save names.')
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to redo teams.')
       }
 
       setDraw(nextDraw)
-      setPlayerNames([
-        ...nextDraw.allocation.bundles.map((bundle) => bundle.playerName),
-        '',
-        '',
-      ])
+      setPlayerNames(namesFromDraw(nextDraw))
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to save names.')
+      setError(nextError instanceof Error ? nextError.message : 'Failed to redo teams.')
     } finally {
       setIsSaving(false)
     }
@@ -77,11 +140,25 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
           <div className="panel-heading">
             <div>
               <p className="section-kicker">Participants</p>
-              <h2>Edit names</h2>
+              <h2>{playerCount} players</h2>
             </div>
             <p>
               Blank slots automatically fall back to <code>Player n</code>.
             </p>
+          </div>
+
+          <div className="count-switcher participant-count-switcher" aria-label="Player count">
+            {PLAYER_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={option === playerCount ? 'is-active' : ''}
+                onClick={() => void loadDraw(option)}
+                disabled={isSaving}
+              >
+                {option} players
+              </button>
+            ))}
           </div>
 
           <div className="panel-actions">
@@ -106,6 +183,12 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
                 />
               </label>
             ))}
+          </div>
+
+          <div className="redo-actions">
+            <button type="button" className="secondary-button danger-button" onClick={redoTeams} disabled={isSaving}>
+              Redo teams
+            </button>
           </div>
 
           {error ? <p className="error-copy">{error}</p> : null}

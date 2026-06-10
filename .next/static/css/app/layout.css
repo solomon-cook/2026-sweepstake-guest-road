@@ -345,6 +345,23 @@ input {
   margin-top: 16px;
 }
 
+.participant-count-switcher,
+.redo-actions {
+  margin-top: 16px;
+}
+
+.redo-actions {
+  border-top: 1px solid rgba(79, 82, 81, 0.12);
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 18px;
+}
+
+.danger-button:hover {
+  background: var(--color-red);
+  border-color: var(--color-red);
+}
+
 .sync-copy,
 .error-copy {
   font-size: 0.92rem;
@@ -614,11 +631,6 @@ input {
   width: 100%;
 }
 
-.desktop-reveal-actions {
-  display: grid;
-  justify-content: center;
-}
-
 .cards-pane-heading {
   border-bottom: 1px solid rgba(79, 82, 81, 0.14);
   display: grid;
@@ -638,12 +650,9 @@ input {
 
 .reveal-arena {
   background:
-    radial-gradient(circle at 50% 24%, rgba(56, 67, 154, 0.18), transparent 28%),
-    radial-gradient(circle at 84% 18%, rgba(237, 28, 36, 0.12), transparent 20%),
-    radial-gradient(circle at 14% 78%, rgba(57, 173, 56, 0.12), transparent 18%),
-    linear-gradient(180deg, rgba(239, 239, 236, 0.96), rgba(217, 217, 217, 0.92));
+    linear-gradient(180deg, rgba(247, 247, 244, 0.96), rgba(239, 239, 236, 0.94));
   border: 1px solid rgba(79, 82, 81, 0.12);
-  border-radius: 28px;
+  border-radius: 18px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
   min-height: 780px;
   overflow: hidden;
@@ -652,39 +661,14 @@ input {
 
 .arena-backdrop {
   background:
-    radial-gradient(circle at 50% 48%, rgba(56, 67, 154, 0.08), transparent 34%),
-    radial-gradient(circle at 50% 57%, rgba(237, 28, 36, 0.06), transparent 28%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.36), transparent 45%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), transparent 34%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(79, 82, 81, 0.045) 0 1px,
+      transparent 1px 76px
+    );
   inset: 0;
   position: absolute;
-}
-
-.arena-energy-ring {
-  background: radial-gradient(circle, transparent 58%, rgba(56, 67, 154, 0.26) 60%, rgba(57, 173, 56, 0.16) 66%, transparent 76%);
-  border-radius: 50%;
-  filter: blur(6px);
-  height: 500px;
-  left: calc(50% - 250px);
-  opacity: 0.7;
-  position: absolute;
-  top: calc(50% - 210px);
-  transition: opacity 300ms ease, transform 500ms ease;
-  width: 500px;
-}
-
-.arena-energy-core {
-  background:
-    radial-gradient(circle, rgba(239, 239, 236, 0.98), rgba(217, 217, 217, 0.78) 28%, rgba(56, 67, 154, 0.18) 48%, transparent 64%),
-    radial-gradient(circle, rgba(57, 173, 56, 0.18), transparent 74%);
-  border-radius: 50%;
-  filter: blur(5px);
-  height: 180px;
-  left: calc(50% - 90px);
-  opacity: 0.92;
-  position: absolute;
-  top: calc(50% - 52px);
-  transition: opacity 300ms ease, transform 500ms ease;
-  width: 180px;
 }
 
 .arena-pack {
@@ -710,43 +694,58 @@ input {
   animation: packBurst 1250ms cubic-bezier(0.15, 0.9, 0.25, 1) forwards;
 }
 
-.reveal-arena.is-opening .arena-energy-ring,
-.reveal-arena.is-opening .arena-energy-core {
-  transform: scale(1.05);
-}
-
 .center-finale {
   align-items: center;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.96), rgba(217, 217, 217, 0.7)),
-    linear-gradient(180deg, rgba(56, 67, 154, 0.72), rgba(56, 67, 154, 0.56));
-  border: 2px solid rgba(239, 239, 236, 0.86);
-  border-radius: 999px;
+  background: rgba(239, 239, 236, 0.94);
+  border: 1px solid rgba(56, 67, 154, 0.28);
+  border-radius: 8px;
   box-shadow:
-    0 14px 28px rgba(79, 82, 81, 0.12),
-    inset 0 2px 0 rgba(255, 255, 255, 0.72);
+    0 12px 22px rgba(79, 82, 81, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  color: var(--color-blue);
   display: grid;
+  grid-gap: 2px;
+  gap: 2px;
   justify-items: center;
-  left: calc(50% - 78px);
-  min-height: 88px;
-  padding: 12px 18px;
+  left: 50%;
+  min-height: 68px;
+  padding: 10px 16px;
   position: absolute;
-  top: calc(50% + 18px);
-  width: 156px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 144px;
   z-index: 5;
 }
 
 .center-finale span {
-  color: #fff;
+  color: var(--color-blue);
   font-family: var(--font-title);
-  font-size: 2rem;
+  font-size: 1.9rem;
   line-height: 0.9;
-  text-shadow: 0 1px 0 rgba(14, 63, 120, 0.38);
+}
+
+.center-finale-button {
+  border: 1px solid var(--color-blue);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-height: 54px;
+  text-transform: uppercase;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.center-finale-button:hover {
+  background: var(--color-blue);
+  color: #fff;
 }
 
 .reveal-arena.is-opening .center-finale {
   opacity: 0.24;
-  transform: scale(0.9);
+  transform: translate(-50%, -50%) scale(0.92);
 }
 
 .team-reveal-card {
@@ -1156,6 +1155,14 @@ code {
     flex-direction: column;
   }
 
+  .redo-actions {
+    justify-content: stretch;
+  }
+
+  .redo-actions .secondary-button {
+    width: 100%;
+  }
+
   .reveal-modal {
     background: transparent;
     border: 0;
@@ -1249,25 +1256,6 @@ code {
 
   .reveal-arena {
     min-height: 560px;
-  }
-
-  .arena-energy-ring {
-    height: 300px;
-    left: calc(50% - 150px);
-    top: calc(50% - 145px);
-    width: 300px;
-  }
-
-  .arena-energy-core {
-    height: 120px;
-    left: calc(50% - 60px);
-    top: calc(50% - 34px);
-    width: 120px;
-  }
-
-  .center-finale {
-    left: calc(50% - 78px);
-    top: calc(50% + 30px);
   }
 }
 
