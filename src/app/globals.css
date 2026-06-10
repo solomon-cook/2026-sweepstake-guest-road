@@ -76,6 +76,23 @@ input {
   justify-content: space-between;
 }
 
+.header-links {
+  display: flex;
+  gap: 14px;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+}
+
+.header-links a {
+  color: var(--color-blue);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.header-links a:hover {
+  color: var(--color-red);
+}
+
 .eyebrow,
 .section-kicker,
 .snapshot-label {
@@ -960,6 +977,16 @@ code {
 }
 
 @media (max-width: 699px) {
+  .top-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-links {
+    gap: 12px;
+    padding-bottom: 0;
+  }
+
   .panel-actions {
     align-items: start;
     flex-direction: column;

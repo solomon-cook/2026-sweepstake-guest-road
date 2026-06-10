@@ -42,7 +42,7 @@ export default async function Page() {
       )
     }
 
-    return <SweepstakeClient initialDraw={initialDraw} teamScores={result.teams} />
+    return <SweepstakeClient initialDraw={initialDraw} />
   }
 
   if (result.status === 'empty') {

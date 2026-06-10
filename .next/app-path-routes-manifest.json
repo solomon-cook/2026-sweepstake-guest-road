@@ -1,5 +1,7 @@
 {
-  "/api/draw/route": "/api/draw",
   "/_not-found/page": "/_not-found",
+  "/api/draw/route": "/api/draw",
+  "/participants/page": "/participants",
+  "/more-info/page": "/more-info",
   "/page": "/"
 }
