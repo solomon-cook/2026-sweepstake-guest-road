@@ -160,8 +160,17 @@ export function SweepstakeClient({
                     {bundle.teams.map((team) => (
                       <li key={team.name}>
                         <div>
-                          <span>
-                            {team.flag} {team.name}
+                          <span className="bundle-team-name">
+                            {team.flagImageUrl ? (
+                              <img
+                                className="bundle-team-flag"
+                                src={team.flagImageUrl}
+                                alt={`${team.name} flag`}
+                                width={20}
+                                height={15}
+                              />
+                            ) : null}
+                            {team.name}
                           </span>
                           <small>
                             Rank #{team.rank} · Group {team.group}

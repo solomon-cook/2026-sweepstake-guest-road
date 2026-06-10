@@ -19,7 +19,6 @@ export type TeamScore = TeamSeed & {
 export type PrizeCard = {
   id: string
   name: string
-  flag: string
   flagImageUrl?: string
   imageLabel: string
   metadata: Array<{

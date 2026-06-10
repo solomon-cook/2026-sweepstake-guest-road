@@ -310,7 +310,7 @@ export function CardPackOpening({
                 />
               ) : (
                 <span className="team-card-flag team-card-flag-fallback" aria-hidden="true">
-                  {card.flag}
+                  No flag
                 </span>
               )}
             </span>
