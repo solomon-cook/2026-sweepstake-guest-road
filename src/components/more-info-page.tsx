@@ -31,10 +31,17 @@ export function MoreInfoPage({
   ).length
   const passwordIsValid = password === ADMIN_PASSWORD
 
-  async function runAdminAction(action: 'shuffle' | 'reset-reveals') {
+  async function runAdminAction(action: 'shuffle' | 'reset-reveals' | 'clear-players') {
     if (!passwordIsValid) {
       setError('Type Football exactly to unlock the controls.')
       setNotice('')
+      return
+    }
+
+    if (
+      action === 'clear-players' &&
+      !window.confirm('Clear all player names and hide every revealed pack? This cannot be undone.')
+    ) {
       return
     }
 
@@ -58,7 +65,7 @@ export function MoreInfoPage({
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                action: 'reset-reveals',
+                action,
                 playerCount: draw.playerCount,
               }),
             })
@@ -70,7 +77,13 @@ export function MoreInfoPage({
       }
 
       setDraw(nextDraw)
-      setNotice(action === 'shuffle' ? 'Bundles shuffled and hidden again.' : 'All claimed teams are hidden again.')
+      setNotice(
+        action === 'shuffle'
+          ? 'Bundles shuffled and hidden again.'
+          : action === 'reset-reveals'
+            ? 'All claimed teams are hidden again.'
+            : 'All player names were cleared and every pack is hidden again.',
+      )
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Admin action failed.')
     } finally {
@@ -199,6 +212,14 @@ export function MoreInfoPage({
                 disabled={isSaving || !passwordIsValid}
               >
                 Re-hide teams
+              </button>
+              <button
+                type="button"
+                className="secondary-button danger-button"
+                onClick={() => void runAdminAction('clear-players')}
+                disabled={isSaving || !passwordIsValid}
+              >
+                Clear all players
               </button>
             </div>
           </div>
