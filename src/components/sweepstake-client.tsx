@@ -124,6 +124,50 @@ export function SweepstakeClient({
     }
   }
 
+  async function clearAllPlayers() {
+    if (isSaving) {
+      return
+    }
+
+    const shouldClear = window.confirm(
+      'Clear all player names and hide every revealed pack? This cannot be undone.',
+    )
+
+    if (!shouldClear) {
+      return
+    }
+
+    setIsSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/draw', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'clear-players',
+          playerCount,
+        }),
+      })
+      const nextState = (await response.json()) as PersistedDraw | { error: string }
+
+      if (!response.ok || 'error' in nextState) {
+        throw new Error('error' in nextState ? nextState.error : 'Failed to clear players.')
+      }
+
+      closeRevealFlow()
+      setShowJoinForm(false)
+      setPlayerName('')
+      setDraw(nextState)
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to clear players.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <main className="page-shell">
       <section className="top-bar">
@@ -247,6 +291,17 @@ export function SweepstakeClient({
             )}
           </div>
         ) : null}
+
+        <div className="claim-section admin-form">
+          <button
+            type="button"
+            className="secondary-button danger-button"
+            onClick={clearAllPlayers}
+            disabled={isSaving}
+          >
+            Clear all players
+          </button>
+        </div>
       </section>
 
       {activeBundle ? (

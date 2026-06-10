@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import {
+  clearDrawPlayers,
   claimNextDrawSlot,
   getOrCreateDraw,
   resetDrawRevealState,
@@ -89,6 +90,11 @@ export async function PATCH(request: Request) {
 
     if ('action' in body && body.action === 'reset-reveals') {
       const draw = await resetDrawRevealState(playerCount, teams)
+      return NextResponse.json(draw)
+    }
+
+    if ('action' in body && body.action === 'clear-players') {
+      const draw = await clearDrawPlayers(playerCount, teams)
       return NextResponse.json(draw)
     }
 

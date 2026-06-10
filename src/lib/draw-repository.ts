@@ -342,3 +342,21 @@ export async function resetDrawRevealState(playerCount: PlayerCount, teamScores:
   const refreshed = await loadPersistedDraw(playerCount)
   return toPersistedDraw(playerCount, refreshed!.slots as never)
 }
+
+export async function clearDrawPlayers(playerCount: PlayerCount, teamScores: TeamScore[]) {
+  const prisma = getPrismaClient()
+  await getOrCreateDraw(playerCount, teamScores)
+
+  await prisma.drawSlot.updateMany({
+    where: {
+      draw: { playerCount },
+    },
+    data: {
+      playerName: '',
+      isRevealed: false,
+    },
+  })
+
+  const refreshed = await loadPersistedDraw(playerCount)
+  return toPersistedDraw(playerCount, refreshed!.slots as never)
+}
