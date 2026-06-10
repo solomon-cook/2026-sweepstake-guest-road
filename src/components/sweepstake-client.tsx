@@ -113,6 +113,8 @@ export function SweepstakeClient({
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null)
   const [flippedCards, setFlippedCards] = useState<number[]>([])
   const [cardImpacts, setCardImpacts] = useState<Record<number, CardImpact>>({})
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+  const [mobileRevealIndex, setMobileRevealIndex] = useState(0)
   const [isPersistingReveal, setIsPersistingReveal] = useState(false)
   const timeoutIds = useRef<number[]>([])
 
@@ -124,9 +126,21 @@ export function SweepstakeClient({
   const activeBundle = rankedBundles.find((bundle) => bundle.slotId === activeSlotId) ?? null
   const revealCards = activeBundle ? buildRevealCards(activeBundle) : []
   const revealLayout = getRevealLayout(revealCards.length)
+  const activeMobileRevealCard = revealCards[mobileRevealIndex] ?? null
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 699px)')
+
+    const syncViewport = () => {
+      setIsMobileViewport(mediaQuery.matches)
+    }
+
+    syncViewport()
+    mediaQuery.addEventListener('change', syncViewport)
+
     return () => {
+      mediaQuery.removeEventListener('change', syncViewport)
+
       for (const timeoutId of timeoutIds.current) {
         window.clearTimeout(timeoutId)
       }
@@ -147,6 +161,7 @@ export function SweepstakeClient({
     setActiveSlotId(null)
     setFlippedCards([])
     setCardImpacts({})
+    setMobileRevealIndex(0)
     setIsPersistingReveal(false)
   }
 
@@ -189,6 +204,7 @@ export function SweepstakeClient({
     setError('')
     setActiveSlotId(bundle.slotId)
     setFlippedCards([])
+    setMobileRevealIndex(0)
     setRevealPhase('confirm')
   }
 
@@ -260,8 +276,31 @@ export function SweepstakeClient({
     setFlippedCards(nextFlippedCards)
 
     if (isBundleFullyFlipped(bundle, nextFlippedCards)) {
-      void persistRevealCompletion(bundle)
+      if (!isMobileViewport) {
+        void persistRevealCompletion(bundle)
+      }
     }
+  }
+
+  function advanceMobileReveal() {
+    if (!activeBundle || !activeMobileRevealCard) {
+      return
+    }
+
+    const isCurrentCardFlipped = flippedCards.includes(activeMobileRevealCard.originalIndex)
+
+    if (!isCurrentCardFlipped || isPersistingReveal) {
+      return
+    }
+
+    const isLastCard = mobileRevealIndex >= revealCards.length - 1
+
+    if (isLastCard) {
+      void persistRevealCompletion(activeBundle)
+      return
+    }
+
+    setMobileRevealIndex((current) => current + 1)
   }
 
   return (
@@ -372,100 +411,198 @@ export function SweepstakeClient({
                   </p>
                 </div>
 
-                <div
-                  className={`reveal-arena ${revealPhase === 'opening' ? 'is-opening' : 'is-settled'} ${
-                    revealPhase === 'finishing' ? 'is-finishing' : ''
-                  }`}
-                >
-                  <div className="arena-backdrop" aria-hidden="true" />
-                  <div className="arena-energy-ring" aria-hidden="true" />
-                  <div className="arena-energy-core" aria-hidden="true" />
-                  <div className={`pack-shell arena-pack ${revealPhase === 'opening' ? 'is-live' : 'is-spent'}`}>
-                    <div className="pack-flare" />
-                    <div className="pack-logo">Guest Road</div>
-                  </div>
-                  <div className="pack-burst" aria-hidden="true" />
+                {isMobileViewport && revealPhase !== 'opening' && activeMobileRevealCard ? (
+                  <div className="mobile-reveal-stage">
+                    <div className="mobile-reveal-status">
+                      <span>
+                        Card {mobileRevealIndex + 1} of {revealCards.length}
+                      </span>
+                      <strong>{flippedCards.length} revealed</strong>
+                    </div>
 
-                  {revealCards.map((card) => {
-                    const team = card.team
-                    const isFlipped = flippedCards.includes(card.originalIndex)
-                    const glowTier = getGlowTier(team.rank)
-                    const layout = revealLayout[card.sceneIndex] ?? revealLayout[revealLayout.length - 1]
-                    const impact = cardImpacts[card.originalIndex]
-                    const flipDuration =
-                      glowTier === 'great' ? '1380ms' : glowTier === 'good' ? '980ms' : '620ms'
+                    {(() => {
+                      const team = activeMobileRevealCard.team
+                      const isFlipped = flippedCards.includes(activeMobileRevealCard.originalIndex)
+                      const glowTier = getGlowTier(team.rank)
+                      const impact = cardImpacts[activeMobileRevealCard.originalIndex]
+                      const flipDuration =
+                        glowTier === 'great' ? '1380ms' : glowTier === 'good' ? '980ms' : '620ms'
 
-                    return (
-                      <button
-                        key={team.name}
-                        type="button"
-                        className={`team-reveal-card is-${glowTier} ${isFlipped ? 'is-flipped' : ''} ${
-                          revealPhase === 'opening' ? 'is-launching' : ''
-                        }`}
-                        style={
-                          {
-                            '--card-x': `${layout.x}px`,
-                            '--card-y': `${layout.y}px`,
-                            '--card-rotate': `${layout.rotate}deg`,
-                            '--card-z': layout.z,
-                            '--card-delay': `${card.sceneIndex * 90}ms`,
-                            '--flip-duration': flipDuration,
-                            '--impact-x': `${impact?.x ?? 50}%`,
-                            '--impact-y': `${impact?.y ?? 50}%`,
-                            '--pattern-rotation': `${card.sceneIndex * 37}deg`,
-                            '--pattern-shift': `${(card.sceneIndex % 4) * 14}px`,
-                          } as CSSProperties
-                        }
-                        onClick={(event) => handleCardFlip(event, activeBundle, card.originalIndex)}
-                        disabled={isFlipped || isPersistingReveal || revealPhase !== 'cards'}
-                      >
-                        <span className="team-reveal-card-inner">
-                          <span className="team-reveal-card-face team-reveal-card-back">
-                            <span className="card-back-badge">World Cup</span>
-                            <strong>Reveal</strong>
-                            <small>Click to flip</small>
+                      return (
+                        <button
+                          type="button"
+                          className={`team-reveal-card mobile-single-card is-${glowTier} ${
+                            isFlipped ? 'is-flipped' : ''
+                          }`}
+                          style={
+                            {
+                              '--card-x': '0px',
+                              '--card-y': '0px',
+                              '--card-rotate': '0deg',
+                              '--card-z': 1,
+                              '--flip-duration': flipDuration,
+                              '--impact-x': `${impact?.x ?? 50}%`,
+                              '--impact-y': `${impact?.y ?? 50}%`,
+                            } as CSSProperties
+                          }
+                          onClick={(event) =>
+                            handleCardFlip(event, activeBundle, activeMobileRevealCard.originalIndex)
+                          }
+                          disabled={isFlipped || isPersistingReveal || revealPhase !== 'cards'}
+                        >
+                          <span className="team-reveal-card-inner">
+                            <span className="team-reveal-card-face team-reveal-card-back">
+                              <span className="card-back-badge">World Cup</span>
+                              <strong>Reveal</strong>
+                              <small>Tap to flip</small>
+                            </span>
+                            <span className="team-reveal-card-face team-reveal-card-front">
+                              <span className="card-rank">#{team.rank}</span>
+                              <strong>{team.name}</strong>
+                              <small>Group {team.group}</small>
+                              <dl>
+                                <div>
+                                  <dt>Score</dt>
+                                  <dd>{formatScore(team.score)}</dd>
+                                </div>
+                                <div>
+                                  <dt>Odds</dt>
+                                  <dd>+{team.odds}</dd>
+                                </div>
+                                <div>
+                                  <dt>Implied</dt>
+                                  <dd>{formatProbability(team.impliedProbability)}</dd>
+                                </div>
+                              </dl>
+                            </span>
+                            {impact ? (
+                              <span
+                                key={`${team.name}-${impact.sequence}`}
+                                className={`card-impact-ripple is-${glowTier}`}
+                              />
+                            ) : null}
                           </span>
-                          <span className="team-reveal-card-face team-reveal-card-front">
-                            <span className="card-rank">#{team.rank}</span>
-                            <strong>{team.name}</strong>
-                            <small>Group {team.group}</small>
-                            <dl>
-                              <div>
-                                <dt>Score</dt>
-                                <dd>{formatScore(team.score)}</dd>
-                              </div>
-                              <div>
-                                <dt>Odds</dt>
-                                <dd>+{team.odds}</dd>
-                              </div>
-                              <div>
-                                <dt>Implied</dt>
-                                <dd>{formatProbability(team.impliedProbability)}</dd>
-                              </div>
-                            </dl>
-                          </span>
-                          {impact ? (
-                            <span
-                              key={`${team.name}-${impact.sequence}`}
-                              className={`card-impact-ripple is-${glowTier}`}
-                            />
-                          ) : null}
-                        </span>
-                      </button>
-                    )
-                  })}
+                        </button>
+                      )
+                    })()}
 
-                  <div className="center-finale">
-                    <span>{flippedCards.length}</span>
-                    <small>
-                      {revealPhase === 'opening'
-                        ? 'Opening pack...'
-                        : isPersistingReveal
+                    <div className="mobile-reveal-controls">
+                      <p>
+                        {isPersistingReveal
                           ? 'Locking in reveal...'
-                          : `${activeBundle.teams.length - flippedCards.length} cards left`}
-                    </small>
+                          : flippedCards.includes(activeMobileRevealCard.originalIndex)
+                            ? 'Take a look, then continue.'
+                            : 'Tap the card to reveal this team.'}
+                      </p>
+                      <button
+                        type="button"
+                        className="reveal-button"
+                        onClick={advanceMobileReveal}
+                        disabled={
+                          isPersistingReveal ||
+                          !flippedCards.includes(activeMobileRevealCard.originalIndex)
+                        }
+                      >
+                        {mobileRevealIndex >= revealCards.length - 1 ? 'Finish reveal' : 'Next card'}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div
+                    className={`reveal-arena ${revealPhase === 'opening' ? 'is-opening' : 'is-settled'} ${
+                      revealPhase === 'finishing' ? 'is-finishing' : ''
+                    }`}
+                  >
+                    <div className="arena-backdrop" aria-hidden="true" />
+                    <div className="arena-energy-ring" aria-hidden="true" />
+                    <div className="arena-energy-core" aria-hidden="true" />
+                    <div className={`pack-shell arena-pack ${revealPhase === 'opening' ? 'is-live' : 'is-spent'}`}>
+                      <div className="pack-flare" />
+                      <div className="pack-logo">Guest Road</div>
+                    </div>
+                    <div className="pack-burst" aria-hidden="true" />
+
+                    {revealCards.map((card) => {
+                      const team = card.team
+                      const isFlipped = flippedCards.includes(card.originalIndex)
+                      const glowTier = getGlowTier(team.rank)
+                      const layout = revealLayout[card.sceneIndex] ?? revealLayout[revealLayout.length - 1]
+                      const impact = cardImpacts[card.originalIndex]
+                      const flipDuration =
+                        glowTier === 'great' ? '1380ms' : glowTier === 'good' ? '980ms' : '620ms'
+
+                      return (
+                        <button
+                          key={team.name}
+                          type="button"
+                          className={`team-reveal-card is-${glowTier} ${isFlipped ? 'is-flipped' : ''} ${
+                            revealPhase === 'opening' ? 'is-launching' : ''
+                          }`}
+                          style={
+                            {
+                              '--card-x': `${layout.x}px`,
+                              '--card-y': `${layout.y}px`,
+                              '--card-rotate': `${layout.rotate}deg`,
+                              '--card-z': layout.z,
+                              '--card-delay': `${card.sceneIndex * 90}ms`,
+                              '--flip-duration': flipDuration,
+                              '--impact-x': `${impact?.x ?? 50}%`,
+                              '--impact-y': `${impact?.y ?? 50}%`,
+                              '--pattern-rotation': `${card.sceneIndex * 37}deg`,
+                              '--pattern-shift': `${(card.sceneIndex % 4) * 14}px`,
+                            } as CSSProperties
+                          }
+                          onClick={(event) => handleCardFlip(event, activeBundle, card.originalIndex)}
+                          disabled={isFlipped || isPersistingReveal || revealPhase !== 'cards'}
+                        >
+                          <span className="team-reveal-card-inner">
+                            <span className="team-reveal-card-face team-reveal-card-back">
+                              <span className="card-back-badge">World Cup</span>
+                              <strong>Reveal</strong>
+                              <small>Click to flip</small>
+                            </span>
+                            <span className="team-reveal-card-face team-reveal-card-front">
+                              <span className="card-rank">#{team.rank}</span>
+                              <strong>{team.name}</strong>
+                              <small>Group {team.group}</small>
+                              <dl>
+                                <div>
+                                  <dt>Score</dt>
+                                  <dd>{formatScore(team.score)}</dd>
+                                </div>
+                                <div>
+                                  <dt>Odds</dt>
+                                  <dd>+{team.odds}</dd>
+                                </div>
+                                <div>
+                                  <dt>Implied</dt>
+                                  <dd>{formatProbability(team.impliedProbability)}</dd>
+                                </div>
+                              </dl>
+                            </span>
+                            {impact ? (
+                              <span
+                                key={`${team.name}-${impact.sequence}`}
+                                className={`card-impact-ripple is-${glowTier}`}
+                              />
+                            ) : null}
+                          </span>
+                        </button>
+                      )
+                    })}
+
+                    <div className="center-finale">
+                      <span>{flippedCards.length}</span>
+                      <small>
+                        {revealPhase === 'opening'
+                          ? 'Opening pack...'
+                          : isPersistingReveal
+                            ? 'Locking in reveal...'
+                            : `${activeBundle.teams.length - flippedCards.length} cards left`}
+                      </small>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : null}
           </div>

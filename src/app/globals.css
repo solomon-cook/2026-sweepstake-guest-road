@@ -513,6 +513,81 @@ input {
   gap: 18px;
 }
 
+.mobile-reveal-stage {
+  display: grid;
+  gap: 16px;
+}
+
+.mobile-reveal-status {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(79, 82, 81, 0.12);
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.mobile-reveal-status span {
+  color: rgba(79, 82, 81, 0.72);
+  font-size: 0.92rem;
+}
+
+.mobile-reveal-status strong {
+  color: var(--color-blue);
+  font-size: 0.98rem;
+}
+
+.mobile-single-card {
+  height: 420px;
+  left: auto;
+  margin: 0 auto;
+  max-width: 290px;
+  position: relative;
+  top: auto;
+  transform: none;
+  width: 100%;
+}
+
+.mobile-single-card.is-flipped.is-good,
+.mobile-single-card.is-flipped.is-great,
+.mobile-single-card:not(.is-flipped):not(.is-launching):hover {
+  transform: none;
+}
+
+.mobile-single-card .team-reveal-card-face {
+  padding: 20px 18px 22px;
+}
+
+.mobile-single-card .team-reveal-card-back strong,
+.mobile-single-card .team-reveal-card-front strong {
+  font-size: 2rem;
+}
+
+.mobile-single-card .team-reveal-card-front small {
+  font-size: 1.05rem;
+}
+
+.mobile-single-card .team-reveal-card-front dl {
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mobile-single-card .team-reveal-card-front dl div {
+  padding-top: 10px;
+}
+
+.mobile-reveal-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.mobile-reveal-controls p {
+  color: rgba(79, 82, 81, 0.76);
+  margin: 0;
+  text-align: center;
+}
+
 .cards-pane-heading {
   display: grid;
   gap: 8px;
@@ -1033,58 +1108,25 @@ code {
   }
 
   .reveal-arena {
-    display: grid;
-    gap: 14px;
-    min-height: 0;
-    padding: 18px 14px 116px;
-  }
-
-  .arena-backdrop,
-  .arena-energy-ring,
-  .arena-energy-core,
-  .arena-pack,
-  .pack-burst {
-    inset: auto;
-    left: 50%;
-    top: 128px;
-    transform: translateX(-50%);
-  }
-
-  .arena-pack {
-    top: 82px;
+    min-height: 560px;
   }
 
   .arena-energy-ring {
     height: 300px;
     left: calc(50% - 150px);
-    top: 18px;
+    top: calc(50% - 145px);
     width: 300px;
   }
 
   .arena-energy-core {
     height: 120px;
     left: calc(50% - 60px);
-    top: 92px;
+    top: calc(50% - 34px);
     width: 120px;
-  }
-
-  .team-reveal-card {
-    height: 224px;
-    left: auto;
-    position: relative;
-    top: auto;
-    transform: none;
-    width: 100%;
-  }
-
-  .team-reveal-card.is-launching {
-    animation: none;
-    opacity: 1;
   }
 
   .center-finale {
     left: calc(50% - 78px);
-    top: auto;
-    bottom: 18px;
+    top: calc(50% + 30px);
   }
 }
