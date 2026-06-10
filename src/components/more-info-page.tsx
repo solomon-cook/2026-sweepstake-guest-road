@@ -178,7 +178,7 @@ export function MoreInfoPage({
               <span>Password</span>
               <input
                 value={password}
-                placeholder='Type "Football"'
+                placeholder='Password'
                 onChange={(event) => setPassword(event.target.value)}
                 disabled={isSaving}
               />

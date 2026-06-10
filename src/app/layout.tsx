@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: 'Guest Road 2026 World Cup Sweepstake',
   description:
     'Teams are grouped by strength and shared across players so each bundle gets a fair mix.',
+  icons: {
+    icon: '/football.svg',
+    shortcut: '/football.svg',
+    apple: '/football.svg',
+  },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
