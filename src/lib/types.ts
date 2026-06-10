@@ -13,6 +13,23 @@ export type TeamScore = TeamSeed & {
   rank: number
 }
 
+export type PrizeCard = {
+  id: string
+  name: string
+  imageLabel: string
+  metadata: Array<{
+    label: string
+    value: string
+  }>
+  rank?: number
+}
+
+export type CardResult = {
+  id: string
+  playerName: string
+  cards: PrizeCard[]
+}
+
 export type Bundle = {
   playerName: string
   teams: TeamScore[]

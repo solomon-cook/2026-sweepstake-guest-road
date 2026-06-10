@@ -453,6 +453,19 @@ input {
   width: min(100%, 420px);
 }
 
+.pack-idle-stage {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  justify-items: center;
+  min-height: 440px;
+  padding: 20px 0 8px;
+}
+
+.pack-idle-stage .pack-shell {
+  animation-duration: 1500ms;
+}
+
 .pack-shell {
   align-items: center;
   background:
@@ -580,6 +593,11 @@ input {
 .mobile-reveal-controls {
   display: grid;
   gap: 12px;
+}
+
+.desktop-reveal-actions {
+  display: grid;
+  justify-content: center;
 }
 
 .mobile-reveal-controls p {
