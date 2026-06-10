@@ -24,6 +24,7 @@ export async function loadTeamScores(): Promise<TeamLoadResult> {
       teams: teams.map((team) => ({
         id: team.id,
         name: team.name,
+        flag: team.flag,
         group: team.group,
         odds: team.odds,
         impliedProbability: team.impliedProbability,

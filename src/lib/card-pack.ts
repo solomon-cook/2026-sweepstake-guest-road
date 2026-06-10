@@ -15,6 +15,7 @@ export function toPrizeCard(team: PersistedBundle['teams'][number]): PrizeCard {
   return {
     id: team.id ?? team.name,
     name: team.name,
+    flag: team.flag,
     imageLabel: `Group ${team.group}`,
     rank: team.rank,
     metadata: [
@@ -75,6 +76,7 @@ export async function openMockPack(): Promise<CardResult> {
       {
         id: 'demo-1',
         name: 'Seeded Prize',
+        flag: '🏁',
         imageLabel: 'A',
         rank: 12,
         metadata: [
@@ -85,6 +87,7 @@ export async function openMockPack(): Promise<CardResult> {
       {
         id: 'demo-2',
         name: 'Bonus Entry',
+        flag: '🏁',
         imageLabel: 'B',
         rank: 28,
         metadata: [

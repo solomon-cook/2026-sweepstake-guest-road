@@ -21,17 +21,28 @@ const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  await prisma.team.createMany({
-    data: TEAM_SEED_SCORES.map((team) => ({
-      name: team.name,
-      group: team.group,
-      odds: team.odds,
-      impliedProbability: team.impliedProbability,
-      score: team.score,
-      rank: team.rank,
-    })),
-    skipDuplicates: true,
-  })
+  for (const team of TEAM_SEED_SCORES) {
+    await prisma.team.upsert({
+      where: { name: team.name },
+      update: {
+        flag: team.flag,
+        group: team.group,
+        odds: team.odds,
+        impliedProbability: team.impliedProbability,
+        score: team.score,
+        rank: team.rank,
+      },
+      create: {
+        name: team.name,
+        flag: team.flag,
+        group: team.group,
+        odds: team.odds,
+        impliedProbability: team.impliedProbability,
+        score: team.score,
+        rank: team.rank,
+      },
+    })
+  }
 }
 
 main()

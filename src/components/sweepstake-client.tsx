@@ -96,7 +96,9 @@ export function SweepstakeClient({
                   {bundle.teams.map((team) => (
                     <li key={team.name}>
                       <div>
-                        <span>{team.name}</span>
+                        <span>
+                          {team.flag} {team.name}
+                        </span>
                         <small>
                           Rank #{team.rank} · Group {team.group}
                         </small>
