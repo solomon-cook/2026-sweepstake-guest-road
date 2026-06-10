@@ -7,16 +7,14 @@ import { openPack as requestOpenPack } from '@/lib/card-pack'
 import { formatScore } from '@/lib/formatters'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
-const PLAYER_OPTIONS: PlayerCount[] = [7, 8, 9]
-
 export function SweepstakeClient({
   initialDraw,
 }: {
   initialDraw: PersistedDraw
 }) {
-  const [playerCount, setPlayerCount] = useState<PlayerCount>(initialDraw.playerCount)
+  const [playerCount] = useState<PlayerCount>(initialDraw.playerCount)
   const [draw, setDraw] = useState(initialDraw)
-  const [isSaving, setIsSaving] = useState(false)
+  const [isSaving] = useState(false)
   const [error, setError] = useState('')
   const [activeBundle, setActiveBundle] = useState<PersistedBundle | null>(null)
   const [pendingDraw, setPendingDraw] = useState<PersistedDraw | null>(null)
@@ -30,31 +28,6 @@ export function SweepstakeClient({
   function closeRevealFlow() {
     setActiveBundle(null)
     setPendingDraw(null)
-  }
-
-  async function loadDraw(nextPlayerCount: PlayerCount) {
-    setIsSaving(true)
-    setError('')
-    closeRevealFlow()
-
-    try {
-      const resetReveals = nextPlayerCount !== playerCount ? '&resetReveals=1' : ''
-      const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}${resetReveals}`, {
-        cache: 'no-store',
-      })
-      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
-
-      if (!response.ok || 'error' in nextDraw) {
-        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to load draw.')
-      }
-
-      setDraw(nextDraw)
-      setPlayerCount(nextPlayerCount)
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to load draw.')
-    } finally {
-      setIsSaving(false)
-    }
   }
 
   function startReveal(bundle: PersistedBundle) {
@@ -104,20 +77,6 @@ export function SweepstakeClient({
             <p className="section-kicker">Allocation</p>
             <h2>{playerCount} players</h2>
             <p>Reveal each player&apos;s teams one pack at a time.</p>
-          </div>
-
-          <div className="count-switcher" aria-label="Player count">
-            {PLAYER_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={option === playerCount ? 'is-active' : ''}
-                onClick={() => void loadDraw(option)}
-                disabled={isSaving || Boolean(activeBundle)}
-              >
-                {option} players
-              </button>
-            ))}
           </div>
         </div>
 

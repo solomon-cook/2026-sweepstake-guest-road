@@ -6,12 +6,8 @@ import {
   shuffleDraw,
   updateDrawNames,
 } from '@/lib/draw-repository'
+import { parsePlayerCount } from '@/lib/player-count'
 import { loadTeamScores } from '@/lib/team-repository'
-import type { PlayerCount } from '@/lib/types'
-
-function parsePlayerCount(value: unknown): PlayerCount | null {
-  return value === 7 || value === 8 || value === 9 ? value : null
-}
 
 async function loadTeamState() {
   const teamResult = await loadTeamScores()

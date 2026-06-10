@@ -330,10 +330,15 @@ export function CardPackOpening({
 
       {phase === 'idle' || phase === 'error' ? (
         <div className="pack-idle-stage">
-          <div className="pack-shell">
+          <button
+            type="button"
+            className="pack-shell pack-open-button"
+            onClick={handleOpenPack}
+            aria-label={`Reveal ${title}`}
+          >
             <div className="pack-flare" />
             <div className="pack-logo">Guest Road</div>
-          </div>
+          </button>
           <div className="confirm-actions">
             <button type="button" className="reveal-button" onClick={handleOpenPack}>
               Reveal Teams

@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
+import { MAX_PLAYER_COUNT, MIN_PLAYER_COUNT, PLAYER_COUNT_COOKIE } from '@/lib/player-count'
 import type { PersistedDraw, PlayerCount } from '@/lib/types'
-
-const PLAYER_OPTIONS: PlayerCount[] = [7, 8, 9]
 
 const INITIAL_NAMES = [
   'Sam Felton',
@@ -29,6 +28,8 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
   const [error, setError] = useState('')
 
   const visibleNames = playerNames.slice(0, playerCount)
+  const canRemovePlayer = playerCount > MIN_PLAYER_COUNT
+  const canAddPlayer = playerCount < MAX_PLAYER_COUNT
 
   function namesFromDraw(nextDraw: PersistedDraw) {
     return [
@@ -37,15 +38,19 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
     ]
   }
 
-  async function persistNames() {
+  function rememberPlayerCount(nextPlayerCount: PlayerCount) {
+    document.cookie = `${PLAYER_COUNT_COOKIE}=${nextPlayerCount}; path=/; max-age=31536000; SameSite=Lax`
+  }
+
+  async function persistNames(names = visibleNames, count = playerCount) {
     const response = await fetch('/api/draw', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        playerCount,
-        names: visibleNames,
+        playerCount: count,
+        names,
       }),
     })
     const nextDraw = (await response.json()) as PersistedDraw | { error: string }
@@ -57,25 +62,41 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
     return nextDraw
   }
 
-  async function loadDraw(nextPlayerCount: PlayerCount) {
+  async function loadDraw(nextPlayerCount: PlayerCount, resetReveals = false) {
+    const resetQuery = resetReveals ? '&resetReveals=1' : ''
+    const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}${resetQuery}`, {
+      cache: 'no-store',
+    })
+    const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+    if (!response.ok || 'error' in nextDraw) {
+      throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to load draw.')
+    }
+
+    return nextDraw
+  }
+
+  async function changePlayerCount(nextPlayerCount: PlayerCount) {
     setIsSaving(true)
     setError('')
 
     try {
-      const response = await fetch(`/api/draw?playerCount=${nextPlayerCount}`, {
-        cache: 'no-store',
-      })
-      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+      const currentNames = visibleNames
+      await persistNames(currentNames, playerCount)
 
-      if (!response.ok || 'error' in nextDraw) {
-        throw new Error('error' in nextDraw ? nextDraw.error : 'Failed to load draw.')
-      }
+      const loadedDraw = await loadDraw(nextPlayerCount, true)
+      const loadedNames = loadedDraw.allocation.bundles.map((bundle) => bundle.playerName)
+      const carriedNames = Array.from({ length: nextPlayerCount }, (_, index) =>
+        currentNames[index] ?? loadedNames[index] ?? '',
+      )
+      const nextDraw = await persistNames(carriedNames, nextPlayerCount)
 
       setDraw(nextDraw)
       setPlayerCount(nextPlayerCount)
       setPlayerNames(namesFromDraw(nextDraw))
+      rememberPlayerCount(nextPlayerCount)
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to load draw.')
+      setError(nextError instanceof Error ? nextError.message : 'Failed to change player count.')
     } finally {
       setIsSaving(false)
     }
@@ -89,6 +110,7 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
       const nextDraw = await persistNames()
       setDraw(nextDraw)
       setPlayerNames(namesFromDraw(nextDraw))
+      rememberPlayerCount(playerCount)
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to save names.')
     } finally {
@@ -118,6 +140,7 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
 
       setDraw(nextDraw)
       setPlayerNames(namesFromDraw(nextDraw))
+      rememberPlayerCount(playerCount)
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to redo teams.')
     } finally {
@@ -147,18 +170,24 @@ export function ParticipantsPage({ initialDraw }: { initialDraw: PersistedDraw }
             </p>
           </div>
 
-          <div className="count-switcher participant-count-switcher" aria-label="Player count">
-            {PLAYER_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={option === playerCount ? 'is-active' : ''}
-                onClick={() => void loadDraw(option)}
-                disabled={isSaving}
-              >
-                {option} players
-              </button>
-            ))}
+          <div className="participant-count-controls" aria-label="Player count controls">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => void changePlayerCount((playerCount - 1) as PlayerCount)}
+              disabled={isSaving || !canRemovePlayer}
+            >
+              Remove player
+            </button>
+            <span>{playerCount} active players</span>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => void changePlayerCount((playerCount + 1) as PlayerCount)}
+              disabled={isSaving || !canAddPlayer}
+            >
+              Add player
+            </button>
           </div>
 
           <div className="panel-actions">

@@ -81,7 +81,7 @@ export function toPersistedDraw(
   }
 }
 
-async function replaceDrawAllocation(
+async function replaceDrawAllocationWithHiddenSlots(
   drawId: string,
   allocation: AllocationResult,
   prisma: ReturnType<typeof getPrismaClient>,
@@ -157,7 +157,7 @@ export async function getOrCreateDraw(playerCount: PlayerCount, teamScores: Team
     })
 
     const allocation = generateBalancedAllocation(teamScores, defaultNames(playerCount), playerCount)
-    await replaceDrawAllocation(draw.id, allocation, prisma)
+    await replaceDrawAllocationWithHiddenSlots(draw.id, allocation, prisma)
   } catch (error) {
     const isUniqueConflict =
       typeof error === 'object' &&
@@ -183,7 +183,7 @@ export async function shuffleDraw(playerCount: PlayerCount, teamScores: TeamScor
   const names = existing.allocation.bundles.map((bundle) => bundle.playerName)
   const allocation = generateBalancedAllocation(teamScores, names, playerCount)
 
-  await replaceDrawAllocation(draw.id, allocation, prisma)
+  await replaceDrawAllocationWithHiddenSlots(draw.id, allocation, prisma)
 
   const refreshed = await loadPersistedDraw(playerCount)
   return toPersistedDraw(playerCount, refreshed!.slots as never)
