@@ -27,28 +27,28 @@ type RevealCardView = {
 
 const REVEAL_LAYOUTS = {
   5: [
-    { x: -34, y: -24, rotate: -10, z: 3 },
-    { x: 0, y: -41, rotate: 0, z: 4 },
-    { x: 34, y: -22, rotate: 10, z: 3 },
-    { x: -20, y: 28, rotate: -6, z: 2 },
-    { x: 21, y: 27, rotate: 7, z: 2 },
+    { x: -180, y: -128, rotate: -10, z: 3 },
+    { x: 0, y: -208, rotate: 0, z: 4 },
+    { x: 180, y: -128, rotate: 10, z: 3 },
+    { x: -112, y: 116, rotate: -6, z: 2 },
+    { x: 112, y: 116, rotate: 6, z: 2 },
   ],
   6: [
-    { x: -37, y: -26, rotate: -10, z: 3 },
-    { x: 0, y: -42, rotate: 0, z: 4 },
-    { x: 37, y: -24, rotate: 11, z: 3 },
-    { x: -37, y: 22, rotate: -8, z: 2 },
-    { x: 0, y: 34, rotate: 0, z: 1 },
-    { x: 37, y: 22, rotate: 8, z: 2 },
+    { x: -196, y: -138, rotate: -10, z: 3 },
+    { x: 0, y: -220, rotate: 0, z: 4 },
+    { x: 196, y: -138, rotate: 11, z: 3 },
+    { x: -194, y: 70, rotate: -8, z: 2 },
+    { x: 0, y: 144, rotate: 0, z: 1 },
+    { x: 194, y: 70, rotate: 8, z: 2 },
   ],
   7: [
-    { x: -43, y: -24, rotate: -12, z: 3 },
-    { x: -13, y: -43, rotate: -4, z: 4 },
-    { x: 18, y: -38, rotate: 7, z: 4 },
-    { x: 44, y: -8, rotate: 13, z: 3 },
-    { x: 30, y: 30, rotate: 8, z: 2 },
-    { x: -2, y: 38, rotate: -2, z: 1 },
-    { x: -38, y: 22, rotate: -11, z: 2 },
+    { x: -214, y: -126, rotate: -12, z: 3 },
+    { x: -82, y: -224, rotate: -5, z: 4 },
+    { x: 82, y: -224, rotate: 5, z: 4 },
+    { x: 214, y: -126, rotate: 12, z: 3 },
+    { x: 162, y: 92, rotate: 8, z: 2 },
+    { x: 0, y: 156, rotate: 0, z: 1 },
+    { x: -162, y: 92, rotate: -8, z: 2 },
   ],
 } as const
 
@@ -544,8 +544,8 @@ export function SweepstakeClient({
                         }`}
                         style={
                           {
-                            '--card-x': `${layout.x}%`,
-                            '--card-y': `${layout.y}%`,
+                            '--card-x': `${layout.x}px`,
+                            '--card-y': `${layout.y}px`,
                             '--card-rotate': `${layout.rotate}deg`,
                             '--card-z': layout.z,
                             '--card-delay': `${card.sceneIndex * 90}ms`,
