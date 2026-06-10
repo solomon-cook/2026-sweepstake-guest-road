@@ -293,7 +293,48 @@ svg text {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+  position: relative;
   padding: 10px 0;
+}
+
+.bundle-card li.is-great-team {
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.86), rgba(229, 234, 240, 0.72) 42%, rgba(248, 250, 252, 0.94)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(201, 210, 221, 0.18));
+  border-bottom-color: rgba(154, 169, 190, 0.34);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 8px 18px rgba(79, 82, 81, 0.08);
+  margin: 2px 0;
+  overflow: hidden;
+  padding: 12px 14px;
+}
+
+.bundle-card li.is-great-team::before {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 28%,
+    rgba(255, 255, 255, 0.72) 46%,
+    rgba(221, 228, 238, 0.5) 52%,
+    rgba(255, 255, 255, 0) 72%,
+    transparent 100%
+  );
+  content: '';
+  inset: -20% -60%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-32%) rotate(8deg);
+}
+
+.bundle-card li.is-great-team > * {
+  position: relative;
+  z-index: 1;
+}
+
+.bundle-card li.is-great-team strong {
+  color: var(--color-blue);
 }
 
 .bundle-card li:last-child,
@@ -1005,8 +1046,8 @@ svg text {
     radial-gradient(
       circle at var(--impact-x) var(--impact-y),
       rgba(255, 255, 255, 0.92),
-      rgba(145, 196, 255, 0.46) 18%,
-      rgba(145, 196, 255, 0.18) 36%,
+      rgba(57, 173, 56, 0.42) 18%,
+      rgba(57, 173, 56, 0.16) 36%,
       transparent 56%
     );
   border-radius: 999px;
@@ -1023,8 +1064,8 @@ svg text {
     radial-gradient(
       circle at var(--impact-x) var(--impact-y),
       rgba(255, 255, 255, 0.98),
-      rgba(82, 140, 255, 0.58) 18%,
-      rgba(82, 140, 255, 0.26) 38%,
+      rgba(57, 173, 56, 0.56) 18%,
+      rgba(57, 173, 56, 0.24) 38%,
       transparent 62%
     );
 }

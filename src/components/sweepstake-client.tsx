@@ -12,6 +12,10 @@ function hasPlayerName(bundle: PersistedBundle) {
   return bundle.playerName.trim().length > 0
 }
 
+function getBundleTeamRowClass(rank: number) {
+  return rank <= 10 ? 'is-great-team' : ''
+}
+
 export function SweepstakeClient({
   initialDraw,
 }: {
@@ -158,7 +162,7 @@ export function SweepstakeClient({
                 {bundle.isRevealed ? (
                   <ul className="bundle-team-list">
                     {bundle.teams.map((team) => (
-                      <li key={team.name}>
+                      <li key={team.name} className={getBundleTeamRowClass(team.rank)}>
                         <div>
                           <span className="bundle-team-name">
                             {team.flagImageUrl ? (
