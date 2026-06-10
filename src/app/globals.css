@@ -641,7 +641,7 @@ input {
 }
 
 .team-reveal-card::before {
-  border-radius: 30px;
+  border-radius: 18px;
   content: '';
   inset: -4px;
   opacity: 0;
@@ -693,7 +693,7 @@ input {
 
 .team-reveal-card-face {
   backface-visibility: hidden;
-  border-radius: 30px;
+  border-radius: 18px;
   box-shadow:
     0 18px 28px rgba(79, 82, 81, 0.16),
     0 0 0 1px rgba(255, 255, 255, 0.46);
@@ -705,10 +705,8 @@ input {
 .team-reveal-card-back {
   align-content: space-between;
   background:
-    radial-gradient(circle at 22% 18%, rgba(57, 173, 56, 0.22), transparent 20%),
-    radial-gradient(circle at 78% 20%, rgba(237, 28, 36, 0.16), transparent 22%),
-    radial-gradient(circle at 58% 76%, rgba(56, 67, 154, 0.16), transparent 26%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(239, 239, 236, 0.96));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 239, 236, 0.98)),
+    linear-gradient(135deg, rgba(56, 67, 154, 0.06), rgba(57, 173, 56, 0.04) 52%, rgba(237, 28, 36, 0.05));
   border: 2px solid rgba(56, 67, 154, 0.28);
   color: var(--color-blue);
   display: grid;
@@ -723,25 +721,20 @@ input {
   background:
     repeating-linear-gradient(
       var(--pattern-rotation),
-      rgba(56, 67, 154, 0.09) 0 12px,
-      transparent 12px 28px
+      rgba(56, 67, 154, 0.08) 0 10px,
+      rgba(56, 67, 154, 0.08) 10px 11px,
+      transparent 11px 26px
     ),
     repeating-linear-gradient(
       calc(var(--pattern-rotation) + 90deg),
-      rgba(57, 173, 56, 0.08) 0 10px,
-      transparent 10px 24px
+      rgba(79, 82, 81, 0.05) 0 14px,
+      rgba(79, 82, 81, 0.05) 14px 15px,
+      transparent 15px 32px
     ),
-    conic-gradient(
-      from var(--pattern-rotation) at 50% 50%,
-      rgba(237, 28, 36, 0.12),
-      rgba(239, 239, 236, 0) 22%,
-      rgba(56, 67, 154, 0.1) 46%,
-      rgba(239, 239, 236, 0) 74%,
-      rgba(57, 173, 56, 0.12)
-    );
+    linear-gradient(180deg, rgba(57, 173, 56, 0.04), rgba(237, 28, 36, 0.04));
   content: '';
   inset: 0;
-  opacity: 0.9;
+  opacity: 1;
   position: absolute;
   transform: translateX(var(--pattern-shift));
   z-index: 0;
@@ -763,18 +756,16 @@ input {
 
 .team-reveal-card-back::before {
   background:
-    radial-gradient(circle at center, rgba(237, 28, 36, 0.85), rgba(237, 28, 36, 0.18) 32%, transparent 42%),
-    radial-gradient(circle at center, rgba(56, 67, 154, 0.9), rgba(56, 67, 154, 0.2) 56%, transparent 62%),
-    radial-gradient(circle at center, rgba(57, 173, 56, 0.68), transparent 74%);
-  box-shadow:
-    0 0 0 10px rgba(255, 255, 255, 0.38),
-    0 0 36px rgba(56, 67, 154, 0.16);
-  border-radius: 50%;
+    linear-gradient(135deg, rgba(56, 67, 154, 0.9), rgba(56, 67, 154, 0.74)),
+    linear-gradient(45deg, rgba(57, 173, 56, 0.18), rgba(237, 28, 36, 0.16));
+  border: 1px solid rgba(56, 67, 154, 0.18);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
   content: '';
-  height: 94px;
-  margin-top: 4px;
+  height: 54px;
+  margin-top: 8px;
   position: relative;
-  width: 94px;
+  width: 54px;
   z-index: 1;
 }
 
