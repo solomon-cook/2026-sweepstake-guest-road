@@ -1,7 +1,5 @@
-import { cookies } from 'next/headers'
 import { SweepstakeClient } from '@/components/sweepstake-client'
 import { getOrCreateDraw } from '@/lib/draw-repository'
-import { PLAYER_COUNT_COOKIE, toPlayerCount } from '@/lib/player-count'
 import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
@@ -25,8 +23,7 @@ function SetupState({ title, body }: { title: string; body: string }) {
 }
 
 export default async function Page() {
-  const cookieStore = await cookies()
-  const playerCount = toPlayerCount(cookieStore.get(PLAYER_COUNT_COOKIE)?.value) ?? 7
+  const playerCount = 7
   const result = await loadTeamScores()
 
   if (result.status === 'ready') {

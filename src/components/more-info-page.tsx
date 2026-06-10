@@ -1,14 +1,82 @@
+'use client'
+
+import { useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
 import { formatScore } from '@/lib/formatters'
 import { SCORE_SNAPSHOT } from '@/lib/team-source'
-import type { TeamScore } from '@/lib/types'
+import type { PersistedDraw, TeamScore } from '@/lib/types'
 
-export function MoreInfoPage({ teamScores }: { teamScores: TeamScore[] }) {
+const ADMIN_PASSWORD = 'Football'
+
+export function MoreInfoPage({
+  initialDraw,
+  teamScores,
+}: {
+  initialDraw: PersistedDraw
+  teamScores: TeamScore[]
+}) {
+  const [draw, setDraw] = useState(initialDraw)
+  const [password, setPassword] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const topTeams = teamScores.slice(0, 12)
   const totalScore = teamScores.reduce((sum, team) => sum + team.score, 0)
   const averageScore = totalScore / teamScores.length
   const scoreSpread = teamScores[0].score - teamScores[teamScores.length - 1].score
   const deviation = (scoreSpread / averageScore) * 100
+  const claimedPlayerCount = draw.allocation.bundles.filter((bundle) => bundle.playerName.trim()).length
+  const revealedPlayerCount = draw.allocation.bundles.filter(
+    (bundle) => bundle.playerName.trim() && bundle.isRevealed,
+  ).length
+  const passwordIsValid = password === ADMIN_PASSWORD
+
+  async function runAdminAction(action: 'shuffle' | 'reset-reveals') {
+    if (!passwordIsValid) {
+      setError('Type Football exactly to unlock the controls.')
+      setNotice('')
+      return
+    }
+
+    setIsSaving(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const response =
+        action === 'shuffle'
+          ? await fetch('/api/draw', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ playerCount: draw.playerCount }),
+            })
+          : await fetch('/api/draw', {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                action: 'reset-reveals',
+                playerCount: draw.playerCount,
+              }),
+            })
+
+      const nextDraw = (await response.json()) as PersistedDraw | { error: string }
+
+      if (!response.ok || 'error' in nextDraw) {
+        throw new Error('error' in nextDraw ? nextDraw.error : 'Admin action failed.')
+      }
+
+      setDraw(nextDraw)
+      setNotice(action === 'shuffle' ? 'Bundles shuffled and hidden again.' : 'All claimed teams are hidden again.')
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Admin action failed.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <main className="page-shell">
@@ -75,6 +143,68 @@ export function MoreInfoPage({ teamScores }: { teamScores: TeamScore[] }) {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="metrics-card">
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">Admin</p>
+              <h2>Draw controls</h2>
+            </div>
+            <p>Type Football to unlock shuffle and re-hide.</p>
+          </div>
+
+          <div className="metric-strip">
+            <article>
+              <span>Players claimed</span>
+              <strong>{claimedPlayerCount}</strong>
+            </article>
+            <article>
+              <span>Packs revealed</span>
+              <strong>{revealedPlayerCount}</strong>
+            </article>
+            <article>
+              <span>Balance</span>
+              <strong>{draw.allocation.balanceLabel}</strong>
+            </article>
+            <article>
+              <span>Score spread</span>
+              <strong>{formatScore(draw.allocation.scoreSpread)}</strong>
+            </article>
+          </div>
+
+          <div className="claim-form admin-form">
+            <label className="name-field">
+              <span>Password</span>
+              <input
+                value={password}
+                placeholder='Type "Football"'
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={isSaving}
+              />
+            </label>
+            <div className="claim-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void runAdminAction('shuffle')}
+                disabled={isSaving || !passwordIsValid}
+              >
+                Shuffle bundles
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void runAdminAction('reset-reveals')}
+                disabled={isSaving || !passwordIsValid}
+              >
+                Re-hide teams
+              </button>
+            </div>
+          </div>
+
+          {notice ? <p className="sync-copy">{notice}</p> : null}
+          {error ? <p className="error-copy">{error}</p> : null}
         </div>
       </section>
     </main>

@@ -8,7 +8,8 @@ import type {
   TeamScore,
 } from './types'
 
-const DEFAULT_NAMES = [
+const DEFAULT_NAMES = ['', '', '', '', '', '', '', '', ''] as const
+const LEGACY_DEFAULT_NAMES = [
   'Sam Felton',
   'Sam Robinson',
   'Dan Blackford',
@@ -22,6 +23,34 @@ const DEFAULT_NAMES = [
 
 function defaultNames(playerCount: PlayerCount) {
   return DEFAULT_NAMES.slice(0, playerCount)
+}
+
+async function resetLegacyNamesIfNeeded(
+  playerCount: PlayerCount,
+  prisma: ReturnType<typeof getPrismaClient>,
+  slots: Array<{ id: string; playerName: string; slotIndex: number }>,
+) {
+  const orderedSlots = [...slots].sort((left, right) => left.slotIndex - right.slotIndex)
+  const legacyNames = LEGACY_DEFAULT_NAMES.slice(0, playerCount)
+  const isLegacyDraw = orderedSlots.every((slot, index) => slot.playerName === legacyNames[index])
+
+  if (!isLegacyDraw) {
+    return false
+  }
+
+  await Promise.all(
+    orderedSlots.map((slot) =>
+      prisma.drawSlot.update({
+        where: { id: slot.id },
+        data: {
+          playerName: '',
+          isRevealed: false,
+        },
+      }),
+    ),
+  )
+
+  return true
 }
 
 export function calculateMetrics(bundles: AllocationResult['bundles']) {
@@ -147,6 +176,14 @@ export async function getOrCreateDraw(playerCount: PlayerCount, teamScores: Team
   const existing = await loadPersistedDraw(playerCount)
 
   if (existing) {
+    const prisma = getPrismaClient()
+    const wasReset = await resetLegacyNamesIfNeeded(playerCount, prisma, existing.slots)
+
+    if (wasReset) {
+      const refreshed = await loadPersistedDraw(playerCount)
+      return toPersistedDraw(playerCount, refreshed!.slots as never)
+    }
+
     return toPersistedDraw(playerCount, existing.slots as never)
   }
 
@@ -206,13 +243,54 @@ export async function updateDrawNames(playerCount: PlayerCount, names: string[],
     await prisma.drawSlot.update({
       where: { id: slot.id },
       data: {
-        playerName: names[index]?.trim() || `Player ${index + 1}`,
+        playerName: names[index]?.trim() ?? '',
       },
     })
   }
 
   const refreshed = await loadPersistedDraw(playerCount)
   return toPersistedDraw(playerCount, refreshed!.slots as never)
+}
+
+export async function claimNextDrawSlot(playerCount: PlayerCount, playerName: string, teamScores: TeamScore[]) {
+  const normalizedName = playerName.trim()
+
+  if (!normalizedName) {
+    throw new Error('Enter your name before claiming a pack.')
+  }
+
+  const prisma = getPrismaClient()
+  await getOrCreateDraw(playerCount, teamScores)
+
+  const draw = await prisma.draw.findUniqueOrThrow({
+    where: { playerCount },
+    include: {
+      slots: {
+        orderBy: { slotIndex: 'asc' },
+      },
+    },
+  })
+
+  const openSlot = draw.slots.find((slot) => !slot.playerName.trim())
+
+  if (!openSlot) {
+    throw new Error('All seven packs have already been claimed.')
+  }
+
+  await prisma.drawSlot.update({
+    where: { id: openSlot.id },
+    data: {
+      playerName: normalizedName,
+      isRevealed: false,
+    },
+  })
+
+  const refreshed = await loadPersistedDraw(playerCount)
+
+  return {
+    claimedSlotId: openSlot.id,
+    draw: toPersistedDraw(playerCount, refreshed!.slots as never),
+  }
 }
 
 export async function revealDrawSlot(playerCount: PlayerCount, slotId: string, teamScores: TeamScore[]) {

@@ -3,6 +3,5 @@
   "/api/team-flags/[teamId]/route": "/api/team-flags/[teamId]",
   "/_not-found/page": "/_not-found",
   "/more-info/page": "/more-info",
-  "/participants/page": "/participants",
   "/page": "/"
 }

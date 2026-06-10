@@ -121,6 +121,7 @@ svg text {
 .results-heading h2,
 .panel-heading h2,
 .favorites-heading h2,
+.empty-state-card h3,
 .setup-card h1,
 .confirm-pane h2,
 .opening-pane h2,
@@ -342,6 +343,21 @@ svg text {
   gap: 18px;
 }
 
+.empty-state-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(79, 82, 81, 0.1);
+  border-radius: 18px;
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 18px;
+}
+
+.empty-state-card h3,
+.empty-state-card p {
+  margin: 0;
+}
+
 .panel-actions {
   align-items: center;
   display: flex;
@@ -398,6 +414,31 @@ svg text {
 .name-grid {
   grid-template-columns: 1fr;
   margin-top: 16px;
+}
+
+.claim-section {
+  border-top: 1px solid rgba(79, 82, 81, 0.12);
+  display: grid;
+  justify-items: center;
+  margin-top: 28px;
+  padding-top: 22px;
+}
+
+.claim-form {
+  display: grid;
+  gap: 14px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.claim-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-form {
+  margin-top: 18px;
 }
 
 .name-field input {
@@ -999,9 +1040,10 @@ svg text {
   border-radius: 8px;
   color: var(--color-night);
   display: grid;
-  gap: 6px;
+  gap: 5px;
   opacity: 0;
   overflow: hidden;
+  padding: 14px 14px 16px;
   transform: scale(0.98);
   visibility: hidden;
   z-index: 3;
@@ -1075,49 +1117,56 @@ svg text {
 
 .card-rank {
   color: var(--color-blue);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .team-reveal-card-front strong {
-  font-size: 1.08rem;
-  line-height: 1.02;
-}
-
-.team-card-heading {
-  align-items: center;
-  display: flex;
-  gap: 8px;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .team-card-flag {
   border: 1px solid rgba(79, 82, 81, 0.16);
-  border-radius: 3px;
-  box-shadow: 0 1px 2px rgba(79, 82, 81, 0.12);
+  border-radius: 6px;
+  box-shadow: 0 8px 18px rgba(79, 82, 81, 0.12);
   display: block;
   flex: 0 0 auto;
   height: auto;
+  max-width: 100%;
 }
 
 .team-card-flag-fallback {
   align-items: center;
-  display: inline-flex;
-  font-size: 1rem;
-  height: 15px;
+  display: flex;
+  font-size: 2rem;
+  height: 72px;
   justify-content: center;
-  width: 20px;
+  width: 96px;
+}
+
+.team-card-flag-frame {
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.24));
+  border: 1px solid rgba(79, 82, 81, 0.08);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  margin: 2px 0 4px;
+  padding: 8px;
 }
 
 .team-reveal-card-front small {
   color: rgba(79, 82, 81, 0.76);
+  font-size: 0.72rem;
 }
 
 .team-reveal-card-front dl {
   display: grid;
-  gap: 6px;
-  margin: 10px 0 0;
+  gap: 4px;
+  margin: 8px 0 0;
 }
 
 .team-reveal-card-front dl div {
@@ -1125,7 +1174,7 @@ svg text {
   border-top: 1px solid rgba(79, 82, 81, 0.12);
   display: flex;
   justify-content: space-between;
-  padding-top: 7px;
+  padding-top: 5px;
 }
 
 .team-reveal-card-front dd,
@@ -1133,8 +1182,14 @@ svg text {
   margin: 0;
 }
 
+.team-reveal-card-front dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
 .team-reveal-card-front dd {
   color: var(--color-night);
+  font-size: 0.82rem;
   font-weight: 700;
 }
 

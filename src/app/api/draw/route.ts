@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import {
+  claimNextDrawSlot,
   getOrCreateDraw,
   resetDrawRevealState,
   revealDrawSlot,
@@ -53,6 +54,7 @@ export async function PATCH(request: Request) {
     const body = (await request.json()) as
       | { names?: string[]; playerCount?: number }
       | { slotId?: string; playerCount?: number; action?: string }
+      | { playerName?: string; playerCount?: number; action?: string }
     const playerCount = parsePlayerCount(body.playerCount)
 
     if (!playerCount) {
@@ -65,8 +67,28 @@ export async function PATCH(request: Request) {
       return teams
     }
 
-    if ('action' in body && body.action === 'reveal-slot' && typeof body.slotId === 'string') {
+    if (
+      'action' in body &&
+      body.action === 'reveal-slot' &&
+      'slotId' in body &&
+      typeof body.slotId === 'string'
+    ) {
       const draw = await revealDrawSlot(playerCount, body.slotId, teams)
+      return NextResponse.json(draw)
+    }
+
+    if (
+      'action' in body &&
+      body.action === 'claim-slot' &&
+      'playerName' in body &&
+      typeof body.playerName === 'string'
+    ) {
+      const result = await claimNextDrawSlot(playerCount, body.playerName, teams)
+      return NextResponse.json(result)
+    }
+
+    if ('action' in body && body.action === 'reset-reveals') {
+      const draw = await resetDrawRevealState(playerCount, teams)
       return NextResponse.json(draw)
     }
 

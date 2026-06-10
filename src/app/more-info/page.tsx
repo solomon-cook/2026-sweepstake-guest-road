@@ -1,4 +1,5 @@
 import { MoreInfoPage } from '@/components/more-info-page'
+import { getOrCreateDraw } from '@/lib/draw-repository'
 import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
@@ -10,5 +11,7 @@ export default async function MoreInfoRoute() {
     throw new Error('More info page requires seeded team data.')
   }
 
-  return <MoreInfoPage teamScores={result.teams} />
+  const initialDraw = await getOrCreateDraw(7, result.teams)
+
+  return <MoreInfoPage initialDraw={initialDraw} teamScores={result.teams} />
 }

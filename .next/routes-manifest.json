@@ -46,12 +46,6 @@
       "regex": "^/more\\-info(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/more\\-info(?:/)?$"
-    },
-    {
-      "page": "/participants",
-      "regex": "^/participants(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/participants(?:/)?$"
     }
   ],
   "dataRoutes": [],
