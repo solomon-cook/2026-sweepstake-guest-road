@@ -336,7 +336,7 @@ export function CardPackOpening({
           </div>
           <div className="confirm-actions">
             <button type="button" className="reveal-button" onClick={handleOpenPack}>
-              Open pack
+              Reveal Teams
             </button>
             {onClose ? (
               <button type="button" className="secondary-button" onClick={onClose}>
