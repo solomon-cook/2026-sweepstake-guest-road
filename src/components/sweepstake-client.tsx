@@ -199,7 +199,7 @@ export function SweepstakeClient({
           <div className="empty-state-card">
             <p className="section-kicker">First pack</p>
             <h3>No players have claimed a bundle yet.</h3>
-            <p>Use the add player button below to take the next pack.</p>
+            <p>Use the join button below to take the next pack.</p>
           </div>
         )}
 
@@ -242,7 +242,7 @@ export function SweepstakeClient({
                 onClick={() => setShowJoinForm(true)}
                 disabled={isSaving}
               >
-                Add player
+                Join
               </button>
             )}
           </div>
