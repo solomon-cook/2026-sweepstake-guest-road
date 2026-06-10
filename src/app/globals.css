@@ -637,7 +637,8 @@ input {
   transform-origin: center center;
   transition:
     filter 160ms ease,
-    transform 220ms ease;
+    transform 220ms ease,
+    box-shadow 220ms ease;
   width: 152px;
   z-index: var(--card-z);
 }
@@ -649,6 +650,20 @@ input {
   opacity: 0;
   position: absolute;
   transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.team-reveal-card.is-flipped.is-good {
+  transform:
+    translate3d(var(--card-x), calc(var(--card-y) - 10px), 0)
+    rotate(calc(var(--card-rotate) * 0.45))
+    scale(1.035);
+}
+
+.team-reveal-card.is-flipped.is-great {
+  transform:
+    translate3d(var(--card-x), calc(var(--card-y) - 16px), 0)
+    rotate(calc(var(--card-rotate) * 0.3))
+    scale(1.065);
 }
 
 .team-reveal-card.is-launching {
@@ -672,7 +687,7 @@ input {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 620ms cubic-bezier(0.2, 0.75, 0.2, 1);
+  transition: transform var(--flip-duration, 620ms) cubic-bezier(0.16, 0.78, 0.18, 1);
 }
 
 .team-reveal-card.is-flipped .team-reveal-card-inner {
@@ -732,6 +747,47 @@ input {
 .team-reveal-card-back small {
   color: rgba(255, 255, 255, 0.72);
   padding-bottom: 8px;
+}
+
+.card-impact-ripple {
+  background:
+    radial-gradient(
+      circle at var(--impact-x) var(--impact-y),
+      rgba(255, 255, 255, 0.92),
+      rgba(145, 196, 255, 0.46) 18%,
+      rgba(145, 196, 255, 0.18) 36%,
+      transparent 56%
+    );
+  border-radius: 999px;
+  inset: -18%;
+  pointer-events: none;
+  position: absolute;
+  z-index: 4;
+  animation: impactRipple 620ms cubic-bezier(0.08, 0.82, 0.2, 1) forwards;
+}
+
+.card-impact-ripple.is-good {
+  animation-duration: 980ms;
+  background:
+    radial-gradient(
+      circle at var(--impact-x) var(--impact-y),
+      rgba(255, 255, 255, 0.98),
+      rgba(82, 140, 255, 0.58) 18%,
+      rgba(82, 140, 255, 0.26) 38%,
+      transparent 62%
+    );
+}
+
+.card-impact-ripple.is-great {
+  animation-duration: 1380ms;
+  background:
+    radial-gradient(
+      circle at var(--impact-x) var(--impact-y),
+      rgba(255, 246, 214, 1),
+      rgba(255, 120, 92, 0.68) 16%,
+      rgba(237, 28, 36, 0.38) 36%,
+      transparent 66%
+    );
 }
 
 .team-reveal-card-front {
@@ -836,6 +892,22 @@ code {
       translate3d(var(--card-x), var(--card-y), 0)
       scale(1)
       rotate(var(--card-rotate));
+  }
+}
+
+@keyframes impactRipple {
+  0% {
+    opacity: 0;
+    transform: scale(0.12);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.85);
   }
 }
 

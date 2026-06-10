@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties, MouseEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { SCORE_SNAPSHOT } from '@/lib/team-source'
 import type { PersistedBundle, PersistedDraw, PlayerCount, TeamScore } from '@/lib/types'
@@ -23,6 +23,11 @@ type RevealCardView = {
   originalIndex: number
   sceneIndex: number
   team: TeamScore
+}
+type CardImpact = {
+  x: number
+  y: number
+  sequence: number
 }
 
 const REVEAL_LAYOUTS = {
@@ -131,6 +136,7 @@ export function SweepstakeClient({
   const [revealPhase, setRevealPhase] = useState<RevealPhase>('closed')
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null)
   const [flippedCards, setFlippedCards] = useState<number[]>([])
+  const [cardImpacts, setCardImpacts] = useState<Record<number, CardImpact>>({})
   const [isPersistingReveal, setIsPersistingReveal] = useState(false)
   const timeoutIds = useRef<number[]>([])
 
@@ -167,6 +173,7 @@ export function SweepstakeClient({
     setRevealPhase('closed')
     setActiveSlotId(null)
     setFlippedCards([])
+    setCardImpacts({})
     setIsPersistingReveal(false)
   }
 
@@ -293,10 +300,27 @@ export function SweepstakeClient({
     }
   }
 
-  function handleCardFlip(bundle: PersistedBundle, cardIndex: number) {
+  function handleCardFlip(
+    event: MouseEvent<HTMLButtonElement>,
+    bundle: PersistedBundle,
+    cardIndex: number,
+  ) {
     if (revealPhase !== 'cards' || isPersistingReveal || flippedCards.includes(cardIndex)) {
       return
     }
+
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const x = ((event.clientX - bounds.left) / bounds.width) * 100
+    const y = ((event.clientY - bounds.top) / bounds.height) * 100
+
+    setCardImpacts((current) => ({
+      ...current,
+      [cardIndex]: {
+        x,
+        y,
+        sequence: (current[cardIndex]?.sequence ?? 0) + 1,
+      },
+    }))
 
     const nextFlippedCards = [...flippedCards, cardIndex]
     setFlippedCards(nextFlippedCards)
@@ -534,6 +558,9 @@ export function SweepstakeClient({
                     const isFlipped = flippedCards.includes(card.originalIndex)
                     const glowTier = getGlowTier(team.rank)
                     const layout = revealLayout[card.sceneIndex] ?? revealLayout[revealLayout.length - 1]
+                    const impact = cardImpacts[card.originalIndex]
+                    const flipDuration =
+                      glowTier === 'great' ? '1380ms' : glowTier === 'good' ? '980ms' : '620ms'
 
                     return (
                       <button
@@ -549,9 +576,14 @@ export function SweepstakeClient({
                             '--card-rotate': `${layout.rotate}deg`,
                             '--card-z': layout.z,
                             '--card-delay': `${card.sceneIndex * 90}ms`,
+                            '--flip-duration': flipDuration,
+                            '--impact-x': `${impact?.x ?? 50}%`,
+                            '--impact-y': `${impact?.y ?? 50}%`,
+                            '--pattern-rotation': `${card.sceneIndex * 37}deg`,
+                            '--pattern-shift': `${(card.sceneIndex % 4) * 14}px`,
                           } as CSSProperties
                         }
-                        onClick={() => handleCardFlip(activeBundle, card.originalIndex)}
+                        onClick={(event) => handleCardFlip(event, activeBundle, card.originalIndex)}
                         disabled={isFlipped || isPersistingReveal || revealPhase !== 'cards'}
                       >
                         <span className="team-reveal-card-inner">
@@ -579,6 +611,12 @@ export function SweepstakeClient({
                               </div>
                             </dl>
                           </span>
+                          {impact ? (
+                            <span
+                              key={`${team.name}-${impact.sequence}`}
+                              className={`card-impact-ripple is-${glowTier}`}
+                            />
+                          ) : null}
                         </span>
                       </button>
                     )
