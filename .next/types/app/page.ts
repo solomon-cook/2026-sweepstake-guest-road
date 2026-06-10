@@ -1,4 +1,4 @@
-// File: /Users/solomon/Documents/2026-sweepstake-guest-road/src/app/page.tsx
+// File: /Users/Solomon/Documents/2026-sweepstake-guest-road/src/app/page.tsx
 import * as entry from '../../../src/app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

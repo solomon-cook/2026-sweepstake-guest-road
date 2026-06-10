@@ -1,3 +1,6 @@
+/*!*****************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[10].use[3]!./src/app/globals.css ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************/
 :root {
   --color-green: #39ad38;
   --color-blue: #38439a;
@@ -145,6 +148,7 @@ input {
 .favorites-heading,
 .cards-pane-header {
   display: grid;
+  grid-gap: 8px;
   gap: 8px;
 }
 
@@ -169,6 +173,7 @@ input {
 
 .count-switcher {
   display: grid;
+  grid-gap: 8px;
   gap: 8px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -218,6 +223,7 @@ input {
 .favorites-list,
 .reveal-card-grid {
   display: grid;
+  grid-gap: 14px;
   gap: 14px;
 }
 
@@ -301,6 +307,7 @@ input {
 .bundle-hidden-state {
   align-content: start;
   display: grid;
+  grid-gap: 0;
   gap: 0;
   justify-items: start;
   min-height: 0;
@@ -326,6 +333,7 @@ input {
 
 .details-panel {
   display: grid;
+  grid-gap: 18px;
   gap: 18px;
 }
 
@@ -421,7 +429,8 @@ input {
 
 .reveal-overlay {
   align-items: center;
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
   background: rgba(25, 33, 63, 0.56);
   display: flex;
   inset: 0;
@@ -445,6 +454,7 @@ input {
 .confirm-pane,
 .opening-pane {
   display: grid;
+  grid-gap: 16px;
   gap: 16px;
   justify-items: center;
   padding: 12px 4px 4px;
@@ -464,6 +474,7 @@ input {
 .pack-idle-stage {
   align-items: center;
   display: grid;
+  grid-gap: 26px;
   gap: 26px;
   grid-template-columns: minmax(190px, 0.55fr) 1fr;
   min-height: 280px;
@@ -535,12 +546,14 @@ input {
 
 .cards-pane {
   display: grid;
+  grid-gap: 20px;
   gap: 20px;
 }
 
 .mobile-reveal-stage {
   align-content: center;
   display: grid;
+  grid-gap: 14px;
   gap: 14px;
   justify-items: center;
   min-height: 0;
@@ -609,6 +622,7 @@ input {
 .cards-pane-heading {
   border-bottom: 1px solid rgba(79, 82, 81, 0.14);
   display: grid;
+  grid-gap: 8px;
   gap: 8px;
   padding-bottom: 18px;
 }
@@ -851,6 +865,7 @@ input {
   border: 2px solid rgba(56, 67, 154, 0.28);
   color: var(--color-blue);
   display: grid;
+  grid-gap: 12px;
   gap: 12px;
   justify-items: center;
   overflow: hidden;
@@ -878,7 +893,8 @@ input {
 }
 
 .card-back-badge {
-  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
   background: rgba(239, 239, 236, 0.52);
   border: 1px solid rgba(56, 67, 154, 0.24);
   border-radius: 999px;
@@ -971,6 +987,7 @@ input {
   border-radius: 8px;
   color: var(--color-night);
   display: grid;
+  grid-gap: 6px;
   gap: 6px;
   transform:
     rotateY(180deg)
@@ -996,6 +1013,7 @@ input {
 
 .team-reveal-card-front dl {
   display: grid;
+  grid-gap: 6px;
   gap: 6px;
   margin: 10px 0 0;
 }
@@ -1203,6 +1221,7 @@ code {
     bottom: 0;
     margin: 0 -18px;
     padding: 22px 18px calc(18px + env(safe-area-inset-bottom));
+    position: -webkit-sticky;
     position: sticky;
   }
 
@@ -1251,3 +1270,4 @@ code {
     top: calc(50% + 30px);
   }
 }
+
