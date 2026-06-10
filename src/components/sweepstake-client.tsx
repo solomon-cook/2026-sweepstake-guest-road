@@ -19,6 +19,38 @@ const INITIAL_NAMES = [
 ]
 
 type RevealPhase = 'closed' | 'confirm' | 'opening' | 'cards' | 'finishing'
+type RevealCardView = {
+  originalIndex: number
+  sceneIndex: number
+  team: TeamScore
+}
+
+const REVEAL_LAYOUTS = {
+  5: [
+    { x: -26, y: -22, rotate: -10, z: 3 },
+    { x: 0, y: -34, rotate: 0, z: 4 },
+    { x: 26, y: -20, rotate: 10, z: 3 },
+    { x: -14, y: 22, rotate: -6, z: 2 },
+    { x: 17, y: 20, rotate: 7, z: 2 },
+  ],
+  6: [
+    { x: -28, y: -24, rotate: -10, z: 3 },
+    { x: 0, y: -36, rotate: 0, z: 4 },
+    { x: 28, y: -22, rotate: 11, z: 3 },
+    { x: -28, y: 18, rotate: -8, z: 2 },
+    { x: 0, y: 26, rotate: 0, z: 1 },
+    { x: 28, y: 18, rotate: 8, z: 2 },
+  ],
+  7: [
+    { x: -31, y: -22, rotate: -12, z: 3 },
+    { x: -7, y: -36, rotate: -4, z: 4 },
+    { x: 19, y: -30, rotate: 7, z: 4 },
+    { x: 34, y: -6, rotate: 13, z: 3 },
+    { x: 21, y: 23, rotate: 8, z: 2 },
+    { x: -8, y: 28, rotate: -2, z: 1 },
+    { x: -33, y: 14, rotate: -11, z: 2 },
+  ],
+} as const
 
 function formatScore(value: number) {
   return value.toFixed(2)
@@ -42,6 +74,43 @@ function getGlowTier(rank: number) {
 
 function isBundleFullyFlipped(bundle: PersistedBundle, flippedCards: number[]) {
   return bundle.teams.every((_, index) => flippedCards.includes(index))
+}
+
+function hashString(value: string) {
+  let hash = 0
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 2147483647
+  }
+
+  return hash
+}
+
+function buildRevealCards(bundle: PersistedBundle): RevealCardView[] {
+  return bundle.teams
+    .map((team, originalIndex) => ({
+      originalIndex,
+      sortKey: hashString(`${bundle.slotId}:${team.name}:${team.rank}`),
+      team,
+    }))
+    .sort((left, right) => left.sortKey - right.sortKey || left.team.rank - right.team.rank)
+    .map(({ originalIndex, team }, sceneIndex) => ({
+      originalIndex,
+      sceneIndex,
+      team,
+    }))
+}
+
+function getRevealLayout(cardCount: number) {
+  if (cardCount <= 5) {
+    return REVEAL_LAYOUTS[5]
+  }
+
+  if (cardCount === 6) {
+    return REVEAL_LAYOUTS[6]
+  }
+
+  return REVEAL_LAYOUTS[7]
 }
 
 export function SweepstakeClient({
@@ -74,6 +143,8 @@ export function SweepstakeClient({
       right.totalScore - left.totalScore || left.playerName.localeCompare(right.playerName),
   )
   const activeBundle = rankedBundles.find((bundle) => bundle.slotId === activeSlotId) ?? null
+  const revealCards = activeBundle ? buildRevealCards(activeBundle) : []
+  const revealLayout = getRevealLayout(revealCards.length)
 
   useEffect(() => {
     return () => {
@@ -441,58 +512,55 @@ export function SweepstakeClient({
               </div>
             ) : null}
 
-            {revealPhase === 'opening' ? (
-              <div className="opening-pane">
-                <p className="section-kicker">Pack opening</p>
-                <div className="pack-scene" aria-hidden="true">
-                  <div className="pack-shell">
+            {revealPhase === 'opening' || revealPhase === 'cards' || revealPhase === 'finishing' ? (
+              <div className="cards-pane">
+                <div className="cards-pane-heading">
+                  <p className="section-kicker">{revealPhase === 'opening' ? 'Pack opening' : 'Reveal board'}</p>
+                  <h2 id="reveal-title">{activeBundle.playerName}&rsquo;s teams</h2>
+                  <p>
+                    {revealPhase === 'opening'
+                      ? 'The pack bursts open and the cards drift into place.'
+                      : 'Cards are shuffled before the reveal so the best teams are not grouped at the front.'}
+                  </p>
+                </div>
+
+                <div
+                  className={`reveal-arena ${revealPhase === 'opening' ? 'is-opening' : 'is-settled'} ${
+                    revealPhase === 'finishing' ? 'is-finishing' : ''
+                  }`}
+                >
+                  <div className="arena-backdrop" aria-hidden="true" />
+                  <div className="arena-energy-ring" aria-hidden="true" />
+                  <div className="arena-energy-core" aria-hidden="true" />
+                  <div className={`pack-shell arena-pack ${revealPhase === 'opening' ? 'is-live' : 'is-spent'}`}>
                     <div className="pack-flare" />
                     <div className="pack-logo">Guest Road</div>
                   </div>
-                  <div className="pack-burst" />
-                  <div className="pack-card-fan">
-                    {activeBundle.teams.slice(0, Math.min(activeBundle.teams.length, 5)).map((team, index) => (
-                      <span
-                        key={team.name}
-                        className="fan-card"
-                        style={{ '--fan-index': index } as CSSProperties}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <h2 id="reveal-title">Opening {activeBundle.playerName}&rsquo;s pack</h2>
-                <p>The cards are about to spill out.</p>
-              </div>
-            ) : null}
+                  <div className="pack-burst" aria-hidden="true" />
 
-            {revealPhase === 'cards' || revealPhase === 'finishing' ? (
-              <div className="cards-pane">
-                <div className="cards-pane-header">
-                  <div>
-                    <p className="section-kicker">Reveal board</p>
-                    <h2 id="reveal-title">{activeBundle.playerName}&rsquo;s teams</h2>
-                  </div>
-                  <div className="center-finale">
-                    <span>{flippedCards.length}</span>
-                    <small>
-                      {isPersistingReveal
-                        ? 'Locking in reveal...'
-                        : `${activeBundle.teams.length - flippedCards.length} cards left`}
-                    </small>
-                  </div>
-                </div>
-
-                <div className="reveal-card-grid">
-                  {activeBundle.teams.map((team, index) => {
-                    const isFlipped = flippedCards.includes(index)
+                  {revealCards.map((card) => {
+                    const team = card.team
+                    const isFlipped = flippedCards.includes(card.originalIndex)
                     const glowTier = getGlowTier(team.rank)
+                    const layout = revealLayout[card.sceneIndex] ?? revealLayout[revealLayout.length - 1]
 
                     return (
                       <button
                         key={team.name}
                         type="button"
-                        className={`team-reveal-card is-${glowTier} ${isFlipped ? 'is-flipped' : ''}`}
-                        onClick={() => handleCardFlip(activeBundle, index)}
+                        className={`team-reveal-card is-${glowTier} ${isFlipped ? 'is-flipped' : ''} ${
+                          revealPhase === 'opening' ? 'is-launching' : ''
+                        }`}
+                        style={
+                          {
+                            '--card-x': `${layout.x}%`,
+                            '--card-y': `${layout.y}%`,
+                            '--card-rotate': `${layout.rotate}deg`,
+                            '--card-z': layout.z,
+                            '--card-delay': `${card.sceneIndex * 90}ms`,
+                          } as CSSProperties
+                        }
+                        onClick={() => handleCardFlip(activeBundle, card.originalIndex)}
                         disabled={isFlipped || isPersistingReveal || revealPhase !== 'cards'}
                       >
                         <span className="team-reveal-card-inner">
@@ -524,6 +592,17 @@ export function SweepstakeClient({
                       </button>
                     )
                   })}
+
+                  <div className="center-finale">
+                    <span>{flippedCards.length}</span>
+                    <small>
+                      {revealPhase === 'opening'
+                        ? 'Opening pack...'
+                        : isPersistingReveal
+                          ? 'Locking in reveal...'
+                          : `${activeBundle.teams.length - flippedCards.length} cards left`}
+                    </small>
+                  </div>
                 </div>
               </div>
             ) : null}

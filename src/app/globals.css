@@ -485,15 +485,6 @@ input {
   width: min(100%, 420px);
 }
 
-.pack-scene {
-  display: grid;
-  justify-items: center;
-  min-height: 250px;
-  place-items: center;
-  position: relative;
-  width: 100%;
-}
-
 .pack-shell {
   align-items: center;
   background:
@@ -536,40 +527,15 @@ input {
 }
 
 .pack-burst {
-  background: radial-gradient(circle, rgba(237, 28, 36, 0.6), transparent 58%);
+  background:
+    radial-gradient(circle, rgba(255, 212, 92, 0.88), rgba(255, 163, 29, 0.5) 45%, transparent 66%),
+    radial-gradient(circle, rgba(72, 161, 255, 0.32), transparent 70%);
   border-radius: 50%;
-  height: 240px;
+  height: 280px;
   opacity: 0;
   position: absolute;
   transform: scale(0.1);
-  width: 240px;
-  animation: packBurst 1350ms ease forwards;
-}
-
-.pack-card-fan {
-  inset: 0;
-  pointer-events: none;
-  position: absolute;
-}
-
-.fan-card {
-  --offset: calc((var(--fan-index) - 2) * 38px);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 26%),
-    linear-gradient(135deg, #fff, #d7defa 32%, #3950bc 33%, #182353);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 18px;
-  box-shadow: 0 18px 36px rgba(25, 33, 63, 0.22);
-  height: 160px;
-  left: calc(50% - 52px);
-  opacity: 0;
-  position: absolute;
-  top: 48px;
-  transform: translate3d(var(--offset), 0, 0) rotate(calc((var(--fan-index) - 2) * 10deg));
-  transform-origin: center bottom;
-  width: 104px;
-  animation: fanOut 950ms cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
-  animation-delay: calc(var(--fan-index) * 80ms + 260ms);
+  width: 280px;
 }
 
 .cards-pane {
@@ -577,50 +543,158 @@ input {
   gap: 18px;
 }
 
-.cards-pane-header {
-  align-items: center;
-  grid-template-columns: minmax(0, 1fr) auto;
+.cards-pane-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.cards-pane-heading p:last-child {
+  color: rgba(79, 82, 81, 0.72);
+  margin: 0;
+}
+
+.reveal-arena {
+  background:
+    radial-gradient(circle at center, rgba(15, 22, 51, 0.86), rgba(12, 16, 36, 0.94)),
+    linear-gradient(180deg, #1b2146, #10162f);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  min-height: 720px;
+  overflow: hidden;
+  position: relative;
+}
+
+.arena-backdrop {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(72, 118, 255, 0.12), transparent 33%),
+    radial-gradient(circle at 50% 58%, rgba(255, 180, 71, 0.08), transparent 26%);
+  inset: 0;
+  position: absolute;
+}
+
+.arena-energy-ring {
+  background: radial-gradient(circle, transparent 58%, rgba(255, 178, 49, 0.7) 60%, transparent 74%);
+  border-radius: 50%;
+  filter: blur(2px);
+  height: 420px;
+  left: calc(50% - 210px);
+  opacity: 0.7;
+  position: absolute;
+  top: calc(50% - 170px);
+  transition: opacity 300ms ease, transform 500ms ease;
+  width: 420px;
+}
+
+.arena-energy-core {
+  background:
+    radial-gradient(circle, rgba(255, 222, 135, 0.95), rgba(255, 161, 24, 0.7) 34%, transparent 62%),
+    radial-gradient(circle, rgba(70, 156, 255, 0.55), transparent 64%);
+  border-radius: 50%;
+  filter: blur(2px);
+  height: 180px;
+  left: calc(50% - 90px);
+  opacity: 0.92;
+  position: absolute;
+  top: calc(50% - 52px);
+  transition: opacity 300ms ease, transform 500ms ease;
+  width: 180px;
+}
+
+.arena-pack {
+  left: calc(50% - 74px);
+  position: absolute;
+  top: calc(50% - 76px);
+  transition:
+    opacity 340ms ease,
+    transform 460ms ease;
+  z-index: 6;
+}
+
+.arena-pack.is-live {
+  animation: packPulse 1200ms ease-in-out infinite;
+}
+
+.arena-pack.is-spent {
+  opacity: 0;
+  transform: scale(0.6) translateY(18px);
+}
+
+.reveal-arena.is-opening .pack-burst {
+  animation: packBurst 1250ms cubic-bezier(0.15, 0.9, 0.25, 1) forwards;
+}
+
+.reveal-arena.is-opening .arena-energy-ring,
+.reveal-arena.is-opening .arena-energy-core {
+  transform: scale(1.05);
 }
 
 .center-finale {
   align-items: center;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.18)),
-    linear-gradient(135deg, rgba(56, 67, 154, 0.16), rgba(237, 28, 36, 0.08));
-  border: 1px solid rgba(56, 67, 154, 0.18);
+    radial-gradient(circle at top, rgba(188, 238, 255, 0.95), rgba(113, 185, 255, 0.78)),
+    linear-gradient(180deg, #8dd3ff, #5a9ff2);
+  border: 2px solid rgba(194, 236, 255, 0.75);
   border-radius: 999px;
+  box-shadow:
+    0 0 28px rgba(102, 192, 255, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.7);
   display: grid;
   justify-items: center;
-  min-width: 116px;
-  padding: 14px 18px;
+  left: calc(50% - 78px);
+  min-height: 88px;
+  padding: 12px 18px;
+  position: absolute;
+  top: calc(50% + 18px);
+  width: 156px;
+  z-index: 5;
 }
 
 .center-finale span {
-  color: var(--color-night);
+  color: #fff;
   font-family: var(--font-title);
   font-size: 2rem;
   line-height: 0.9;
+  text-shadow: 0 1px 0 rgba(14, 63, 120, 0.38);
 }
 
-.reveal-card-grid {
-  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+.reveal-arena.is-opening .center-finale {
+  opacity: 0.24;
+  transform: scale(0.9);
 }
 
 .team-reveal-card {
   background: transparent;
   border: 0;
+  height: 252px;
+  left: calc(50% - 84px);
   padding: 0;
   perspective: 1200px;
-  position: relative;
+  position: absolute;
+  top: calc(50% - 126px);
+  transform:
+    translate3d(var(--card-x), var(--card-y), 0)
+    rotate(var(--card-rotate));
+  transform-origin: center center;
+  transition:
+    filter 160ms ease,
+    transform 220ms ease;
+  width: 168px;
+  z-index: var(--card-z);
 }
 
 .team-reveal-card::before {
-  border-radius: 20px;
+  border-radius: 30px;
   content: '';
   inset: -4px;
   opacity: 0;
   position: absolute;
   transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.team-reveal-card.is-launching {
+  animation: launchCard 980ms cubic-bezier(0.18, 0.84, 0.18, 1) forwards;
+  animation-delay: var(--card-delay);
+  opacity: 0;
 }
 
 .team-reveal-card.is-good:hover::before {
@@ -635,7 +709,7 @@ input {
 
 .team-reveal-card-inner {
   display: grid;
-  min-height: 212px;
+  height: 100%;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 620ms cubic-bezier(0.2, 0.75, 0.2, 1);
@@ -647,28 +721,31 @@ input {
 
 .team-reveal-card-face {
   backface-visibility: hidden;
-  border-radius: 20px;
-  box-shadow: 0 18px 34px rgba(25, 33, 63, 0.2);
+  border-radius: 30px;
+  box-shadow:
+    0 20px 36px rgba(5, 8, 22, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
   inset: 0;
-  padding: 16px;
+  padding: 16px 16px 18px;
   position: absolute;
 }
 
 .team-reveal-card-back {
-  align-content: center;
+  align-content: space-between;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 36%),
-    linear-gradient(160deg, #1c2859, #304395 48%, #0d1532);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.22), transparent 32%),
+    linear-gradient(160deg, #243775, #3b55b5 42%, #0d1532);
+  border: 2px solid rgba(215, 180, 88, 0.74);
   color: #fff;
   display: grid;
-  gap: 8px;
+  gap: 12px;
   justify-items: center;
+  padding-top: 18px;
   text-align: center;
 }
 
 .card-back-badge {
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 233, 173, 0.48);
   border-radius: 999px;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -676,28 +753,40 @@ input {
   text-transform: uppercase;
 }
 
+.team-reveal-card-back::before {
+  background:
+    radial-gradient(circle at center, rgba(250, 204, 94, 0.95), rgba(225, 145, 31, 0.88) 40%, transparent 46%),
+    radial-gradient(circle at center, rgba(78, 171, 255, 0.85), transparent 62%);
+  border-radius: 50%;
+  content: '';
+  height: 94px;
+  margin-top: 4px;
+  width: 94px;
+}
+
 .team-reveal-card-back strong {
   font-family: var(--font-title);
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .team-reveal-card-back small {
   color: rgba(255, 255, 255, 0.72);
+  padding-bottom: 8px;
 }
 
 .team-reveal-card-front {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 28%),
-    linear-gradient(180deg, #fff, #eef1fa);
-  border: 1px solid rgba(56, 67, 154, 0.16);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.74), transparent 26%),
+    linear-gradient(180deg, #fff7de, #f6efd5 32%, #efe6cb);
+  border: 2px solid rgba(187, 144, 54, 0.68);
   color: var(--color-night);
   display: grid;
-  gap: 8px;
+  gap: 6px;
   transform: rotateY(180deg);
 }
 
 .card-rank {
-  color: var(--color-blue);
+  color: #8b6719;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -705,26 +794,26 @@ input {
 }
 
 .team-reveal-card-front strong {
-  font-size: 1.15rem;
+  font-size: 1.08rem;
   line-height: 1.02;
 }
 
 .team-reveal-card-front small {
-  color: rgba(25, 33, 63, 0.7);
+  color: rgba(79, 59, 18, 0.78);
 }
 
 .team-reveal-card-front dl {
   display: grid;
-  gap: 8px;
-  margin: 8px 0 0;
+  gap: 6px;
+  margin: 10px 0 0;
 }
 
 .team-reveal-card-front dl div {
   align-items: baseline;
-  border-top: 1px solid rgba(56, 67, 154, 0.1);
+  border-top: 1px solid rgba(139, 103, 25, 0.14);
   display: flex;
   justify-content: space-between;
-  padding-top: 8px;
+  padding-top: 7px;
 }
 
 .team-reveal-card-front dd,
@@ -758,24 +847,35 @@ code {
     transform: scale(0.1);
   }
 
-  45% {
-    opacity: 0.5;
+  20% {
+    opacity: 0.82;
   }
 
   100% {
     opacity: 0;
-    transform: scale(1.35);
+    transform: scale(1.62);
   }
 }
 
-@keyframes fanOut {
+@keyframes launchCard {
   0% {
-    opacity: 0;
-    transform: translate3d(0, 40px, 0) scale(0.72) rotate(0deg);
+    opacity: 0.08;
+    transform:
+      translate3d(0, 24px, 0)
+      scale(0.34)
+      rotate(0deg);
+  }
+
+  35% {
+    opacity: 1;
   }
 
   100% {
     opacity: 1;
+    transform:
+      translate3d(var(--card-x), var(--card-y), 0)
+      scale(1)
+      rotate(var(--card-rotate));
   }
 }
 
@@ -806,10 +906,6 @@ code {
   .confirm-actions {
     grid-template-columns: 1fr auto;
   }
-
-  .reveal-card-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 699px) {
@@ -818,28 +914,64 @@ code {
     flex-direction: column;
   }
 
-  .cards-pane-header {
-    grid-template-columns: 1fr;
-  }
-
-  .center-finale {
-    justify-self: start;
-  }
-
   .reveal-modal {
     max-height: calc(100vh - 40px);
     overflow: auto;
   }
 
-  .pack-shell {
-    height: 174px;
-    width: 132px;
+  .reveal-arena {
+    display: grid;
+    gap: 14px;
+    min-height: 0;
+    padding: 18px 14px 116px;
   }
 
-  .fan-card {
-    height: 144px;
-    left: calc(50% - 46px);
-    top: 56px;
-    width: 92px;
+  .arena-backdrop,
+  .arena-energy-ring,
+  .arena-energy-core,
+  .arena-pack,
+  .pack-burst {
+    inset: auto;
+    left: 50%;
+    top: 128px;
+    transform: translateX(-50%);
+  }
+
+  .arena-pack {
+    top: 82px;
+  }
+
+  .arena-energy-ring {
+    height: 260px;
+    left: calc(50% - 130px);
+    top: 24px;
+    width: 260px;
+  }
+
+  .arena-energy-core {
+    height: 120px;
+    left: calc(50% - 60px);
+    top: 92px;
+    width: 120px;
+  }
+
+  .team-reveal-card {
+    height: 232px;
+    left: auto;
+    position: relative;
+    top: auto;
+    transform: none;
+    width: 100%;
+  }
+
+  .team-reveal-card.is-launching {
+    animation: none;
+    opacity: 1;
+  }
+
+  .center-finale {
+    left: calc(50% - 78px);
+    top: auto;
+    bottom: 18px;
   }
 }
