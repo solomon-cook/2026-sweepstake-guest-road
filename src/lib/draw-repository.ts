@@ -21,6 +21,10 @@ const LEGACY_DEFAULT_NAMES = [
   '',
 ] as const
 
+function buildFlagImageUrl(teamId?: string) {
+  return teamId ? `/api/team-flags/${teamId}` : undefined
+}
+
 function defaultNames(playerCount: PlayerCount) {
   return DEFAULT_NAMES.slice(0, playerCount)
 }
@@ -98,7 +102,10 @@ export function toPersistedDraw(
       isRevealed: slot.isRevealed,
       teams: [...slot.teamAssignments]
         .sort((left, right) => left.teamOrder - right.teamOrder)
-        .map((assignment) => assignment.team),
+        .map((assignment) => ({
+          ...assignment.team,
+          flagImageUrl: buildFlagImageUrl(assignment.team.id),
+        })),
     }))
 
   return {
