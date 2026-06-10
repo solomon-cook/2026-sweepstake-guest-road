@@ -28,6 +28,15 @@ type CardPackOpeningProps = {
   onError?: (error: Error) => void
 }
 
+function GuestRoadPackFace({ className = '' }: { className?: string }) {
+  return (
+    <span className={`guest-road-pack-face ${className}`.trim()}>
+      <span className="pack-flare" />
+      <span className="pack-logo">Guest Road</span>
+    </span>
+  )
+}
+
 const REVEAL_LAYOUTS = {
   2: [
     { x: -92, y: -28, rotate: -7, z: 2 },
@@ -286,9 +295,7 @@ export function CardPackOpening({
       >
         <span className="team-reveal-card-inner">
           <span className="team-reveal-card-face team-reveal-card-back">
-            <span className="card-back-badge">Sweepstake</span>
-            <strong>Reveal</strong>
-            <small>{isMobile ? 'Tap to flip' : 'Click to flip'}</small>
+            <GuestRoadPackFace />
           </span>
           <span className="team-reveal-card-face team-reveal-card-front">
             <span className="card-rank">{card.rank ? `#${card.rank}` : card.imageLabel}</span>
@@ -336,8 +343,7 @@ export function CardPackOpening({
             onClick={handleOpenPack}
             aria-label={`Reveal ${title}`}
           >
-            <div className="pack-flare" />
-            <div className="pack-logo">Guest Road</div>
+            <GuestRoadPackFace />
           </button>
           <div className="confirm-actions">
             <button type="button" className="reveal-button" onClick={handleOpenPack}>
@@ -389,8 +395,7 @@ export function CardPackOpening({
               >
                 <div className="arena-backdrop" aria-hidden="true" />
                 <div className={`pack-shell arena-pack ${phase === 'opening' ? 'is-live' : 'is-spent'}`}>
-                  <div className="pack-flare" />
-                  <div className="pack-logo">Guest Road</div>
+                  <GuestRoadPackFace />
                 </div>
                 <div className="pack-burst" aria-hidden="true" />
 

@@ -57,7 +57,7 @@ export function MoreInfoPage({ teamScores }: { teamScores: TeamScore[] }) {
           <div className="favorites-card">
             <div className="favorites-heading">
               <h2>Top teams</h2>
-              <p>Top 10 cards glow red. The rest of the top half glow blue.</p>
+              <p>Top 10 cards glow yellow. The rest of the top half glow green.</p>
             </div>
 
             <div className="favorites-list">

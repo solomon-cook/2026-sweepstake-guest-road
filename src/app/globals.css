@@ -1,7 +1,7 @@
 :root {
   --color-green: #39ad38;
-  --color-blue: #38439a;
-  --color-red: #ed1c24;
+  --color-blue: #39ad38;
+  --color-red: #f4c430;
   --color-surface: #d9d9d9;
   --color-ink: #4f5251;
   --color-paper: #efefec;
@@ -41,7 +41,7 @@ html {
 
 body {
   background:
-    radial-gradient(circle at top, rgba(56, 67, 154, 0.14), transparent 38%),
+    radial-gradient(circle at top, rgba(57, 173, 56, 0.14), transparent 38%),
     linear-gradient(180deg, var(--color-paper) 0%, #f4f4f1 100%);
   color: var(--color-ink);
   font-family: var(--font-body);
@@ -518,24 +518,35 @@ svg text {
 }
 
 .pack-shell {
-  align-items: center;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.64), transparent 36%),
-    linear-gradient(145deg, rgba(239, 239, 236, 0.98), rgba(239, 239, 236, 0.9) 38%, rgba(56, 67, 154, 0.16));
-  border: 2px solid rgba(56, 67, 154, 0.34);
-  border-radius: 10px;
-  box-shadow:
-    0 20px 30px rgba(79, 82, 81, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68);
   display: grid;
   height: 214px;
-  justify-items: center;
-  overflow: hidden;
-  padding: 22px;
   position: relative;
   transform-origin: center;
   width: 154px;
   animation: packPulse 1200ms ease-in-out infinite;
+}
+
+.guest-road-pack-face {
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.64), transparent 36%),
+    linear-gradient(145deg, rgba(239, 239, 236, 0.98), rgba(239, 239, 236, 0.9) 38%, rgba(57, 173, 56, 0.16));
+  border: 2px solid rgba(57, 173, 56, 0.34);
+  border-radius: inherit;
+  box-shadow:
+    0 20px 30px rgba(79, 82, 81, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  display: grid;
+  inset: 0;
+  justify-items: center;
+  overflow: hidden;
+  padding: 22px;
+  position: absolute;
+}
+
+.guest-road-pack-face > * {
+  position: relative;
+  z-index: 1;
 }
 
 .pack-open-button {
@@ -551,21 +562,21 @@ svg text {
   border-color: var(--color-blue);
   box-shadow:
     0 22px 34px rgba(79, 82, 81, 0.16),
-    0 0 0 4px rgba(56, 67, 154, 0.08),
+    0 0 0 4px rgba(57, 173, 56, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.68);
 }
 
 .pack-open-button:focus-visible {
-  outline: 3px solid rgba(56, 67, 154, 0.34);
+  outline: 3px solid rgba(57, 173, 56, 0.34);
   outline-offset: 5px;
 }
 
 .pack-flare {
   background:
-    linear-gradient(90deg, transparent, rgba(56, 67, 154, 0.14), transparent),
+    linear-gradient(90deg, transparent, rgba(57, 173, 56, 0.14), transparent),
     repeating-linear-gradient(
       45deg,
-      rgba(56, 67, 154, 0.12) 0 1px,
+      rgba(57, 173, 56, 0.12) 0 1px,
       transparent 1px 13px
     );
   inset: 0;
@@ -575,7 +586,7 @@ svg text {
 
 .pack-logo {
   background: rgba(239, 239, 236, 0.86);
-  border: 1px solid rgba(56, 67, 154, 0.32);
+  border: 1px solid rgba(57, 173, 56, 0.32);
   border-radius: 8px;
   color: var(--color-blue);
   font-family: var(--font-title);
@@ -588,8 +599,8 @@ svg text {
 
 .pack-burst {
   background:
-    radial-gradient(circle, rgba(237, 239, 236, 0.95), rgba(217, 217, 217, 0.5) 22%, rgba(237, 28, 36, 0.22) 44%, transparent 66%),
-    radial-gradient(circle, rgba(56, 67, 154, 0.26), transparent 72%);
+    radial-gradient(circle, rgba(237, 239, 236, 0.95), rgba(217, 217, 217, 0.5) 22%, rgba(244, 196, 48, 0.22) 44%, transparent 66%),
+    radial-gradient(circle, rgba(57, 173, 56, 0.26), transparent 72%);
   border-radius: 50%;
   height: 280px;
   opacity: 0;
@@ -621,15 +632,11 @@ svg text {
 }
 
 .mobile-single-card {
-  height: min(420px, calc(100vh - 260px));
   left: auto;
   margin: 0 auto;
-  max-width: 290px;
-  min-height: 360px;
   position: relative;
   top: auto;
   transform: none;
-  width: min(100%, 290px);
 }
 
 .mobile-single-card.is-flipped.is-good,
@@ -731,7 +738,7 @@ svg text {
 .center-finale {
   align-items: center;
   background: rgba(239, 239, 236, 0.94);
-  border: 1px solid rgba(56, 67, 154, 0.28);
+  border: 1px solid rgba(57, 173, 56, 0.28);
   border-radius: 8px;
   box-shadow:
     0 12px 22px rgba(79, 82, 81, 0.1),
@@ -761,8 +768,8 @@ svg text {
   background: var(--color-blue);
   border: 1px solid var(--color-blue);
   box-shadow:
-    0 16px 28px rgba(56, 67, 154, 0.2),
-    0 0 0 4px rgba(56, 67, 154, 0.08);
+    0 16px 28px rgba(57, 173, 56, 0.2),
+    0 0 0 4px rgba(57, 173, 56, 0.08);
   color: #fff;
   cursor: pointer;
   font: inherit;
@@ -787,7 +794,7 @@ svg text {
 }
 
 .center-finale-button:focus-visible {
-  outline: 3px solid rgba(56, 67, 154, 0.34);
+  outline: 3px solid rgba(57, 173, 56, 0.34);
   outline-offset: 4px;
 }
 
@@ -861,7 +868,7 @@ svg text {
 .team-reveal-card:not(.is-flipped):not(.is-launching):hover .team-reveal-card-back {
   box-shadow:
     0 24px 34px rgba(79, 82, 81, 0.18),
-    0 10px 22px rgba(56, 67, 154, 0.1),
+    0 10px 22px rgba(57, 173, 56, 0.1),
     0 0 0 1px rgba(255, 255, 255, 0.56);
   transform:
     translateY(-2px)
@@ -875,12 +882,12 @@ svg text {
 }
 
 .team-reveal-card.is-good:hover::before {
-  box-shadow: 0 0 0 3px rgba(56, 67, 154, 0.4), 0 0 22px rgba(56, 67, 154, 0.55);
+  box-shadow: 0 0 0 3px rgba(57, 173, 56, 0.4), 0 0 22px rgba(57, 173, 56, 0.55);
   opacity: 1;
 }
 
 .team-reveal-card.is-great:hover::before {
-  box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.4), 0 0 24px rgba(237, 28, 36, 0.58);
+  box-shadow: 0 0 0 3px rgba(244, 196, 48, 0.4), 0 0 24px rgba(244, 196, 48, 0.58);
   opacity: 1;
 }
 
@@ -906,16 +913,12 @@ svg text {
 }
 
 .team-reveal-card-back {
-  align-content: space-between;
-  background-color: #efefec;
-  background: linear-gradient(180deg, #f4f4f1, #efefec);
-  border: 2px solid rgba(56, 67, 154, 0.28);
-  color: var(--color-blue);
+  align-items: stretch;
+  background: transparent;
+  border: 2px solid rgba(57, 173, 56, 0.34);
   display: grid;
-  gap: 12px;
-  justify-items: center;
   overflow: hidden;
-  padding-top: 18px;
+  padding: 0;
   text-align: center;
   transform: scale(1);
   transform-origin: center center;
@@ -944,50 +947,6 @@ svg text {
     opacity 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
     transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: 0;
-}
-
-.card-back-badge {
-  backdrop-filter: blur(6px);
-  background: rgba(239, 239, 236, 0.52);
-  border: 1px solid rgba(56, 67, 154, 0.24);
-  border-radius: 999px;
-  color: rgba(56, 67, 154, 0.8);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  padding: 6px 10px;
-  position: relative;
-  text-transform: uppercase;
-  z-index: 1;
-}
-
-.team-reveal-card-back::before {
-  background:
-    linear-gradient(135deg, rgba(56, 67, 154, 0.9), rgba(56, 67, 154, 0.74)),
-    linear-gradient(45deg, rgba(57, 173, 56, 0.18), rgba(237, 28, 36, 0.16));
-  border: 1px solid rgba(56, 67, 154, 0.18);
-  border-radius: 6px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
-  content: '';
-  height: 54px;
-  margin-top: 8px;
-  position: relative;
-  width: 54px;
-  z-index: 1;
-}
-
-.team-reveal-card-back strong {
-  color: var(--color-blue);
-  font-family: var(--font-title);
-  font-size: 1.8rem;
-  position: relative;
-  z-index: 1;
-}
-
-.team-reveal-card-back small {
-  color: rgba(79, 82, 81, 0.74);
-  padding-bottom: 8px;
-  position: relative;
-  z-index: 1;
 }
 
 .card-impact-ripple {
@@ -1036,7 +995,7 @@ svg text {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0) 24%),
     linear-gradient(180deg, #f7f7f4, #efefec 38%, #e6e6e1);
-  border: 2px solid rgba(56, 67, 154, 0.24);
+  border: 2px solid rgba(57, 173, 56, 0.24);
   border-radius: 8px;
   color: var(--color-night);
   display: grid;
@@ -1087,7 +1046,7 @@ svg text {
 
 .team-reveal-card.is-great .team-reveal-card-front::after {
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.72), transparent 22%, transparent 78%, rgba(88, 105, 138, 0.14)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.72), transparent 22%, transparent 78%, rgba(57, 173, 56, 0.14)),
     repeating-linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.22) 0 1px,
@@ -1111,7 +1070,7 @@ svg text {
 
 .team-reveal-card.is-great .card-rank,
 .team-reveal-card.is-great .team-reveal-card-front dd {
-  color: #38439a;
+  color: var(--color-blue);
 }
 
 .card-rank {
@@ -1310,8 +1269,9 @@ code {
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    max-height: 100vh;
-    overflow: auto;
+    height: 100svh;
+    max-height: 100svh;
+    overflow: hidden;
     padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
     width: 100%;
   }
@@ -1321,7 +1281,9 @@ code {
   }
 
   .cards-pane {
-    min-height: calc(100vh - 36px - env(safe-area-inset-bottom));
+    grid-template-rows: auto minmax(0, 1fr);
+    height: calc(100svh - 36px - env(safe-area-inset-bottom));
+    min-height: 0;
   }
 
   .cards-pane-heading {
@@ -1361,16 +1323,32 @@ code {
   }
 
   .mobile-reveal-stage {
-    grid-template-rows: auto minmax(360px, 1fr) auto;
+    align-content: stretch;
+    gap: 16px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-height: 0;
+  }
+
+  .mobile-single-card {
+    aspect-ratio: 152 / 236;
+    height: min(420px, max(260px, calc(100svh - 300px)));
+    left: auto;
+    margin: 0 auto;
+    max-height: 100%;
+    max-width: calc(100vw - 72px);
+    min-height: 0;
+    position: relative;
+    top: auto;
+    transform: none;
+    width: auto;
   }
 
   .mobile-reveal-controls {
     align-self: end;
-    background: linear-gradient(180deg, rgba(239, 239, 236, 0), rgba(239, 239, 236, 0.96) 28%);
-    bottom: 0;
+    background: transparent;
+    border-top: 1px solid rgba(79, 82, 81, 0.14);
     margin: 0 -18px;
-    padding: 22px 18px calc(18px + env(safe-area-inset-bottom));
-    position: sticky;
+    padding: 16px 18px 0;
   }
 
   .mobile-reveal-controls .reveal-button {
