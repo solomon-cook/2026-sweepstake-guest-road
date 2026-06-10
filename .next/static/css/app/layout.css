@@ -549,12 +549,10 @@ svg text {
 
 .confirm-actions {
   align-items: center;
-  border-left: 1px solid rgba(79, 82, 81, 0.14);
   display: flex;
   gap: 18px;
-  justify-content: flex-start;
-  padding-left: 26px;
-  width: 100%;
+  justify-content: center;
+  width: auto;
 }
 
 .pack-idle-stage {
@@ -562,7 +560,7 @@ svg text {
   display: grid;
   grid-gap: 26px;
   gap: 26px;
-  grid-template-columns: minmax(190px, 0.55fr) 1fr;
+  justify-items: center;
   min-height: 280px;
   padding: 10px 0 0;
 }
@@ -1431,7 +1429,7 @@ code {
   .pack-idle-stage {
     align-content: center;
     grid-template-columns: 1fr;
-    justify-items: start;
+    justify-items: center;
     min-height: calc(100vh - 280px);
   }
 
@@ -1443,8 +1441,9 @@ code {
     border-left: 0;
     border-top: 1px solid rgba(79, 82, 81, 0.14);
     flex-wrap: wrap;
-    padding-left: 0;
+    justify-content: center;
     padding-top: 18px;
+    width: min(100%, 320px);
   }
 
   .mobile-reveal-stage {

@@ -366,7 +366,7 @@ export function CardPackOpening({
             </button>
             {onClose ? (
               <button type="button" className="secondary-button" onClick={onClose}>
-                Cancel
+                Hide
               </button>
             ) : null}
           </div>
