@@ -699,6 +699,7 @@ input {
 .team-reveal-card-inner {
   display: grid;
   height: 100%;
+  isolation: isolate;
   position: relative;
   transform-style: preserve-3d;
   transition: transform var(--flip-duration, 620ms) cubic-bezier(0.16, 0.78, 0.18, 1);
@@ -709,6 +710,7 @@ input {
 }
 
 .team-reveal-card-face {
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   border-radius: 8px;
   box-shadow:
@@ -721,6 +723,7 @@ input {
 
 .team-reveal-card-back {
   align-content: space-between;
+  background-color: #efefec;
   background: linear-gradient(180deg, #f4f4f1, #efefec);
   border: 2px solid rgba(56, 67, 154, 0.28);
   color: var(--color-blue);
@@ -826,10 +829,11 @@ input {
 }
 
 .team-reveal-card-front {
+  background-color: #f4f4f1;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.74), transparent 26%),
-    linear-gradient(180deg, #fff7de, #f6efd5 32%, #efe6cb);
-  border: 2px solid rgba(187, 144, 54, 0.68);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0) 24%),
+    linear-gradient(180deg, #f7f7f4, #efefec 38%, #e6e6e1);
+  border: 2px solid rgba(56, 67, 154, 0.24);
   border-radius: 8px;
   color: var(--color-night);
   display: grid;
@@ -838,7 +842,7 @@ input {
 }
 
 .card-rank {
-  color: #8b6719;
+  color: var(--color-blue);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -851,7 +855,7 @@ input {
 }
 
 .team-reveal-card-front small {
-  color: rgba(79, 59, 18, 0.78);
+  color: rgba(79, 82, 81, 0.76);
 }
 
 .team-reveal-card-front dl {
@@ -862,7 +866,7 @@ input {
 
 .team-reveal-card-front dl div {
   align-items: baseline;
-  border-top: 1px solid rgba(139, 103, 25, 0.14);
+  border-top: 1px solid rgba(79, 82, 81, 0.12);
   display: flex;
   justify-content: space-between;
   padding-top: 7px;
