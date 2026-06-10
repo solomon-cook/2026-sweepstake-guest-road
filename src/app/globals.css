@@ -246,19 +246,11 @@ input {
   font-weight: 700;
 }
 
-.bundle-card header h3 {
-  font-family: var(--font-title);
-  font-size: 2rem;
-}
-
 .bundle-card.is-hidden header {
-  background:
-    linear-gradient(135deg, rgba(25, 33, 63, 0.9), rgba(56, 67, 154, 0.78)),
-    #fff;
+  background: var(--color-blue);
 }
 
 .bundle-card.is-hidden header p,
-.bundle-card.is-hidden header h3,
 .bundle-card.is-hidden header span {
   color: #fff;
 }
@@ -298,61 +290,29 @@ input {
 .bundle-hidden-state {
   align-content: center;
   display: grid;
-  gap: 16px;
+  gap: 0;
   justify-items: center;
-  min-height: 228px;
-  padding: 24px 20px 28px;
+  min-height: 128px;
+  padding: 20px;
   text-align: center;
 }
 
-.bundle-pack-preview {
-  height: 82px;
-  position: relative;
-  width: 120px;
-}
-
-.bundle-pack-preview span {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent),
-    linear-gradient(145deg, #223066, #3347a7 60%, #4f65d0);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 14px;
-  box-shadow: 0 16px 28px rgba(25, 33, 63, 0.22);
-  inset: 0;
-  position: absolute;
-}
-
-.bundle-pack-preview span:nth-child(1) {
-  transform: rotate(-11deg) translateX(-18px);
-}
-
-.bundle-pack-preview span:nth-child(2) {
-  transform: translateY(-3px);
-}
-
-.bundle-pack-preview span:nth-child(3) {
-  transform: rotate(11deg) translateX(18px);
-}
-
 .reveal-button {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent),
-    linear-gradient(135deg, var(--color-blue), #243064);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: var(--color-blue);
+  border: 1px solid var(--color-blue);
   border-radius: 999px;
-  box-shadow: 0 14px 28px rgba(25, 33, 63, 0.18);
   color: #fff;
   min-height: 48px;
   padding: 0 22px;
   transition:
     transform 140ms ease,
-    box-shadow 140ms ease,
-    filter 140ms ease;
+    background-color 140ms ease,
+    border-color 140ms ease;
 }
 
 .reveal-button:hover {
-  box-shadow: 0 18px 32px rgba(25, 33, 63, 0.24);
-  filter: saturate(1.08);
+  background: #2f3985;
+  border-color: #2f3985;
   transform: translateY(-1px);
 }
 
@@ -559,7 +519,7 @@ input {
     linear-gradient(180deg, #1b2146, #10162f);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 28px;
-  min-height: 720px;
+  min-height: 780px;
   overflow: hidden;
   position: relative;
 }
@@ -576,13 +536,13 @@ input {
   background: radial-gradient(circle, transparent 58%, rgba(255, 178, 49, 0.7) 60%, transparent 74%);
   border-radius: 50%;
   filter: blur(2px);
-  height: 420px;
-  left: calc(50% - 210px);
+  height: 500px;
+  left: calc(50% - 250px);
   opacity: 0.7;
   position: absolute;
-  top: calc(50% - 170px);
+  top: calc(50% - 210px);
   transition: opacity 300ms ease, transform 500ms ease;
-  width: 420px;
+  width: 500px;
 }
 
 .arena-energy-core {
@@ -665,12 +625,12 @@ input {
 .team-reveal-card {
   background: transparent;
   border: 0;
-  height: 252px;
-  left: calc(50% - 84px);
+  height: 236px;
+  left: calc(50% - 76px);
   padding: 0;
   perspective: 1200px;
   position: absolute;
-  top: calc(50% - 126px);
+  top: calc(50% - 118px);
   transform:
     translate3d(var(--card-x), var(--card-y), 0)
     rotate(var(--card-rotate));
@@ -678,7 +638,7 @@ input {
   transition:
     filter 160ms ease,
     transform 220ms ease;
-  width: 168px;
+  width: 152px;
   z-index: var(--card-z);
 }
 
@@ -942,10 +902,10 @@ code {
   }
 
   .arena-energy-ring {
-    height: 260px;
-    left: calc(50% - 130px);
-    top: 24px;
-    width: 260px;
+    height: 300px;
+    left: calc(50% - 150px);
+    top: 18px;
+    width: 300px;
   }
 
   .arena-energy-core {
@@ -956,7 +916,7 @@ code {
   }
 
   .team-reveal-card {
-    height: 232px;
+    height: 224px;
     left: auto;
     position: relative;
     top: auto;

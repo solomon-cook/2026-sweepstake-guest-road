@@ -27,28 +27,28 @@ type RevealCardView = {
 
 const REVEAL_LAYOUTS = {
   5: [
-    { x: -26, y: -22, rotate: -10, z: 3 },
-    { x: 0, y: -34, rotate: 0, z: 4 },
-    { x: 26, y: -20, rotate: 10, z: 3 },
-    { x: -14, y: 22, rotate: -6, z: 2 },
-    { x: 17, y: 20, rotate: 7, z: 2 },
+    { x: -34, y: -24, rotate: -10, z: 3 },
+    { x: 0, y: -41, rotate: 0, z: 4 },
+    { x: 34, y: -22, rotate: 10, z: 3 },
+    { x: -20, y: 28, rotate: -6, z: 2 },
+    { x: 21, y: 27, rotate: 7, z: 2 },
   ],
   6: [
-    { x: -28, y: -24, rotate: -10, z: 3 },
-    { x: 0, y: -36, rotate: 0, z: 4 },
-    { x: 28, y: -22, rotate: 11, z: 3 },
-    { x: -28, y: 18, rotate: -8, z: 2 },
-    { x: 0, y: 26, rotate: 0, z: 1 },
-    { x: 28, y: 18, rotate: 8, z: 2 },
+    { x: -37, y: -26, rotate: -10, z: 3 },
+    { x: 0, y: -42, rotate: 0, z: 4 },
+    { x: 37, y: -24, rotate: 11, z: 3 },
+    { x: -37, y: 22, rotate: -8, z: 2 },
+    { x: 0, y: 34, rotate: 0, z: 1 },
+    { x: 37, y: 22, rotate: 8, z: 2 },
   ],
   7: [
-    { x: -31, y: -22, rotate: -12, z: 3 },
-    { x: -7, y: -36, rotate: -4, z: 4 },
-    { x: 19, y: -30, rotate: 7, z: 4 },
-    { x: 34, y: -6, rotate: 13, z: 3 },
-    { x: 21, y: 23, rotate: 8, z: 2 },
-    { x: -8, y: 28, rotate: -2, z: 1 },
-    { x: -33, y: 14, rotate: -11, z: 2 },
+    { x: -43, y: -24, rotate: -12, z: 3 },
+    { x: -13, y: -43, rotate: -4, z: 4 },
+    { x: 18, y: -38, rotate: 7, z: 4 },
+    { x: 44, y: -8, rotate: 13, z: 3 },
+    { x: 30, y: 30, rotate: 8, z: 2 },
+    { x: -2, y: 38, rotate: -2, z: 1 },
+    { x: -38, y: 22, rotate: -11, z: 2 },
   ],
 } as const
 
@@ -345,11 +345,8 @@ export function SweepstakeClient({
               className={`bundle-card ${bundle.isRevealed ? 'is-revealed' : 'is-hidden'}`}
             >
               <header>
-                <div>
-                  <p>{bundle.playerName}</p>
-                  <h3>{formatScore(bundle.totalScore)}</h3>
-                </div>
-                <span>{bundle.teams.length} teams</span>
+                <p>{bundle.playerName}</p>
+                {bundle.isRevealed ? <span>{bundle.teams.length} teams</span> : null}
               </header>
 
               {bundle.isRevealed ? (
@@ -368,12 +365,6 @@ export function SweepstakeClient({
                 </ul>
               ) : (
                 <div className="bundle-hidden-state">
-                  <div className="bundle-pack-preview" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <p>Teams stay hidden until this player opens their pack.</p>
                   <button
                     type="button"
                     className="reveal-button"
