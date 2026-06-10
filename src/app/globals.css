@@ -35,6 +35,8 @@
 
 html {
   background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
 }
 
 body {
@@ -47,9 +49,20 @@ body {
   min-height: 100vh;
 }
 
+body,
+body * {
+  font-family: inherit;
+}
+
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
+}
+
+svg text {
+  font-family: var(--font-body);
 }
 
 #root {
@@ -1143,6 +1156,7 @@ input {
 }
 
 code {
+  font-family: var(--font-body);
   font-size: 0.9em;
 }
 
