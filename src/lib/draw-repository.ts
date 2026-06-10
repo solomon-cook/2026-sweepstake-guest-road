@@ -170,7 +170,19 @@ async function loadPersistedDraw(playerCount: PlayerCount) {
         include: {
           teamAssignments: {
             include: {
-              team: true,
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                  flag: true,
+                  flagCode: true,
+                  group: true,
+                  odds: true,
+                  impliedProbability: true,
+                  score: true,
+                  rank: true,
+                },
+              },
             },
           },
         },

@@ -17,6 +17,17 @@ export async function loadTeamScores(): Promise<TeamLoadResult> {
       orderBy: {
         rank: 'asc',
       },
+      select: {
+        id: true,
+        name: true,
+        flag: true,
+        flagCode: true,
+        group: true,
+        odds: true,
+        impliedProbability: true,
+        score: true,
+        rank: true,
+      },
     })
 
     if (!teams.length) {

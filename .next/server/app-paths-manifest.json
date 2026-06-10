@@ -1,3 +1,5 @@
 {
+  "/api/draw/route": "app/api/draw/route.js",
+  "/more-info/page": "app/more-info/page.js",
   "/page": "app/page.js"
 }
