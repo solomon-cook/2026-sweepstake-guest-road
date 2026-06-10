@@ -745,7 +745,12 @@ input {
 }
 
 .center-finale-button {
+  background: var(--color-blue);
   border: 1px solid var(--color-blue);
+  box-shadow:
+    0 16px 28px rgba(56, 67, 154, 0.2),
+    0 0 0 4px rgba(56, 67, 154, 0.08);
+  color: #fff;
   cursor: pointer;
   font: inherit;
   font-weight: 700;
@@ -755,12 +760,22 @@ input {
   transition:
     background-color 140ms ease,
     border-color 140ms ease,
-    color 140ms ease;
+    box-shadow 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+  z-index: 12;
 }
 
 .center-finale-button:hover {
-  background: var(--color-blue);
+  background: var(--color-red);
+  border-color: var(--color-red);
   color: #fff;
+  transform: translate(-50%, -50%) translateY(-2px);
+}
+
+.center-finale-button:focus-visible {
+  outline: 3px solid rgba(56, 67, 154, 0.34);
+  outline-offset: 4px;
 }
 
 .reveal-arena.is-opening .center-finale {

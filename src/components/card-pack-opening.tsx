@@ -397,7 +397,12 @@ export function CardPackOpening({
                 {revealCards.map((card) => renderCard(card))}
 
                 {phase === 'revealed' && onClose ? (
-                  <button type="button" className="center-finale center-finale-button" onClick={onClose}>
+                  <button
+                    type="button"
+                    className="center-finale center-finale-button"
+                    onClick={onClose}
+                    aria-label="Close pack opener"
+                  >
                     Done
                   </button>
                 ) : (
