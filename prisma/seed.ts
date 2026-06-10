@@ -19,9 +19,10 @@ if (!databaseUrl) {
 
 const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter })
+const FLAG_IMAGE_SIZE = 'w160'
 
 async function fetchFlagImageBytes(flagCode: string) {
-  const response = await fetch(`https://flagcdn.com/w20/${flagCode}.jpg`)
+  const response = await fetch(`https://flagcdn.com/${FLAG_IMAGE_SIZE}/${flagCode}.jpg`)
 
   if (!response.ok) {
     throw new Error(`Failed to download flag image for ${flagCode}: ${response.status}`)
