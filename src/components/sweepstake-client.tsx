@@ -175,9 +175,7 @@ export function SweepstakeClient({
                             ) : null}
                             {team.name}
                           </span>
-                          <small>
-                            Rank #{team.rank} · Group {team.group}
-                          </small>
+                          <small>Group {team.group}</small>
                         </div>
                         <strong>#{team.rank}</strong>
                       </li>
