@@ -31,17 +31,10 @@ export function MoreInfoPage({
   ).length
   const passwordIsValid = password === ADMIN_PASSWORD
 
-  async function runAdminAction(action: 'shuffle' | 'reset-reveals' | 'clear-players') {
+  async function runAdminAction(action: 'reset-reveals') {
     if (!passwordIsValid) {
       setError('Type Football exactly to unlock the controls.')
       setNotice('')
-      return
-    }
-
-    if (
-      action === 'clear-players' &&
-      !window.confirm('Clear all player names and hide every revealed pack? This cannot be undone.')
-    ) {
       return
     }
 
@@ -50,25 +43,16 @@ export function MoreInfoPage({
     setNotice('')
 
     try {
-      const response =
-        action === 'shuffle'
-          ? await fetch('/api/draw', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ playerCount: draw.playerCount }),
-            })
-          : await fetch('/api/draw', {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                action,
-                playerCount: draw.playerCount,
-              }),
-            })
+      const response = await fetch('/api/draw', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          playerCount: draw.playerCount,
+        }),
+      })
 
       const nextDraw = (await response.json()) as PersistedDraw | { error: string }
 
@@ -77,13 +61,7 @@ export function MoreInfoPage({
       }
 
       setDraw(nextDraw)
-      setNotice(
-        action === 'shuffle'
-          ? 'Bundles shuffled and hidden again.'
-          : action === 'reset-reveals'
-            ? 'All claimed teams are hidden again.'
-            : 'All player names were cleared and every pack is hidden again.',
-      )
+      setNotice('All claimed teams are hidden again.')
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Admin action failed.')
     } finally {
@@ -164,7 +142,7 @@ export function MoreInfoPage({
               <p className="section-kicker">Admin</p>
               <h2>Draw controls</h2>
             </div>
-            <p>Type Football to unlock shuffle and re-hide.</p>
+            <p>Type Football to unlock re-hide.</p>
           </div>
 
           <div className="metric-strip">
@@ -200,26 +178,10 @@ export function MoreInfoPage({
               <button
                 type="button"
                 className="secondary-button"
-                onClick={() => void runAdminAction('shuffle')}
-                disabled={isSaving || !passwordIsValid}
-              >
-                Shuffle bundles
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
                 onClick={() => void runAdminAction('reset-reveals')}
                 disabled={isSaving || !passwordIsValid}
               >
                 Re-hide teams
-              </button>
-              <button
-                type="button"
-                className="secondary-button danger-button"
-                onClick={() => void runAdminAction('clear-players')}
-                disabled={isSaving || !passwordIsValid}
-              >
-                Clear all players
               </button>
             </div>
           </div>
