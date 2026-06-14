@@ -2,6 +2,7 @@ import { generateBalancedAllocation } from './allocator'
 import { getPrismaClient } from './prisma'
 import type {
   AllocationResult,
+  ParticipantPhotoInput,
   PersistedAllocationResult,
   PersistedDraw,
   PlayerCount,
@@ -20,6 +21,8 @@ const LEGACY_DEFAULT_NAMES = [
   '',
   '',
 ] as const
+const ALLOWED_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const MAX_PHOTO_BYTES = 300 * 1024
 
 function buildFlagImageUrl(teamId?: string) {
   return teamId ? `/api/team-flags/${teamId}` : undefined
@@ -27,6 +30,60 @@ function buildFlagImageUrl(teamId?: string) {
 
 function defaultNames(playerCount: PlayerCount) {
   return DEFAULT_NAMES.slice(0, playerCount)
+}
+
+function decodePhotoInput(participant: ParticipantPhotoInput) {
+  if (participant.photoDataBase64 === undefined && participant.photoMimeType === undefined) {
+    return undefined
+  }
+
+  if (participant.photoDataBase64 === null || participant.photoMimeType === null) {
+    return {
+      photoMimeType: null,
+      photoData: null,
+    }
+  }
+
+  if (
+    typeof participant.photoDataBase64 !== 'string' ||
+    typeof participant.photoMimeType !== 'string' ||
+    !ALLOWED_PHOTO_MIME_TYPES.has(participant.photoMimeType)
+  ) {
+    throw new Error('Invalid participant photo.')
+  }
+
+  const decodedPhoto = Buffer.from(participant.photoDataBase64, 'base64')
+  const photoData: Uint8Array<ArrayBuffer> = new Uint8Array(decodedPhoto.byteLength)
+  photoData.set(decodedPhoto)
+
+  if (photoData.byteLength > MAX_PHOTO_BYTES) {
+    throw new Error('Participant photos must be 300KB or smaller.')
+  }
+
+  return {
+    photoMimeType: participant.photoMimeType,
+    photoData,
+  }
+}
+
+export function buildParticipantSlotUpdate(participant: ParticipantPhotoInput) {
+  const photoUpdate = decodePhotoInput(participant)
+  const data: {
+    playerName?: string
+    photoMimeType?: string | null
+    photoData?: Uint8Array<ArrayBuffer> | null
+  } = {}
+
+  if (typeof participant.playerName === 'string') {
+    data.playerName = participant.playerName.trim()
+  }
+
+  if (photoUpdate) {
+    data.photoMimeType = photoUpdate.photoMimeType
+    data.photoData = photoUpdate.photoData
+  }
+
+  return data
 }
 
 async function resetLegacyNamesIfNeeded(
