@@ -1476,6 +1476,18 @@ code {
   width: min(76%, 660px);
 }
 
+.versus-diagonal::after {
+  background: rgba(79, 82, 81, 0.62);
+  content: '';
+  height: 0;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(121deg);
+  transform-origin: center;
+  width: 0;
+}
+
 .matchup-owner {
   align-items: center;
   display: flex;
@@ -1664,6 +1676,10 @@ code {
 }
 
 @media (max-width: 699px) {
+  .page-shell.matchup-shell {
+    padding: 12px 10px 32px;
+  }
+
   .reveal-overlay {
     align-items: stretch;
     background: rgba(239, 239, 236, 0.96);
@@ -1680,6 +1696,25 @@ code {
     padding-bottom: 0;
   }
 
+  .matchup-card,
+  .matchup-empty {
+    border-radius: 18px;
+    padding: 12px;
+  }
+
+  .matchup-card {
+    gap: 12px;
+  }
+
+  .matchup-card-header,
+  .matchup-card-footer {
+    padding: 0 2px;
+  }
+
+  .matchup-card h2 {
+    font-size: clamp(1.6rem, 8vw, 2.4rem);
+  }
+
   .panel-actions {
     align-items: start;
     flex-direction: column;
@@ -1687,62 +1722,125 @@ code {
 
   .versus-screen {
     aspect-ratio: auto;
-    min-height: 560px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.62), transparent 36%),
+      linear-gradient(145deg, rgba(239, 239, 236, 0.98), rgba(247, 247, 244, 0.92));
+    border-color: rgba(79, 82, 81, 0.42);
+    border-radius: 24px;
+    min-height: min(660px, calc(100svh - 192px));
   }
 
   .versus-diagonal::before {
-    mask-image: linear-gradient(90deg, #000 0 38%, transparent 38% 62%, #000 62% 100%);
-    -webkit-mask-image: linear-gradient(90deg, #000 0 38%, transparent 38% 62%, #000 62% 100%);
-    width: 86%;
+    height: 2px;
+    mask-image: linear-gradient(90deg, #000 0 36%, transparent 36% 64%, #000 64% 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0 36%, transparent 36% 64%, #000 64% 100%);
+    width: 118%;
+  }
+
+  .versus-diagonal::after {
+    height: 2px;
+    mask-image: linear-gradient(90deg, #000 0 32%, transparent 32% 68%, #000 68% 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0 32%, transparent 32% 68%, #000 68% 100%);
+    width: 74%;
   }
 
   .matchup-owner {
-    max-width: 58%;
+    gap: 7px;
+    max-width: 44%;
   }
 
   .matchup-owner.is-home {
-    left: 18px;
-    top: 18px;
+    left: 14px;
+    top: 14px;
   }
 
   .matchup-owner.is-away {
-    bottom: 18px;
-    right: 18px;
+    bottom: 14px;
+    right: 14px;
+  }
+
+  .matchup-owner p {
+    font-size: 0.82rem;
+    line-height: 1.05;
+  }
+
+  .matchup-photo {
+    height: 46px;
+    width: 46px;
+  }
+
+  .matchup-photo span {
+    font-size: 0.8rem;
+  }
+
+  .matchup-percentage {
+    font-size: clamp(1.75rem, 12vw, 3.3rem);
+    writing-mode: vertical-rl;
   }
 
   .matchup-percentage.is-home {
-    bottom: 22px;
-    left: 18px;
+    bottom: 16px;
+    left: 14px;
+    transform: rotate(180deg);
   }
 
   .matchup-percentage.is-away {
-    right: 18px;
-    top: 18px;
+    right: 14px;
+    top: 16px;
   }
 
   .versus-teams {
-    gap: 12px;
-    grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
-    inset: 50% 14px auto;
+    align-items: center;
+    gap: 6px;
+    grid-template-columns: minmax(0, 1fr);
+    inset: 20% 54px 18%;
+    transform: none;
+  }
+
+  .matchup-team.is-home {
+    align-self: start;
+    justify-self: start;
+    max-width: 170px;
+  }
+
+  .matchup-team.is-away {
+    align-self: end;
+    justify-self: end;
+    max-width: 170px;
   }
 
   .matchup-team h2 {
-    font-size: clamp(1.6rem, 11vw, 2.7rem);
-    margin-bottom: 12px;
+    font-size: clamp(1.7rem, 12vw, 2.75rem);
+    line-height: 0.92;
+    margin-bottom: 8px;
   }
 
   .matchup-flag-frame {
-    height: 112px;
-    width: 156px;
+    height: 104px;
+    padding: 10px;
+    width: 138px;
+  }
+
+  .matchup-flag-frame img {
+    max-height: 82px;
+    max-width: 116px;
   }
 
   .matchup-team > strong {
-    font-size: clamp(2rem, 12vw, 3.2rem);
-    margin-top: 12px;
+    font-size: clamp(1.65rem, 10vw, 2.4rem);
+    margin-top: 8px;
+  }
+
+  .matchup-team > span {
+    font-size: 0.78rem;
   }
 
   .versus-mark {
-    font-size: 2rem;
+    font-size: clamp(2rem, 12vw, 3rem);
+    grid-row: 2;
+    justify-self: center;
+    margin: -10px 0;
+    z-index: 3;
   }
 
   .participant-count-controls {
