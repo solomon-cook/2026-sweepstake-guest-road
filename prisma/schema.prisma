@@ -36,6 +36,8 @@ model DrawSlot {
   drawId         String
   slotIndex      Int
   playerName     String
+  photoMimeType  String?
+  photoData      Bytes?
   totalScore     Float
   isRevealed     Boolean       @default(false)
   createdAt      DateTime      @default(now())
@@ -44,6 +46,14 @@ model DrawSlot {
   teamAssignments DrawSlotTeam[]
 
   @@unique([drawId, slotIndex])
+}
+
+model ApiCache {
+  key       String   @id
+  payload   Json
+  fetchedAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model DrawSlotTeam {
