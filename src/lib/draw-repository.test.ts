@@ -12,6 +12,14 @@ describe('draw repository helpers', () => {
         id: 'slot-2',
         slotIndex: 1,
         playerName: 'Player 2',
+        photoMimeType: 'image/jpeg',
+        photoData: Buffer.from('source'),
+        generatedImageMimeType: 'image/jpeg',
+        neutralImageData: Buffer.from('neutral'),
+        ecstaticImageData: Buffer.from('ecstatic'),
+        devastatedImageData: Buffer.from('devastated'),
+        fanImageStatus: 'ready',
+        fanImageTeamId: 'team-1',
         totalScore: 8.5,
         isRevealed: true,
         teamAssignments: [
@@ -40,12 +48,20 @@ describe('draw repository helpers', () => {
       slotIndex: 1,
       playerName: 'Player 2',
       isRevealed: true,
+      sourcePhotoUrl: '/api/participants/slot-2/images/source',
+      fanImageStatus: 'ready',
+      fanImageTeamName: firstTeam.name,
     })
     expect(draw.allocation.bundles[1].teams.map((team) => team.name)).toEqual([
       firstTeam.name,
       secondTeam.name,
     ])
     expect(draw.allocation.bundles[1].teams[0].flagImageUrl).toBe('/api/team-flags/team-1')
+    expect(draw.allocation.bundles[1].fanImageUrls).toEqual({
+      neutral: '/api/participants/slot-2/images/neutral',
+      ecstatic: '/api/participants/slot-2/images/ecstatic',
+      devastated: '/api/participants/slot-2/images/devastated',
+    })
   })
 
   test('calculates fairness metrics from revealed bundle shape', () => {
@@ -57,6 +73,7 @@ describe('draw repository helpers', () => {
         teams: [TEAM_SEED_SCORES[0]],
         totalScore: 14,
         isRevealed: false,
+        fanImageStatus: 'idle',
       },
       {
         slotId: 'slot-2',
@@ -65,6 +82,7 @@ describe('draw repository helpers', () => {
         teams: [TEAM_SEED_SCORES[1], TEAM_SEED_SCORES[2]],
         totalScore: 12,
         isRevealed: true,
+        fanImageStatus: 'idle',
       },
     ])
 

@@ -1,3 +1,4 @@
+import { selectMatchupOwnerPhoto } from '@/lib/matchups'
 import type { MatchupSide, MatchupView } from '@/lib/types'
 
 function formatMatchTime(value: string) {
@@ -35,11 +36,19 @@ function formatGoals(value?: number | null) {
   return String(value)
 }
 
-function MatchupOwner({ side, align }: { side: MatchupSide; align: 'home' | 'away' }) {
+function MatchupOwner({
+  side,
+  align,
+  photoUrl,
+}: {
+  side: MatchupSide
+  align: 'home' | 'away'
+  photoUrl: string | null
+}) {
   return (
     <div className={`matchup-owner is-${align} ${side.isAssigned ? '' : 'is-unassigned'}`}>
       <div className="matchup-photo">
-        {side.ownerPhotoDataUrl ? <img src={side.ownerPhotoDataUrl} alt="" /> : <span>{initials(side)}</span>}
+        {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(side)}</span>}
       </div>
       <p>{side.ownerName}</p>
     </div>
@@ -76,6 +85,16 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
   const homeProbability = formatProbability(matchup.odds?.homeProbability)
   const awayProbability = formatProbability(matchup.odds?.awayProbability)
   const detailLine = [matchup.fixture.round, matchup.fixture.venue, matchup.odds?.source].filter(Boolean).join(' · ')
+  const homePhotoUrl = selectMatchupOwnerPhoto(
+    matchup.home,
+    matchup.fixture.homeScore,
+    matchup.fixture.awayScore,
+  )
+  const awayPhotoUrl = selectMatchupOwnerPhoto(
+    matchup.away,
+    matchup.fixture.awayScore,
+    matchup.fixture.homeScore,
+  )
 
   return (
     <article className={`matchup-card is-${matchup.fixture.status}`}>
@@ -99,8 +118,8 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
       <div className="versus-screen">
         <div className="versus-diagonal" aria-hidden="true" />
 
-        <MatchupOwner side={matchup.home} align="home" />
-        <MatchupOwner side={matchup.away} align="away" />
+        <MatchupOwner side={matchup.home} align="home" photoUrl={homePhotoUrl} />
+        <MatchupOwner side={matchup.away} align="away" photoUrl={awayPhotoUrl} />
 
         <p className="matchup-percentage is-home" aria-label={`${matchup.fixture.homeTeam} win chance`}>
           {homeProbability}

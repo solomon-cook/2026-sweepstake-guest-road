@@ -38,6 +38,14 @@ model DrawSlot {
   playerName     String
   photoMimeType  String?
   photoData      Bytes?
+  generatedImageMimeType String?
+  neutralImageData Bytes?
+  ecstaticImageData Bytes?
+  devastatedImageData Bytes?
+  fanImageStatus String @default("idle")
+  fanImageError String?
+  fanImageTeamId String?
+  fanImageGeneratedAt DateTime?
   totalScore     Float
   isRevealed     Boolean       @default(false)
   createdAt      DateTime      @default(now())

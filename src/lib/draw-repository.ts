@@ -3,6 +3,7 @@ import { getPrismaClient } from './prisma'
 import type {
   AllocationResult,
   ParticipantPhotoInput,
+  FanImageStatus,
   PersistedAllocationResult,
   PersistedDraw,
   PlayerCount,
@@ -22,10 +23,22 @@ const LEGACY_DEFAULT_NAMES = [
   '',
 ] as const
 const ALLOWED_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
-const MAX_PHOTO_BYTES = 300 * 1024
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024
 
 function buildFlagImageUrl(teamId?: string) {
   return teamId ? `/api/team-flags/${teamId}` : undefined
+}
+
+function buildParticipantImageUrl(slotId: string, kind: 'source' | 'neutral' | 'ecstatic' | 'devastated') {
+  return `/api/participants/${slotId}/images/${kind}`
+}
+
+function normalizeFanImageStatus(value: string | null | undefined): FanImageStatus {
+  if (value === 'pending' || value === 'ready' || value === 'failed') {
+    return value
+  }
+
+  return 'idle'
 }
 
 function defaultNames(playerCount: PlayerCount) {
@@ -57,7 +70,7 @@ function decodePhotoInput(participant: ParticipantPhotoInput) {
   photoData.set(decodedPhoto)
 
   if (photoData.byteLength > MAX_PHOTO_BYTES) {
-    throw new Error('Participant photos must be 300KB or smaller.')
+    throw new Error('Participant photos must be 2MB or smaller.')
   }
 
   return {
@@ -140,6 +153,14 @@ export function toPersistedDraw(
   slots: Array<{
     id: string
     playerName: string
+    photoMimeType?: string | null
+    photoData?: Uint8Array<ArrayBuffer> | null
+    generatedImageMimeType?: string | null
+    neutralImageData?: Uint8Array<ArrayBuffer> | null
+    ecstaticImageData?: Uint8Array<ArrayBuffer> | null
+    devastatedImageData?: Uint8Array<ArrayBuffer> | null
+    fanImageStatus?: string | null
+    fanImageTeamId?: string | null
     totalScore: number
     slotIndex: number
     isRevealed: boolean
@@ -151,19 +172,46 @@ export function toPersistedDraw(
 ): PersistedDraw {
   const bundles: PersistedAllocationResult['bundles'] = [...slots]
     .sort((left, right) => left.slotIndex - right.slotIndex)
-    .map((slot) => ({
-      slotId: slot.id,
-      slotIndex: slot.slotIndex,
-      playerName: slot.playerName,
-      totalScore: slot.totalScore,
-      isRevealed: slot.isRevealed,
-      teams: [...slot.teamAssignments]
+    .map((slot) => {
+      const orderedTeams = [...slot.teamAssignments]
         .sort((left, right) => left.teamOrder - right.teamOrder)
         .map((assignment) => ({
           ...assignment.team,
           flagImageUrl: buildFlagImageUrl(assignment.team.id),
-        })),
-    }))
+        }))
+      const hasSourcePhoto = Boolean(slot.photoData && slot.photoMimeType)
+      const generatedImageMimeType = slot.generatedImageMimeType || 'image/jpeg'
+      const fanImageTeamName =
+        orderedTeams.find((team) => team.id === slot.fanImageTeamId)?.name ?? null
+
+      return {
+        slotId: slot.id,
+        slotIndex: slot.slotIndex,
+        playerName: slot.playerName,
+        totalScore: slot.totalScore,
+        isRevealed: slot.isRevealed,
+        sourcePhotoUrl: hasSourcePhoto ? buildParticipantImageUrl(slot.id, 'source') : null,
+        fanImageStatus: normalizeFanImageStatus(slot.fanImageStatus),
+        fanImageTeamName,
+        fanImageUrls:
+          slot.neutralImageData || slot.ecstaticImageData || slot.devastatedImageData
+            ? {
+                neutral: slot.neutralImageData
+                  ? buildParticipantImageUrl(slot.id, 'neutral')
+                  : null,
+                ecstatic: slot.ecstaticImageData
+                  ? buildParticipantImageUrl(slot.id, 'ecstatic')
+                  : null,
+                devastated: slot.devastatedImageData
+                  ? buildParticipantImageUrl(slot.id, 'devastated')
+                  : null,
+              }
+            : generatedImageMimeType
+              ? null
+              : null,
+        teams: orderedTeams,
+      }
+    })
 
   return {
     playerCount,
@@ -350,7 +398,7 @@ export async function claimNextDrawSlot(playerCount: PlayerCount, playerName: st
   const openSlot = draw.slots.find((slot) => !slot.playerName.trim())
 
   if (!openSlot) {
-    throw new Error('All seven packs have already been claimed.')
+    throw new Error(`All ${playerCount} packs have already been claimed.`)
   }
 
   await prisma.drawSlot.update({

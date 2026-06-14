@@ -1,4 +1,6 @@
 export type PlayerCount = 7 | 8 | 9
+export type FanImageStatus = 'idle' | 'pending' | 'ready' | 'failed'
+export type FanImageKind = 'neutral' | 'ecstatic' | 'devastated'
 
 export type TeamSeed = {
   name: string
@@ -44,7 +46,14 @@ export type PersistedBundle = Bundle & {
   slotId: string
   slotIndex: number
   isRevealed: boolean
-  photoDataUrl?: string | null
+  sourcePhotoUrl?: string | null
+  fanImageStatus: FanImageStatus
+  fanImageTeamName?: string | null
+  fanImageUrls?: {
+    neutral?: string | null
+    ecstatic?: string | null
+    devastated?: string | null
+  } | null
 }
 
 export type AllocationResult = {
@@ -100,7 +109,10 @@ export type MatchupSide = {
   teamName: string
   teamFlagImageUrl?: string | null
   ownerName: string
-  ownerPhotoDataUrl?: string | null
+  ownerSourcePhotoUrl?: string | null
+  ownerNeutralPhotoUrl?: string | null
+  ownerEcstaticPhotoUrl?: string | null
+  ownerDevastatedPhotoUrl?: string | null
   teamScore?: number | null
   isAssigned: boolean
 }

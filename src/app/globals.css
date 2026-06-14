@@ -255,6 +255,18 @@ svg text {
   padding: 0 0 10px;
 }
 
+.bundle-card-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.bundle-card-heading > div {
+  min-width: 0;
+}
+
 .bundle-card header p,
 .bundle-card header h3,
 .snapshot-note,
@@ -273,6 +285,75 @@ svg text {
   color: var(--color-ink);
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+.bundle-photo-button {
+  align-items: center;
+  border: 1px solid rgba(79, 82, 81, 0.18);
+  border-radius: 999px;
+  color: var(--color-blue);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 0 14px;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.bundle-photo-button:hover {
+  border-color: var(--color-red);
+  color: var(--color-red);
+  transform: translateY(-1px);
+}
+
+.bundle-photo-button.is-disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.bundle-photo-button input {
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  width: 1px;
+}
+
+.bundle-photo-status {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  padding: 0 0 10px;
+}
+
+.bundle-photo-status p,
+.bundle-photo-status .text-button {
+  margin: 0;
+}
+
+.bundle-photo-status p {
+  color: rgba(79, 82, 81, 0.78);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.bundle-photo-status.is-failed p {
+  color: var(--color-red);
+}
+
+.text-button {
+  background: transparent;
+  color: var(--color-blue);
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-height: 0;
+  padding: 0;
 }
 
 .bundle-card.is-hidden header p,

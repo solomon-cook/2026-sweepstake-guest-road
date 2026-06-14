@@ -83,7 +83,10 @@ function buildOwnerLookup(draw: PersistedDraw) {
         teamName: team.name,
         teamFlagImageUrl: team.flagImageUrl || team.flag || null,
         ownerName,
-        ownerPhotoDataUrl: bundle.photoDataUrl,
+        ownerSourcePhotoUrl: bundle.sourcePhotoUrl ?? null,
+        ownerNeutralPhotoUrl: bundle.fanImageUrls?.neutral ?? null,
+        ownerEcstaticPhotoUrl: bundle.fanImageUrls?.ecstatic ?? null,
+        ownerDevastatedPhotoUrl: bundle.fanImageUrls?.devastated ?? null,
         teamScore: team.score,
         isAssigned: true,
       })
@@ -98,10 +101,31 @@ function unassignedSide(teamName: string): MatchupSide {
     teamName,
     teamFlagImageUrl: null,
     ownerName: 'Unassigned',
-    ownerPhotoDataUrl: null,
+    ownerSourcePhotoUrl: null,
+    ownerNeutralPhotoUrl: null,
+    ownerEcstaticPhotoUrl: null,
+    ownerDevastatedPhotoUrl: null,
     teamScore: null,
     isAssigned: false,
   }
+}
+
+export function selectMatchupOwnerPhoto(
+  side: MatchupSide,
+  ownScore?: number | null,
+  opponentScore?: number | null,
+) {
+  if (typeof ownScore === 'number' && typeof opponentScore === 'number') {
+    if (ownScore > opponentScore) {
+      return side.ownerEcstaticPhotoUrl || side.ownerNeutralPhotoUrl || side.ownerSourcePhotoUrl || null
+    }
+
+    if (ownScore < opponentScore) {
+      return side.ownerDevastatedPhotoUrl || side.ownerNeutralPhotoUrl || side.ownerSourcePhotoUrl || null
+    }
+  }
+
+  return side.ownerNeutralPhotoUrl || side.ownerSourcePhotoUrl || null
 }
 
 function formatDecimalOdds(probability: number) {

@@ -4,6 +4,7 @@ import {
   buildMatchups,
   calculateLocalMatchOdds,
   normalizeTeamName,
+  selectMatchupOwnerPhoto,
   selectDisplayFixtures,
   selectPreviousFixtures,
 } from './matchups'
@@ -20,6 +21,12 @@ function makeDraw(): PersistedDraw {
       playerName: 'Sam',
       photoMimeType: 'image/jpeg',
       photoData: Buffer.from('photo'),
+      generatedImageMimeType: 'image/jpeg',
+      neutralImageData: Buffer.from('neutral'),
+      ecstaticImageData: Buffer.from('ecstatic'),
+      devastatedImageData: Buffer.from('devastated'),
+      fanImageStatus: 'ready',
+      fanImageTeamId: france.id,
       totalScore: 14,
       isRevealed: true,
       teamAssignments: [{ teamOrder: 0, team: france }],
@@ -191,10 +198,21 @@ describe('participant profile updates', () => {
         {
           slotId: 'slot-france',
           photoMimeType: 'image/jpeg',
-          photoDataBase64: Buffer.alloc(301 * 1024).toString('base64'),
+          photoDataBase64: Buffer.alloc((2 * 1024 * 1024) + 1).toString('base64'),
         },
         0,
       ),
-    ).toThrow('300KB')
+    ).toThrow('2MB')
+  })
+
+  test('selects the correct matchup photo variant without changing ownership', () => {
+    const draw = makeDraw()
+    const before = structuredClone(draw)
+    const side = buildMatchups(draw, [fixture({ status: 'finished', homeScore: 2, awayScore: 0 })], {}).matchups[0].home
+
+    expect(selectMatchupOwnerPhoto(side, 2, 0)).toBe('/api/participants/slot-france/images/ecstatic')
+    expect(selectMatchupOwnerPhoto(side, 0, 2)).toBe('/api/participants/slot-france/images/devastated')
+    expect(selectMatchupOwnerPhoto(side, 1, 1)).toBe('/api/participants/slot-france/images/neutral')
+    expect(draw).toEqual(before)
   })
 })
