@@ -4,7 +4,15 @@ import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
 
-function SetupState({ title, body }: { title: string; body: string }) {
+function SetupState({
+  title,
+  body,
+  steps,
+}: {
+  title: string
+  body: string
+  steps: string[]
+}) {
   return (
     <main className="page-shell">
       <section className="setup-card">
@@ -12,10 +20,9 @@ function SetupState({ title, body }: { title: string; body: string }) {
         <h1>{title}</h1>
         <p className="intro">{body}</p>
         <ol className="setup-steps">
-          <li>Set `DATABASE_URL` for this project.</li>
-          <li>Run `npm run db:push` to create the `Team` table.</li>
-          <li>Run `npm run db:seed` to load the 48 seeded teams and scores.</li>
-          <li>Reload the page.</li>
+          {steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
         </ol>
       </section>
     </main>
@@ -39,6 +46,11 @@ export default async function Page() {
         <SetupState
           title="The app cannot read the persisted draw yet."
           body={message}
+          steps={[
+            'Check that DATABASE_URL points at the existing production database.',
+            'Reduce DATABASE_POOL_MAX or wait for stale database connections to close.',
+            'Reload the page.',
+          ]}
         />
       )
     }
@@ -51,6 +63,11 @@ export default async function Page() {
       <SetupState
         title="The database is connected but the team table is empty."
         body="Seed the persisted team scores once, then the app will stop relying on any local score file at runtime."
+        steps={[
+          'Confirm this is the intended empty database.',
+          'Run npm run db:seed only if there is no existing draw allocation to preserve.',
+          'Reload the page.',
+        ]}
       />
     )
   }
@@ -59,6 +76,11 @@ export default async function Page() {
     <SetupState
       title="The app cannot read the Prisma database yet."
       body={result.message}
+      steps={[
+        'Check that DATABASE_URL points at the existing database.',
+        'Reduce DATABASE_POOL_MAX or wait for stale database connections to close.',
+        'Reload the page.',
+      ]}
     />
   )
 }

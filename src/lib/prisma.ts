@@ -6,6 +6,16 @@ declare global {
   var prismaClientSingleton: PrismaClient | undefined
 }
 
+function getPoolMax() {
+  const poolMax = Number(process.env.DATABASE_POOL_MAX)
+
+  if (Number.isInteger(poolMax) && poolMax > 0) {
+    return poolMax
+  }
+
+  return 1
+}
+
 function createPrismaClient() {
   const databaseUrl = getDatabaseUrl()
 
@@ -15,7 +25,12 @@ function createPrismaClient() {
     )
   }
 
-  const adapter = new PrismaPg({ connectionString: databaseUrl })
+  const adapter = new PrismaPg({
+    connectionString: databaseUrl,
+    max: getPoolMax(),
+    idleTimeoutMillis: 5_000,
+    connectionTimeoutMillis: 5_000,
+  })
 
   return new PrismaClient({
     adapter,
