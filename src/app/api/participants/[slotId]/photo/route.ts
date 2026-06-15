@@ -13,6 +13,7 @@ export async function POST(
 ) {
   try {
     const { slotId } = await context.params
+    let fanImageGenerationError: string | null = null
     const slot = await loadParticipantImageSlot(slotId)
 
     if (!slot) {
@@ -42,6 +43,7 @@ export async function POST(
       } catch (generationError) {
         const message =
           generationError instanceof Error ? generationError.message : 'Failed to generate fan images.'
+        fanImageGenerationError = message
         console.error('Participant photo uploaded, but OpenAI fan image generation failed.', {
           slotId,
           message,
@@ -50,7 +52,12 @@ export async function POST(
     }
 
     const refreshed = await loadParticipantImageSlot(slotId)
-    return NextResponse.json(toParticipantImageResponse(refreshed!))
+    const response = toParticipantImageResponse(refreshed!)
+
+    return NextResponse.json({
+      ...response,
+      fanImageError: response.fanImageError ?? fanImageGenerationError,
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to upload participant photo.'
     const status = message.includes('2MB') || message.includes('JPEG, PNG, or WebP') ? 400 : 500

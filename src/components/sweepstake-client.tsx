@@ -67,6 +67,33 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
   return ''
 }
 
+function normalizeUploadResponse(
+  nextState: {
+    sourcePhotoUrl?: string | null
+    fanImageStatus: PersistedBundle['fanImageStatus']
+    fanImageError?: string | null
+    fanImageTeamName?: string | null
+    fanImageUrls?: PersistedBundle['fanImageUrls']
+  },
+  shouldGenerateImmediately: boolean,
+) {
+  const generationStalled =
+    shouldGenerateImmediately &&
+    nextState.sourcePhotoUrl &&
+    nextState.fanImageStatus === 'idle' &&
+    !nextState.fanImageError
+
+  return {
+    sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
+    fanImageStatus: generationStalled ? 'failed' : nextState.fanImageStatus,
+    fanImageError: generationStalled
+      ? 'Photo uploaded, but OpenAI generation did not start. Use Generate to retry.'
+      : nextState.fanImageError ?? null,
+    fanImageTeamName: nextState.fanImageTeamName ?? null,
+    fanImageUrls: nextState.fanImageUrls ?? null,
+  }
+}
+
 export function SweepstakeClient({
   initialDraw,
 }: {
@@ -277,15 +304,13 @@ export function SweepstakeClient({
         )
       }
 
-      setDraw((current) =>
-        mergeBundleImageState(current, slotId, {
-          sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
-          fanImageStatus: nextState.fanImageStatus,
-          fanImageError: nextState.fanImageError ?? null,
-          fanImageTeamName: nextState.fanImageTeamName ?? null,
-          fanImageUrls: nextState.fanImageUrls ?? null,
-        }),
-      )
+      const imageState = normalizeUploadResponse(nextState, shouldGenerateImmediately)
+
+      setDraw((current) => mergeBundleImageState(current, slotId, imageState))
+
+      if (imageState.fanImageError) {
+        setError(imageState.fanImageError)
+      }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to upload participant photo.')
     } finally {
