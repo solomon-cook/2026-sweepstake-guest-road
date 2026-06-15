@@ -7,6 +7,8 @@ import { HeaderLinks } from '@/components/header-links'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
+type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
+
 function hasPlayerName(bundle: PersistedBundle) {
   return bundle.playerName.trim().length > 0
 }
@@ -27,21 +29,33 @@ function mergeBundleImageState(draw: PersistedDraw, slotId: string, imageState: 
   }
 }
 
-function bundlePhotoStatus(bundle: PersistedBundle) {
+function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperation) {
+  if (imageOperation === 'uploading-and-generating') {
+    return 'Uploading photo, then sending to OpenAI...'
+  }
+
+  if (imageOperation === 'uploading') {
+    return 'Uploading photo...'
+  }
+
+  if (imageOperation === 'generating') {
+    return 'Sending photo to OpenAI...'
+  }
+
   if (bundle.fanImageStatus === 'pending') {
-    return 'Generating fan images...'
+    return 'OpenAI is generating profile photos...'
   }
 
   if (bundle.fanImageStatus === 'failed') {
-    return 'Generation failed'
+    return 'OpenAI generation failed'
   }
 
   if (bundle.fanImageStatus === 'ready') {
-    return 'Photo ready'
+    return 'Profile photos ready'
   }
 
   if (bundle.sourcePhotoUrl && !bundle.isRevealed) {
-    return 'Waiting for reveal'
+    return 'Photo uploaded - waiting for reveal'
   }
 
   return ''
@@ -60,7 +74,7 @@ export function SweepstakeClient({
   const [showJoinForm, setShowJoinForm] = useState(false)
   const [activeBundle, setActiveBundle] = useState<PersistedBundle | null>(null)
   const [pendingDraw, setPendingDraw] = useState<PersistedDraw | null>(null)
-  const [activeImageSlotIds, setActiveImageSlotIds] = useState<string[]>([])
+  const [activeImageOperations, setActiveImageOperations] = useState<Record<string, ImageOperation>>({})
 
   const allocation = draw.allocation
   const claimedBundles = allocation.bundles
@@ -85,14 +99,24 @@ export function SweepstakeClient({
     setActiveBundle(bundle)
   }
 
-  function setImageBusy(slotId: string, isBusy: boolean) {
-    setActiveImageSlotIds((current) =>
-      isBusy ? (current.includes(slotId) ? current : [...current, slotId]) : current.filter((value) => value !== slotId),
-    )
+  function setImageOperation(slotId: string, operation: ImageOperation | null) {
+    setActiveImageOperations((current) => {
+      if (operation) {
+        return { ...current, [slotId]: operation }
+      }
+
+      const nextOperations = { ...current }
+      delete nextOperations[slotId]
+      return nextOperations
+    })
   }
 
   function isImageBusy(slotId: string) {
-    return activeImageSlotIds.includes(slotId)
+    return Boolean(activeImageOperations[slotId])
+  }
+
+  function getImageOperation(slotId: string) {
+    return activeImageOperations[slotId]
   }
 
   async function claimPack(event: FormEvent<HTMLFormElement>) {
@@ -165,7 +189,7 @@ export function SweepstakeClient({
   }
 
   async function requestFanImages(slotId: string, force = false) {
-    setImageBusy(slotId, true)
+    setImageOperation(slotId, 'generating')
     setError('')
 
     try {
@@ -209,12 +233,12 @@ export function SweepstakeClient({
       )
       setError(message)
     } finally {
-      setImageBusy(slotId, false)
+      setImageOperation(slotId, null)
     }
   }
 
-  async function uploadParticipantPhoto(slotId: string, file: File) {
-    setImageBusy(slotId, true)
+  async function uploadParticipantPhoto(slotId: string, file: File, shouldGenerateImmediately: boolean) {
+    setImageOperation(slotId, shouldGenerateImmediately ? 'uploading-and-generating' : 'uploading')
     setError('')
 
     try {
@@ -254,7 +278,7 @@ export function SweepstakeClient({
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to upload participant photo.')
     } finally {
-      setImageBusy(slotId, false)
+      setImageOperation(slotId, null)
     }
   }
 
@@ -297,92 +321,100 @@ export function SweepstakeClient({
 
         {claimedBundles.length ? (
           <div className="bundle-grid">
-            {claimedBundles.map((bundle) => (
-              <article
-                key={bundle.slotId}
-                className={`bundle-card ${bundle.isRevealed ? 'is-revealed' : 'is-hidden'}`}
-              >
-                <header>
-                  <div className="bundle-card-heading">
-                    <div>
-                      <p>{bundle.playerName}</p>
-                      {bundle.isRevealed ? <span>{bundle.teams.length} teams</span> : null}
+            {claimedBundles.map((bundle) => {
+              const imageOperation = getImageOperation(bundle.slotId)
+              const photoStatus = bundlePhotoStatus(bundle, imageOperation)
+
+              return (
+                <article
+                  key={bundle.slotId}
+                  className={`bundle-card ${bundle.isRevealed ? 'is-revealed' : 'is-hidden'}`}
+                >
+                  <header>
+                    <div className="bundle-card-heading">
+                      <div>
+                        <p>{bundle.playerName}</p>
+                        {bundle.isRevealed ? <span>{bundle.teams.length} teams</span> : null}
+                      </div>
+                      {!bundle.sourcePhotoUrl ? (
+                        <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={isImageBusy(bundle.slotId)}
+                            onChange={(event) => {
+                              const file = event.currentTarget.files?.[0]
+
+                              if (file) {
+                                void uploadParticipantPhoto(bundle.slotId, file, bundle.isRevealed)
+                              }
+
+                              event.currentTarget.value = ''
+                            }}
+                          />
+                          <span>Add photo</span>
+                        </label>
+                      ) : null}
                     </div>
-                    {!bundle.sourcePhotoUrl ? (
-                      <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
+                  </header>
+
+                  {photoStatus ? (
+                    <div
+                      className={`bundle-photo-status is-${imageOperation ?? bundle.fanImageStatus}`}
+                      aria-live="polite"
+                    >
+                      <p>{photoStatus}</p>
+                      {bundle.fanImageStatus === 'failed' && !imageOperation ? (
+                        <button
+                          type="button"
+                          className="text-button"
+                          onClick={() => void requestFanImages(bundle.slotId, true)}
                           disabled={isImageBusy(bundle.slotId)}
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0]
+                        >
+                          Retry
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
 
-                            if (file) {
-                              void uploadParticipantPhoto(bundle.slotId, file)
-                            }
-
-                            event.currentTarget.value = ''
-                          }}
-                        />
-                        <span>Add photo</span>
-                      </label>
-                    ) : null}
-                  </div>
-                </header>
-
-                {bundlePhotoStatus(bundle) ? (
-                  <div className={`bundle-photo-status is-${bundle.fanImageStatus}`}>
-                    <p>{bundlePhotoStatus(bundle)}</p>
-                    {bundle.fanImageStatus === 'failed' ? (
+                  {bundle.isRevealed ? (
+                    <ul className="bundle-team-list">
+                      {bundle.teams.map((team) => (
+                        <li key={team.name} className={getBundleTeamRowClass(team.rank)}>
+                          <div>
+                            <span className="bundle-team-name">
+                              {team.flagImageUrl ? (
+                                <img
+                                  className="bundle-team-flag"
+                                  src={team.flagImageUrl}
+                                  alt={`${team.name} flag`}
+                                  width={20}
+                                  height={15}
+                                />
+                              ) : null}
+                              {team.name}
+                            </span>
+                            <small>Group {team.group}</small>
+                          </div>
+                          <strong>#{team.rank}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="bundle-hidden-state">
                       <button
                         type="button"
-                        className="text-button"
-                        onClick={() => void requestFanImages(bundle.slotId, true)}
-                        disabled={isImageBusy(bundle.slotId)}
+                        className="reveal-button"
+                        onClick={() => startReveal(bundle)}
+                        disabled={isSaving || Boolean(activeBundle)}
                       >
-                        Retry
+                        Reveal teams
                       </button>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {bundle.isRevealed ? (
-                  <ul className="bundle-team-list">
-                    {bundle.teams.map((team) => (
-                      <li key={team.name} className={getBundleTeamRowClass(team.rank)}>
-                        <div>
-                          <span className="bundle-team-name">
-                            {team.flagImageUrl ? (
-                              <img
-                                className="bundle-team-flag"
-                                src={team.flagImageUrl}
-                                alt={`${team.name} flag`}
-                                width={20}
-                                height={15}
-                              />
-                            ) : null}
-                            {team.name}
-                          </span>
-                          <small>Group {team.group}</small>
-                        </div>
-                        <strong>#{team.rank}</strong>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="bundle-hidden-state">
-                    <button
-                      type="button"
-                      className="reveal-button"
-                      onClick={() => startReveal(bundle)}
-                      disabled={isSaving || Boolean(activeBundle)}
-                    >
-                      Reveal teams
-                    </button>
-                  </div>
-                )}
-              </article>
-            ))}
+                    </div>
+                  )}
+                </article>
+              )
+            })}
           </div>
         ) : (
           <div className="empty-state-card">

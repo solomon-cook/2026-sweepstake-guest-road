@@ -332,6 +332,15 @@ svg text {
   padding: 0 0 10px;
 }
 
+.bundle-photo-status::before {
+  background: rgba(79, 82, 81, 0.32);
+  border-radius: 999px;
+  content: '';
+  flex: 0 0 auto;
+  height: 8px;
+  width: 8px;
+}
+
 .bundle-photo-status p,
 .bundle-photo-status .text-button {
   margin: 0;
@@ -343,8 +352,44 @@ svg text {
   font-weight: 600;
 }
 
+.bundle-photo-status.is-uploading p,
+.bundle-photo-status.is-uploading-and-generating p,
+.bundle-photo-status.is-generating p,
+.bundle-photo-status.is-pending p {
+  color: var(--color-blue);
+}
+
+.bundle-photo-status.is-uploading::before,
+.bundle-photo-status.is-uploading-and-generating::before,
+.bundle-photo-status.is-generating::before,
+.bundle-photo-status.is-pending::before {
+  animation: photo-status-pulse 900ms ease-in-out infinite;
+  background: var(--color-blue);
+}
+
+.bundle-photo-status.is-ready::before {
+  background: #2f8f52;
+}
+
+.bundle-photo-status.is-failed::before {
+  background: var(--color-red);
+}
+
 .bundle-photo-status.is-failed p {
   color: var(--color-red);
+}
+
+@keyframes photo-status-pulse {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(0.72);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .text-button {
