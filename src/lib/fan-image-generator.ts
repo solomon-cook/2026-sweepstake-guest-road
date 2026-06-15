@@ -76,7 +76,7 @@ async function requestFanImageVariant(
   }
 
   const formData = new FormData()
-  formData.set('model', 'gpt-image-2')
+  formData.set('model', 'gpt-image-1')
   formData.set('prompt', prompt)
   formData.set('size', '1024x1536')
   formData.set('quality', 'medium')
