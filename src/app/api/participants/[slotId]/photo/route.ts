@@ -4,7 +4,7 @@ import {
   loadParticipantImageSlot,
   saveParticipantSourcePhoto,
 } from '@/lib/participant-image-repository'
-import { generateParticipantFanImages, normalizeParticipantPhoto } from '@/lib/fan-image-generator'
+import { normalizeParticipantPhoto } from '@/lib/fan-image-generator'
 import { toParticipantImageResponse } from '@/lib/participant-image-view'
 
 export async function POST(
@@ -13,7 +13,6 @@ export async function POST(
 ) {
   try {
     const { slotId } = await context.params
-    let fanImageGenerationError: string | null = null
     const slot = await loadParticipantImageSlot(slotId)
 
     if (!slot) {
@@ -37,27 +36,8 @@ export async function POST(
       photoData: normalizedPhoto.bytes,
     })
 
-    if (slot.isRevealed) {
-      try {
-        await generateParticipantFanImages(slotId, { force: true })
-      } catch (generationError) {
-        const message =
-          generationError instanceof Error ? generationError.message : 'Failed to generate fan images.'
-        fanImageGenerationError = message
-        console.error('Participant photo uploaded, but OpenAI fan image generation failed.', {
-          slotId,
-          message,
-        })
-      }
-    }
-
     const refreshed = await loadParticipantImageSlot(slotId)
-    const response = toParticipantImageResponse(refreshed!)
-
-    return NextResponse.json({
-      ...response,
-      fanImageError: response.fanImageError ?? fanImageGenerationError,
-    })
+    return NextResponse.json(toParticipantImageResponse(refreshed!))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to upload participant photo.'
     const status = message.includes('2MB') || message.includes('JPEG, PNG, or WebP') ? 400 : 500

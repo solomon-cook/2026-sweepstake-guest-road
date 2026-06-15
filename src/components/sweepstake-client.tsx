@@ -67,33 +67,6 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
   return ''
 }
 
-function normalizeUploadResponse(
-  nextState: {
-    sourcePhotoUrl?: string | null
-    fanImageStatus: PersistedBundle['fanImageStatus']
-    fanImageError?: string | null
-    fanImageTeamName?: string | null
-    fanImageUrls?: PersistedBundle['fanImageUrls']
-  },
-  shouldGenerateImmediately: boolean,
-) {
-  const generationStalled =
-    shouldGenerateImmediately &&
-    nextState.sourcePhotoUrl &&
-    nextState.fanImageStatus === 'idle' &&
-    !nextState.fanImageError
-
-  return {
-    sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
-    fanImageStatus: generationStalled ? 'failed' : nextState.fanImageStatus,
-    fanImageError: generationStalled
-      ? 'Photo uploaded, but OpenAI generation did not start. Use Generate to retry.'
-      : nextState.fanImageError ?? null,
-    fanImageTeamName: nextState.fanImageTeamName ?? null,
-    fanImageUrls: nextState.fanImageUrls ?? null,
-  }
-}
-
 export function SweepstakeClient({
   initialDraw,
 }: {
@@ -274,7 +247,9 @@ export function SweepstakeClient({
   }
 
   async function uploadParticipantPhoto(slotId: string, file: File, shouldGenerateImmediately: boolean) {
-    setImageOperation(slotId, shouldGenerateImmediately ? 'uploading-and-generating' : 'uploading')
+    let shouldRequestGeneration = false
+
+    setImageOperation(slotId, 'uploading')
     setError('')
 
     try {
@@ -304,17 +279,25 @@ export function SweepstakeClient({
         )
       }
 
-      const imageState = normalizeUploadResponse(nextState, shouldGenerateImmediately)
+      const imageState = {
+        sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
+        fanImageStatus: nextState.fanImageStatus,
+        fanImageError: nextState.fanImageError ?? null,
+        fanImageTeamName: nextState.fanImageTeamName ?? null,
+        fanImageUrls: nextState.fanImageUrls ?? null,
+      }
 
       setDraw((current) => mergeBundleImageState(current, slotId, imageState))
 
-      if (imageState.fanImageError) {
-        setError(imageState.fanImageError)
-      }
+      shouldRequestGeneration = shouldGenerateImmediately && Boolean(imageState.sourcePhotoUrl)
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Failed to upload participant photo.')
     } finally {
       setImageOperation(slotId, null)
+    }
+
+    if (shouldRequestGeneration) {
+      await requestFanImages(slotId, true)
     }
   }
 
