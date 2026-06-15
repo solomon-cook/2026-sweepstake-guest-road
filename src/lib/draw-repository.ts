@@ -160,6 +160,7 @@ export function toPersistedDraw(
     ecstaticImageData?: Uint8Array<ArrayBuffer> | null
     devastatedImageData?: Uint8Array<ArrayBuffer> | null
     fanImageStatus?: string | null
+    fanImageError?: string | null
     fanImageTeamId?: string | null
     totalScore: number
     slotIndex: number
@@ -192,6 +193,7 @@ export function toPersistedDraw(
         isRevealed: slot.isRevealed,
         sourcePhotoUrl: hasSourcePhoto ? buildParticipantImageUrl(slot.id, 'source') : null,
         fanImageStatus: normalizeFanImageStatus(slot.fanImageStatus),
+        fanImageError: slot.fanImageError ?? null,
         fanImageTeamName,
         fanImageUrls:
           slot.neutralImageData || slot.ecstaticImageData || slot.devastatedImageData

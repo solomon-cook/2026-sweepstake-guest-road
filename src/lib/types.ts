@@ -48,6 +48,7 @@ export type PersistedBundle = Bundle & {
   isRevealed: boolean
   sourcePhotoUrl?: string | null
   fanImageStatus: FanImageStatus
+  fanImageError?: string | null
   fanImageTeamName?: string | null
   fanImageUrls?: {
     neutral?: string | null

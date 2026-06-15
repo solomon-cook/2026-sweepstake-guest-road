@@ -8,6 +8,7 @@ import {
   shuffleDraw,
   updateDrawNames,
 } from '@/lib/draw-repository'
+import { generateParticipantFanImages } from '@/lib/fan-image-generator'
 import { parsePlayerCount } from '@/lib/player-count'
 import { loadTeamScores } from '@/lib/team-repository'
 
@@ -75,6 +76,24 @@ export async function PATCH(request: Request) {
       typeof body.slotId === 'string'
     ) {
       const draw = await revealDrawSlot(playerCount, body.slotId, teams)
+      const revealedBundle = draw.allocation.bundles.find((bundle) => bundle.slotId === body.slotId)
+
+      if (revealedBundle?.sourcePhotoUrl) {
+        try {
+          await generateParticipantFanImages(body.slotId, { force: true })
+        } catch (generationError) {
+          const message =
+            generationError instanceof Error ? generationError.message : 'Failed to generate fan images.'
+          console.error('OpenAI fan image generation failed after revealing slot.', {
+            slotId: body.slotId,
+            message,
+          })
+        }
+
+        const refreshedDraw = await getOrCreateDraw(playerCount, teams)
+        return NextResponse.json(refreshedDraw)
+      }
+
       return NextResponse.json(draw)
     }
 

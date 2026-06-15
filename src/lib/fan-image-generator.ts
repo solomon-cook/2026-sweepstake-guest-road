@@ -9,6 +9,7 @@ import {
 } from './participant-image-repository'
 
 const OPENAI_IMAGE_ENDPOINT = 'https://api.openai.com/v1/images/edits'
+const OPENAI_IMAGE_MODEL = 'gpt-image-1'
 const GENERATED_IMAGE_MIME_TYPE = 'image/jpeg'
 
 type Expression = 'ecstatic' | 'neutral' | 'devastated'
@@ -65,6 +66,7 @@ export async function normalizeParticipantPhoto(fileBytes: Uint8Array<ArrayBuffe
 
 async function requestFanImageVariant(
   slotId: string,
+  expression: Expression,
   prompt: string,
   source: { mimeType: string; bytes: Uint8Array<ArrayBufferLike> },
   fetchImpl: FetchLike,
@@ -76,12 +78,20 @@ async function requestFanImageVariant(
   }
 
   const formData = new FormData()
-  formData.set('model', 'gpt-image-1')
+  formData.set('model', OPENAI_IMAGE_MODEL)
   formData.set('prompt', prompt)
-  formData.set('size', '1024x1536')
+  formData.set('size', '1024x1024')
   formData.set('quality', 'medium')
   formData.set('output_format', 'jpeg')
+  formData.set('output_compression', '70')
   formData.set('image[]', new Blob([Buffer.from(source.bytes)], { type: source.mimeType }), `${slotId}.jpg`)
+
+  console.info('Requesting OpenAI fan image edit.', {
+    slotId,
+    expression,
+    model: OPENAI_IMAGE_MODEL,
+    sourceByteLength: source.bytes.byteLength,
+  })
 
   const response = await fetchImpl(OPENAI_IMAGE_ENDPOINT, {
     method: 'POST',
@@ -95,13 +105,38 @@ async function requestFanImageVariant(
     | { data?: Array<{ b64_json?: string | null }>; error?: { message?: string } }
     | { message?: string }
 
+  console.info('Received OpenAI fan image edit response.', {
+    slotId,
+    expression,
+    model: OPENAI_IMAGE_MODEL,
+    status: response.status,
+    ok: response.ok,
+  })
+
   if (!response.ok) {
-    throw new Error(payload && 'error' in payload ? payload.error?.message || 'OpenAI image edit failed.' : 'OpenAI image edit failed.')
+    const message =
+      payload && 'error' in payload
+        ? payload.error?.message || 'OpenAI image edit failed.'
+        : 'OpenAI image edit failed.'
+    console.error('OpenAI fan image edit failed.', {
+      slotId,
+      expression,
+      model: OPENAI_IMAGE_MODEL,
+      status: response.status,
+      message,
+    })
+    throw new Error(message)
   }
 
   const base64 = 'data' in payload ? payload.data?.[0]?.b64_json : null
 
   if (!base64) {
+    console.error('OpenAI fan image edit returned no image.', {
+      slotId,
+      expression,
+      model: OPENAI_IMAGE_MODEL,
+      status: response.status,
+    })
     throw new Error('OpenAI did not return an edited image.')
   }
 
@@ -151,38 +186,39 @@ export async function generateParticipantFanImages(
       bytes: slot.photoData,
     }
 
-    const [neutral, ecstatic, devastated] = await Promise.all([
-      requestFanImageVariant(
-        slotId,
-        buildFanImagePrompt({
-          playerName: slot.playerName,
-          teamName: topTeam.name,
-          expression: 'neutral',
-        }),
-        source,
-        fetchImpl,
-      ),
-      requestFanImageVariant(
-        slotId,
-        buildFanImagePrompt({
-          playerName: slot.playerName,
-          teamName: topTeam.name,
-          expression: 'ecstatic',
-        }),
-        source,
-        fetchImpl,
-      ),
-      requestFanImageVariant(
-        slotId,
-        buildFanImagePrompt({
-          playerName: slot.playerName,
-          teamName: topTeam.name,
-          expression: 'devastated',
-        }),
-        source,
-        fetchImpl,
-      ),
-    ])
+    const neutral = await requestFanImageVariant(
+      slotId,
+      'neutral',
+      buildFanImagePrompt({
+        playerName: slot.playerName,
+        teamName: topTeam.name,
+        expression: 'neutral',
+      }),
+      source,
+      fetchImpl,
+    )
+    const ecstatic = await requestFanImageVariant(
+      slotId,
+      'ecstatic',
+      buildFanImagePrompt({
+        playerName: slot.playerName,
+        teamName: topTeam.name,
+        expression: 'ecstatic',
+      }),
+      source,
+      fetchImpl,
+    )
+    const devastated = await requestFanImageVariant(
+      slotId,
+      'devastated',
+      buildFanImagePrompt({
+        playerName: slot.playerName,
+        teamName: topTeam.name,
+        expression: 'devastated',
+      }),
+      source,
+      fetchImpl,
+    )
 
     await saveParticipantFanImages(slotId, {
       generatedImageMimeType: GENERATED_IMAGE_MIME_TYPE,

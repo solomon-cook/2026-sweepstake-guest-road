@@ -39,8 +39,13 @@ export async function POST(
     if (slot.isRevealed) {
       try {
         await generateParticipantFanImages(slotId, { force: true })
-      } catch {
-        // Keep the uploaded source photo even if fan-image generation fails.
+      } catch (generationError) {
+        const message =
+          generationError instanceof Error ? generationError.message : 'Failed to generate fan images.'
+        console.error('Participant photo uploaded, but OpenAI fan image generation failed.', {
+          slotId,
+          message,
+        })
       }
     }
 

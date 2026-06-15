@@ -12,6 +12,7 @@ export function toParticipantImageResponse(slot: ParticipantImageSlot) {
     slotId: slot.id,
     sourcePhotoUrl: slot.photoData && slot.photoMimeType ? buildParticipantImageUrl(slot.id, 'source') : null,
     fanImageStatus: slot.fanImageStatus,
+    fanImageError: slot.fanImageError,
     fanImageTeamName: topTeamName,
     fanImageUrls:
       slot.neutralImageData || slot.ecstaticImageData || slot.devastatedImageData

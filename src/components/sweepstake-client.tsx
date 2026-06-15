@@ -47,7 +47,9 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
   }
 
   if (bundle.fanImageStatus === 'failed') {
-    return 'OpenAI generation failed'
+    return bundle.fanImageError
+      ? `OpenAI generation failed: ${bundle.fanImageError}`
+      : 'OpenAI generation failed'
   }
 
   if (bundle.fanImageStatus === 'ready') {
@@ -201,6 +203,7 @@ export function SweepstakeClient({
             slotId: string
             sourcePhotoUrl?: string | null
             fanImageStatus: PersistedBundle['fanImageStatus']
+            fanImageError?: string | null
             fanImageTeamName?: string | null
             fanImageUrls?: PersistedBundle['fanImageUrls']
             error?: string | null
@@ -219,6 +222,7 @@ export function SweepstakeClient({
         mergeBundleImageState(current, slotId, {
           sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
           fanImageStatus: nextState.fanImageStatus,
+          fanImageError: nextState.fanImageError ?? null,
           fanImageTeamName: nextState.fanImageTeamName ?? null,
           fanImageUrls: nextState.fanImageUrls ?? null,
         }),
@@ -229,6 +233,7 @@ export function SweepstakeClient({
       setDraw((current) =>
         mergeBundleImageState(current, slotId, {
           fanImageStatus: 'failed',
+          fanImageError: message,
         }),
       )
       setError(message)
@@ -253,6 +258,7 @@ export function SweepstakeClient({
             slotId: string
             sourcePhotoUrl?: string | null
             fanImageStatus: PersistedBundle['fanImageStatus']
+            fanImageError?: string | null
             fanImageTeamName?: string | null
             fanImageUrls?: PersistedBundle['fanImageUrls']
             error?: string | null
@@ -271,6 +277,7 @@ export function SweepstakeClient({
         mergeBundleImageState(current, slotId, {
           sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
           fanImageStatus: nextState.fanImageStatus,
+          fanImageError: nextState.fanImageError ?? null,
           fanImageTeamName: nextState.fanImageTeamName ?? null,
           fanImageUrls: nextState.fanImageUrls ?? null,
         }),
@@ -292,7 +299,7 @@ export function SweepstakeClient({
 
       if (
         revealedBundle?.sourcePhotoUrl &&
-        revealedBundle.fanImageStatus !== 'ready' &&
+        revealedBundle.fanImageStatus === 'idle' &&
         !isImageBusy(revealedBundle.slotId)
       ) {
         void requestFanImages(revealedBundle.slotId)
