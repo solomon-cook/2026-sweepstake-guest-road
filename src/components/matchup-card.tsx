@@ -28,6 +28,10 @@ function formatProbability(value?: number | null) {
   return value ? `${Math.round(value * 100)}%` : '-'
 }
 
+function formatRank(value?: number | null) {
+  return value ? `#${value}` : '-'
+}
+
 function formatGoals(value?: number | null) {
   if (typeof value !== 'number') {
     return '-'
@@ -84,6 +88,8 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
   const hasScore = matchup.fixture.homeScore !== null && matchup.fixture.awayScore !== null
   const homeProbability = formatProbability(matchup.odds?.homeProbability)
   const awayProbability = formatProbability(matchup.odds?.awayProbability)
+  const homeRank = formatRank(matchup.home.teamRank)
+  const awayRank = formatRank(matchup.away.teamRank)
   const detailLine = [matchup.fixture.round, matchup.fixture.venue, matchup.odds?.source].filter(Boolean).join(' · ')
   const homePhotoUrl = selectMatchupOwnerPhoto(
     matchup.home,
@@ -121,11 +127,11 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
         <MatchupOwner side={matchup.home} align="home" photoUrl={homePhotoUrl} />
         <MatchupOwner side={matchup.away} align="away" photoUrl={awayPhotoUrl} />
 
-        <p className="matchup-percentage is-home" aria-label={`${matchup.fixture.homeTeam} win chance`}>
-          {homeProbability}
+        <p className="matchup-percentage is-home" aria-label={`${matchup.fixture.homeTeam} team rank`}>
+          {homeRank}
         </p>
-        <p className="matchup-percentage is-away" aria-label={`${matchup.fixture.awayTeam} win chance`}>
-          {awayProbability}
+        <p className="matchup-percentage is-away" aria-label={`${matchup.fixture.awayTeam} team rank`}>
+          {awayRank}
         </p>
 
         <div className="versus-teams">

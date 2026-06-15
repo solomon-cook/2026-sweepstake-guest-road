@@ -1,57 +1,30 @@
 {
   "pages": {
-    "/_not-found/page": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/chunks/app/_not-found/page-19a437c0d80bb0c0.js"
-    ],
-    "/api/draw/route": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/chunks/app/api/draw/route-464f3bfea42b4cb8.js"
-    ],
-    "/api/team-flags/[teamId]/route": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/chunks/app/api/team-flags/[teamId]/route-464f3bfea42b4cb8.js"
-    ],
     "/layout": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/css/4649c67bfb1a2b94.css",
-      "static/chunks/app/layout-fb4bc2a7ba91c639.js"
-    ],
-    "/more-info/page": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/chunks/619-ba102abea3e3d0e4.js",
-      "static/chunks/app/more-info/page-a33b85ab95fd0ba9.js"
-    ],
-    "/matchups/page": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/chunks/619-ba102abea3e3d0e4.js",
-      "static/chunks/app/matchups/page-2a03983cc777c42a.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ],
     "/page": [
-      "static/chunks/webpack-2eb758dea75faf50.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-98a0bdaa30757bda.js",
-      "static/chunks/main-app-2ad1f4a7fcef2521.js",
-      "static/chunks/619-ba102abea3e3d0e4.js",
-      "static/chunks/app/page-ad61975a8ac494b8.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
+    ],
+    "/api/team-flags/[teamId]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/team-flags/[teamId]/route.js"
+    ],
+    "/api/participants/[slotId]/images/[kind]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/participants/[slotId]/images/[kind]/route.js"
+    ],
+    "/matchups/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/matchups/page.js"
     ]
   }
 }

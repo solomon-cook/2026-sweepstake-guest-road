@@ -325,6 +325,41 @@ svg text {
   width: 1px;
 }
 
+.bundle-photo-preview {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(79, 82, 81, 0.16);
+  border-radius: 999px;
+  color: var(--color-ink);
+  cursor: pointer;
+  display: grid;
+  flex: 0 0 auto;
+  height: 46px;
+  justify-items: center;
+  overflow: hidden;
+  padding: 0;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+  width: 46px;
+}
+
+.bundle-photo-preview:hover {
+  border-color: rgba(57, 173, 56, 0.36);
+  box-shadow: 0 10px 20px rgba(79, 82, 81, 0.12);
+  transform: translateY(-1px);
+}
+
+.bundle-photo-preview img {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
 .bundle-photo-status {
   align-items: center;
   display: flex;
@@ -371,6 +406,10 @@ svg text {
   background: #2f8f52;
 }
 
+.bundle-photo-status.is-ready.is-transient {
+  animation: photo-status-fade 3600ms ease forwards;
+}
+
 .bundle-photo-status.is-failed::before {
   background: var(--color-red);
 }
@@ -389,6 +428,17 @@ svg text {
   50% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes photo-status-fade {
+  0%,
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
   }
 }
 
@@ -691,6 +741,82 @@ svg text {
 .reveal-modal:has(.reveal-arena) {
   max-width: 980px;
   width: min(100%, 980px);
+}
+
+.photo-lightbox-overlay {
+  align-items: center;
+  backdrop-filter: blur(12px);
+  background: rgba(25, 33, 63, 0.68);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 60;
+}
+
+.photo-lightbox {
+  background: rgba(239, 239, 236, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 24px;
+  box-shadow: 0 28px 70px rgba(25, 33, 63, 0.34);
+  display: grid;
+  gap: 18px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 18px;
+  width: min(100%, 560px);
+}
+
+.photo-lightbox-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.photo-lightbox-header h2 {
+  font-family: var(--font-title);
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 0.95;
+  margin: 0;
+}
+
+.photo-lightbox-close {
+  background: transparent;
+  border: 0;
+  color: var(--color-blue);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 6px 0;
+}
+
+.photo-lightbox-image {
+  aspect-ratio: 1;
+  border-radius: 20px;
+  display: block;
+  max-height: min(62vh, 560px);
+  object-fit: cover;
+  width: 100%;
+}
+
+.photo-lightbox-actions {
+  align-items: center;
+  border-top: 1px solid rgba(79, 82, 81, 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  justify-content: space-between;
+  padding-top: 16px;
+}
+
+.photo-reupload-warning {
+  color: var(--color-red);
+  flex: 1 1 220px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
 }
 
 .confirm-pane,
@@ -1707,31 +1833,32 @@ code {
 
 .matchup-team h2 {
   color: var(--color-ink);
-  font-size: clamp(2rem, 5vw, 4.2rem);
-  margin: 0 0 16px;
+  font-size: clamp(1.55rem, 3.4vw, 2.8rem);
+  line-height: 1.02;
+  margin: 0 0 14px;
   overflow-wrap: anywhere;
 }
 
 .matchup-flag-frame {
   align-items: center;
-  background: rgba(255, 255, 255, 0.62);
-  border: 2px solid rgba(79, 82, 81, 0.44);
-  border-radius: 8px;
-  box-shadow: 0 12px 24px rgba(79, 82, 81, 0.1);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   display: flex;
   height: 160px;
   justify-content: center;
-  padding: 14px 16px;
+  padding: 0;
   width: 224px;
 }
 
 .matchup-flag-frame img {
-  border: 1px solid rgba(79, 82, 81, 0.18);
-  border-radius: 4px;
+  border: 0;
+  border-radius: 0;
   display: block;
   height: auto;
-  max-height: 128px;
-  max-width: 192px;
+  max-height: 100%;
+  max-width: 100%;
   object-fit: contain;
 }
 
@@ -1855,10 +1982,10 @@ code {
     border-color: rgba(79, 82, 81, 0.42);
     border-radius: 18px;
     display: grid;
-    gap: 10px;
+    gap: 18px;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     min-height: 0;
-    padding: 12px 12px 62px;
+    padding: 16px 16px 96px;
   }
 
   .versus-diagonal::before {
@@ -1885,10 +2012,10 @@ code {
   }
 
   .matchup-owner.is-away {
-    bottom: 12px;
-    max-width: min(50%, 170px);
+    bottom: 18px;
+    max-width: min(54%, 188px);
     position: absolute;
-    right: 12px;
+    right: 16px;
   }
 
   .matchup-owner p {
@@ -1916,24 +2043,27 @@ code {
   .matchup-percentage.is-home {
     bottom: auto;
     left: auto;
-    right: 12px;
-    top: 12px;
+    right: 16px;
+    top: 16px;
     transform: none;
   }
 
   .matchup-percentage.is-away {
-    bottom: 12px;
-    left: 12px;
+    bottom: 18px;
+    left: 16px;
     right: auto;
     top: auto;
   }
 
   .versus-teams {
     align-items: center;
-    gap: 4px;
+    align-self: stretch;
+    gap: 14px;
     grid-column: 1 / -1;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(48px, 1fr) auto;
     inset: auto;
+    min-height: 344px;
     position: relative;
     transform: none;
   }
@@ -1941,13 +2071,13 @@ code {
   .matchup-team.is-home {
     align-self: start;
     justify-self: start;
-    max-width: min(72%, 190px);
+    max-width: min(76%, 210px);
   }
 
   .matchup-team.is-away {
     align-self: end;
     justify-self: end;
-    max-width: min(72%, 190px);
+    max-width: min(76%, 210px);
   }
 
   .matchup-team h2 {
@@ -1961,9 +2091,9 @@ code {
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    height: clamp(54px, 20vw, 74px);
+    height: clamp(68px, 24vw, 92px);
     padding: 0;
-    width: clamp(74px, 27vw, 96px);
+    width: clamp(96px, 34vw, 132px);
   }
 
   .matchup-flag-frame img {
@@ -1986,7 +2116,7 @@ code {
     font-size: clamp(1.55rem, 8vw, 2.25rem);
     grid-row: 2;
     justify-self: center;
-    margin: -6px 0;
+    margin: 0;
     z-index: 3;
   }
 

@@ -20,6 +20,31 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/participants/[slotId]/fan-images",
+      "regex": "^/api/participants/([^/]+?)/fan\\-images(?:/)?$",
+      "routeKeys": {
+        "nxtPslotId": "nxtPslotId"
+      },
+      "namedRegex": "^/api/participants/(?<nxtPslotId>[^/]+?)/fan\\-images(?:/)?$"
+    },
+    {
+      "page": "/api/participants/[slotId]/images/[kind]",
+      "regex": "^/api/participants/([^/]+?)/images/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslotId": "nxtPslotId",
+        "nxtPkind": "nxtPkind"
+      },
+      "namedRegex": "^/api/participants/(?<nxtPslotId>[^/]+?)/images/(?<nxtPkind>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/participants/[slotId]/photo",
+      "regex": "^/api/participants/([^/]+?)/photo(?:/)?$",
+      "routeKeys": {
+        "nxtPslotId": "nxtPslotId"
+      },
+      "namedRegex": "^/api/participants/(?<nxtPslotId>[^/]+?)/photo(?:/)?$"
+    },
+    {
       "page": "/api/team-flags/[teamId]",
       "regex": "^/api/team\\-flags/([^/]+?)(?:/)?$",
       "routeKeys": {

@@ -115,6 +115,7 @@ export type MatchupSide = {
   ownerEcstaticPhotoUrl?: string | null
   ownerDevastatedPhotoUrl?: string | null
   teamScore?: number | null
+  teamRank?: number | null
   isAssigned: boolean
 }
 

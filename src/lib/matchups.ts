@@ -88,6 +88,7 @@ function buildOwnerLookup(draw: PersistedDraw) {
         ownerEcstaticPhotoUrl: bundle.fanImageUrls?.ecstatic ?? null,
         ownerDevastatedPhotoUrl: bundle.fanImageUrls?.devastated ?? null,
         teamScore: team.score,
+        teamRank: team.rank,
         isAssigned: true,
       })
     }
@@ -106,6 +107,7 @@ function unassignedSide(teamName: string): MatchupSide {
     ownerEcstaticPhotoUrl: null,
     ownerDevastatedPhotoUrl: null,
     teamScore: null,
+    teamRank: null,
     isAssigned: false,
   }
 }

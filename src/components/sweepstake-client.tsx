@@ -1,13 +1,18 @@
 'use client'
 
 import type { FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CardPackOpening } from '@/components/card-pack-opening'
 import { HeaderLinks } from '@/components/header-links'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
+type ParticipantPhotoPreview = {
+  bundle: PersistedBundle
+  imageUrl: string
+  imageLabel: string
+}
 
 const ALLOWED_UPLOAD_TYPES = new Set([
   'image/jpeg',
@@ -20,6 +25,7 @@ const ALLOWED_UPLOAD_TYPES = new Set([
 ])
 const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.heics', '.heifs']
 const MAX_UPLOAD_FILE_BYTES = 4 * 1024 * 1024
+const READY_STATUS_DISPLAY_MS = 3600
 
 type ParticipantImageApiResponse =
   | {
@@ -85,7 +91,7 @@ async function readParticipantImageResponse(response: Response) {
   }
 }
 
-function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperation) {
+function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperation, showReadyStatus = false) {
   if (imageOperation === 'uploading-and-generating') {
     return 'Uploading photo, then sending to OpenAI...'
   }
@@ -107,19 +113,22 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
     return bundle.fanImageError ? `${failurePrefix}: ${bundle.fanImageError}` : failurePrefix
   }
 
-  if (bundle.fanImageStatus === 'ready') {
+  if (bundle.fanImageStatus === 'ready' && showReadyStatus) {
     return 'Profile photos ready'
   }
 
-  if (bundle.sourcePhotoUrl && !bundle.isRevealed) {
-    return 'Photo uploaded - waiting for reveal'
-  }
-
-  if (bundle.sourcePhotoUrl && bundle.isRevealed) {
-    return 'Photo uploaded - ready to generate'
-  }
-
   return ''
+}
+
+function getBundlePreviewImage(bundle: PersistedBundle) {
+  if (bundle.fanImageUrls?.neutral) {
+    return {
+      imageUrl: bundle.fanImageUrls.neutral,
+      imageLabel: `Neutral AI profile photo for ${bundle.playerName}`,
+    }
+  }
+
+  return null
 }
 
 export function SweepstakeClient({
@@ -134,8 +143,11 @@ export function SweepstakeClient({
   const [playerName, setPlayerName] = useState('')
   const [showJoinForm, setShowJoinForm] = useState(false)
   const [activeBundle, setActiveBundle] = useState<PersistedBundle | null>(null)
+  const [activePhotoPreview, setActivePhotoPreview] = useState<ParticipantPhotoPreview | null>(null)
   const [pendingDraw, setPendingDraw] = useState<PersistedDraw | null>(null)
   const [activeImageOperations, setActiveImageOperations] = useState<Record<string, ImageOperation>>({})
+  const [recentlyReadyPhotos, setRecentlyReadyPhotos] = useState<Record<string, boolean>>({})
+  const readyStatusTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const allocation = draw.allocation
   const claimedBundles = allocation.bundles
@@ -145,9 +157,21 @@ export function SweepstakeClient({
   const availableSlots = playerCount - claimedPlayerCount
   const canAddPlayer = availableSlots > 0
 
+  useEffect(() => {
+    const timers = readyStatusTimers.current
+
+    return () => {
+      Object.values(timers).forEach((timer) => clearTimeout(timer))
+    }
+  }, [])
+
   function closeRevealFlow() {
     setActiveBundle(null)
     setPendingDraw(null)
+  }
+
+  function closePhotoPreview() {
+    setActivePhotoPreview(null)
   }
 
   function startReveal(bundle: PersistedBundle) {
@@ -178,6 +202,22 @@ export function SweepstakeClient({
 
   function getImageOperation(slotId: string) {
     return activeImageOperations[slotId]
+  }
+
+  function showReadyStatusBriefly(slotId: string) {
+    if (readyStatusTimers.current[slotId]) {
+      clearTimeout(readyStatusTimers.current[slotId])
+    }
+
+    setRecentlyReadyPhotos((current) => ({ ...current, [slotId]: true }))
+    readyStatusTimers.current[slotId] = setTimeout(() => {
+      setRecentlyReadyPhotos((current) => {
+        const nextReadyPhotos = { ...current }
+        delete nextReadyPhotos[slotId]
+        return nextReadyPhotos
+      })
+      delete readyStatusTimers.current[slotId]
+    }, READY_STATUS_DISPLAY_MS)
   }
 
   async function claimPack(event: FormEvent<HTMLFormElement>) {
@@ -267,15 +307,30 @@ export function SweepstakeClient({
         )
       }
 
-      setDraw((current) =>
-        mergeBundleImageState(current, slotId, {
-          sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
-          fanImageStatus: nextState.fanImageStatus,
-          fanImageError: nextState.fanImageError ?? null,
-          fanImageTeamName: nextState.fanImageTeamName ?? null,
-          fanImageUrls: nextState.fanImageUrls ?? null,
-        }),
+      const imageState = {
+        sourcePhotoUrl: nextState.sourcePhotoUrl ?? null,
+        fanImageStatus: nextState.fanImageStatus,
+        fanImageError: nextState.fanImageError ?? null,
+        fanImageTeamName: nextState.fanImageTeamName ?? null,
+        fanImageUrls: nextState.fanImageUrls ?? null,
+      }
+
+      setDraw((current) => mergeBundleImageState(current, slotId, imageState))
+      setActivePhotoPreview((current) =>
+        current?.bundle.slotId === slotId
+          ? {
+              bundle: { ...current.bundle, ...imageState },
+              imageUrl: imageState.fanImageUrls?.neutral ?? imageState.sourcePhotoUrl ?? current.imageUrl,
+              imageLabel: imageState.fanImageUrls?.neutral
+                ? `Neutral AI profile photo for ${current.bundle.playerName}`
+                : `Uploaded profile photo for ${current.bundle.playerName}`,
+            }
+          : current,
       )
+
+      if (imageState.fanImageStatus === 'ready') {
+        showReadyStatusBriefly(slotId)
+      }
     } catch (nextError) {
       const message =
         nextError instanceof Error ? nextError.message : 'Failed to generate fan images.'
@@ -318,7 +373,7 @@ export function SweepstakeClient({
       return
     }
 
-    setImageOperation(slotId, 'uploading')
+    setImageOperation(slotId, shouldGenerateImmediately ? 'uploading-and-generating' : 'uploading')
     setError('')
 
     try {
@@ -347,6 +402,21 @@ export function SweepstakeClient({
       }
 
       setDraw((current) => mergeBundleImageState(current, slotId, imageState))
+      setActivePhotoPreview((current) =>
+        current?.bundle.slotId === slotId
+          ? {
+              bundle: { ...current.bundle, ...imageState },
+              imageUrl: imageState.fanImageUrls?.neutral ?? imageState.sourcePhotoUrl ?? current.imageUrl,
+              imageLabel: imageState.fanImageUrls?.neutral
+                ? `Neutral AI profile photo for ${current.bundle.playerName}`
+                : `Uploaded profile photo for ${current.bundle.playerName}`,
+            }
+          : current,
+      )
+
+      if (imageState.fanImageStatus === 'ready') {
+        showReadyStatusBriefly(slotId)
+      }
 
       shouldRequestGeneration = shouldGenerateImmediately && Boolean(imageState.sourcePhotoUrl)
     } catch (nextError) {
@@ -408,7 +478,9 @@ export function SweepstakeClient({
           <div className="bundle-grid">
             {claimedBundles.map((bundle) => {
               const imageOperation = getImageOperation(bundle.slotId)
-              const photoStatus = bundlePhotoStatus(bundle, imageOperation)
+              const isReadyStatusTransient = bundle.fanImageStatus === 'ready' && Boolean(recentlyReadyPhotos[bundle.slotId])
+              const photoStatus = bundlePhotoStatus(bundle, imageOperation, isReadyStatusTransient)
+              const previewImage = getBundlePreviewImage(bundle)
 
               return (
                 <article
@@ -421,29 +493,49 @@ export function SweepstakeClient({
                         <p>{bundle.playerName}</p>
                         {bundle.isRevealed ? <span>{bundle.teams.length} teams</span> : null}
                       </div>
-                      <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,.heic,.heif,.heics,.heifs"
-                          disabled={isImageBusy(bundle.slotId)}
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0]
+                      {previewImage ? (
+                        <button
+                          type="button"
+                          className="bundle-photo-preview"
+                          aria-label="View AI profile photo"
+                          onClick={() =>
+                            setActivePhotoPreview({
+                              bundle,
+                              imageUrl: previewImage.imageUrl,
+                              imageLabel: previewImage.imageLabel,
+                            })
+                          }
+                        >
+                          <img src={previewImage.imageUrl} alt="" />
+                        </button>
+                      ) : null}
+                      {!bundle.sourcePhotoUrl ? (
+                        <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,.heic,.heif,.heics,.heifs"
+                            disabled={isImageBusy(bundle.slotId)}
+                            onChange={(event) => {
+                              const file = event.currentTarget.files?.[0]
 
-                            if (file) {
-                              void uploadParticipantPhoto(bundle.slotId, file, bundle.isRevealed)
-                            }
+                              if (file) {
+                                void uploadParticipantPhoto(bundle.slotId, file, bundle.isRevealed)
+                              }
 
-                            event.currentTarget.value = ''
-                          }}
-                        />
-                        <span>{bundle.sourcePhotoUrl ? 'Change profile photo' : 'Add photo'}</span>
-                      </label>
+                              event.currentTarget.value = ''
+                            }}
+                          />
+                          <span>Add photo</span>
+                        </label>
+                      ) : null}
                     </div>
                   </header>
 
                   {photoStatus ? (
                     <div
-                      className={`bundle-photo-status is-${imageOperation ?? bundle.fanImageStatus}`}
+                      className={`bundle-photo-status is-${imageOperation ?? bundle.fanImageStatus} ${
+                        isReadyStatusTransient ? 'is-transient' : ''
+                      }`}
                       aria-live="polite"
                     >
                       <p>{photoStatus}</p>
@@ -577,6 +669,61 @@ export function SweepstakeClient({
               onReveal={completeReveal}
               onError={(nextError) => setError(nextError.message)}
             />
+          </div>
+        </div>
+      ) : null}
+
+      {activePhotoPreview ? (
+        <div
+          className="photo-lightbox-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="photo-lightbox-title"
+          onClick={closePhotoPreview}
+        >
+          <div className="photo-lightbox" onClick={(event) => event.stopPropagation()}>
+            <div className="photo-lightbox-header">
+              <div>
+                <p className="section-kicker">Profile photo</p>
+                <h2 id="photo-lightbox-title">{activePhotoPreview.bundle.playerName}</h2>
+              </div>
+              <button type="button" className="photo-lightbox-close" onClick={closePhotoPreview}>
+                Close
+              </button>
+            </div>
+            <img
+              className="photo-lightbox-image"
+              src={activePhotoPreview.imageUrl}
+              alt={activePhotoPreview.imageLabel}
+            />
+            <div className="photo-lightbox-actions">
+              <label
+                className={`bundle-photo-button ${
+                  isImageBusy(activePhotoPreview.bundle.slotId) ? 'is-disabled' : ''
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,.heic,.heif,.heics,.heifs"
+                  disabled={isImageBusy(activePhotoPreview.bundle.slotId)}
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0]
+
+                    if (file) {
+                      void uploadParticipantPhoto(
+                        activePhotoPreview.bundle.slotId,
+                        file,
+                        activePhotoPreview.bundle.isRevealed,
+                      )
+                    }
+
+                    event.currentTarget.value = ''
+                  }}
+                />
+                <span>Re-upload photo</span>
+              </label>
+              <p className="photo-reupload-warning">Warning: this costs Sol 20p every time you do this.</p>
+            </div>
           </div>
         </div>
       ) : null}

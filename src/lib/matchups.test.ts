@@ -67,6 +67,7 @@ describe('matchup mapping', () => {
 
   test('maps fixtures to existing draw owners without mutating allocation data', () => {
     const draw = makeDraw()
+    const [france, spain] = TEAM_SEED_SCORES
     const before = structuredClone(draw)
     const result = buildMatchups(draw, [fixture({})], {
       'fixture-1': { home: '2.10', draw: '3.20', away: '3.60', source: 'Book' },
@@ -75,11 +76,13 @@ describe('matchup mapping', () => {
     expect(result.matchups[0].home).toMatchObject({
       ownerName: 'Sam',
       teamName: 'France',
+      teamRank: france.rank,
       isAssigned: true,
     })
     expect(result.matchups[0].away).toMatchObject({
       ownerName: 'Dan',
       teamName: 'Spain',
+      teamRank: spain.rank,
       isAssigned: true,
     })
     expect(result.matchups[0].odds?.home).toBe('2.10')

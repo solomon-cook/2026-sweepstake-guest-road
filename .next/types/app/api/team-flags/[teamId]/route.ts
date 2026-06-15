@@ -1,4 +1,4 @@
-// File: /Users/solomon/Documents/2026-sweepstake-guest-road/src/app/api/team-flags/[teamId]/route.ts
+// File: /Users/Solomon/Documents/2026-sweepstake-guest-road/src/app/api/team-flags/[teamId]/route.ts
 import * as entry from '../../../../../../src/app/api/team-flags/[teamId]/route.js'
 import type { NextRequest } from 'next/server.js'
 

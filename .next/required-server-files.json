@@ -99,7 +99,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "/Users/solomon/Documents/2026-sweepstake-guest-road",
+    "outputFileTracingRoot": "/Users/Solomon/Documents/2026-sweepstake-guest-road",
     "experimental": {
       "useSkewCookie": false,
       "cacheLife": {
@@ -158,7 +158,7 @@
       "middlewarePrefetch": "flexible",
       "optimisticClientCache": true,
       "manualClientBasePath": false,
-      "cpus": 7,
+      "cpus": 9,
       "memoryBasedWorkersCount": false,
       "imgOptConcurrency": null,
       "imgOptTimeoutInSeconds": 7,
@@ -288,11 +288,21 @@
     "htmlLimitedBots": "[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight",
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.ts",
+    "serverExternalPackages": [
+      "sharp"
+    ],
+    "outputFileTracingIncludes": {
+      "/api/participants/[slotId]/photo": [
+        "./node_modules/sharp/**/*",
+        "./node_modules/@img/sharp-linux-x64/**/*",
+        "./node_modules/@img/sharp-libvips-linux-x64/**/*"
+      ]
+    },
     "turbopack": {
-      "root": "/Users/solomon/Documents/2026-sweepstake-guest-road"
+      "root": "/Users/Solomon/Documents/2026-sweepstake-guest-road"
     }
   },
-  "appDir": "/Users/solomon/Documents/2026-sweepstake-guest-road",
+  "appDir": "/Users/Solomon/Documents/2026-sweepstake-guest-road",
   "relativeAppDir": "",
   "files": [
     ".next/routes-manifest.json",
