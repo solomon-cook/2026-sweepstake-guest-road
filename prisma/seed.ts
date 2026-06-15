@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 import { config as loadEnv } from 'dotenv'
-import { getDatabaseUrl } from '../src/lib/database-url'
+import { getMigrationDatabaseUrl } from '../src/lib/database-url'
 import { TEAM_SEED_SCORES } from '../src/lib/team-source'
 
 loadEnv({ path: '.env.development.local', override: true })
@@ -9,7 +9,7 @@ loadEnv({ path: '.env.local' })
 loadEnv({ path: '.env.preview' })
 loadEnv()
 
-const databaseUrl = getDatabaseUrl()
+const databaseUrl = getMigrationDatabaseUrl()
 
 if (!databaseUrl) {
   throw new Error(

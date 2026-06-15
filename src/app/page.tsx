@@ -47,7 +47,7 @@ export default async function Page() {
           title="The app cannot read the persisted draw yet."
           body={message}
           steps={[
-            'Check that PRISMA_DATABASE_URL or POSTGRES_URL points at the existing production database.',
+            'Check that POSTGRES_URL or DATABASE_URL points at the existing production database.',
             'Reduce DATABASE_POOL_MAX or wait for stale database connections to close.',
             'Reload the page.',
           ]}
@@ -77,7 +77,7 @@ export default async function Page() {
       title="The app cannot read the Prisma database yet."
       body={result.message}
       steps={[
-        'Check that PRISMA_DATABASE_URL or POSTGRES_URL points at the existing database.',
+        'Check that POSTGRES_URL or DATABASE_URL points at the existing database.',
         'Reduce DATABASE_POOL_MAX or wait for stale database connections to close.',
         'Reload the page.',
       ]}

@@ -1,6 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
-import { getDatabaseUrl } from './database-url'
+import { getRuntimeDatabaseUrl } from './database-url'
 
 declare global {
   var prismaClientSingleton: PrismaClient | undefined
@@ -17,11 +17,11 @@ function getPoolMax() {
 }
 
 function createPrismaClient() {
-  const databaseUrl = getDatabaseUrl()
+  const databaseUrl = getRuntimeDatabaseUrl()
 
   if (!databaseUrl) {
     throw new Error(
-      'No database URL is configured. Set DATABASE_URL, PRISMA_DATABASE_URL, or POSTGRES_URL.',
+      'No database URL is configured. Set POSTGRES_URL, DATABASE_URL, or PRISMA_DATABASE_URL.',
     )
   }
 
