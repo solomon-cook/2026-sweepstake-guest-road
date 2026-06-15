@@ -60,6 +60,10 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
     return 'Photo uploaded - waiting for reveal'
   }
 
+  if (bundle.sourcePhotoUrl && bundle.isRevealed) {
+    return 'Photo uploaded - ready to generate'
+  }
+
   return ''
 }
 
@@ -343,25 +347,23 @@ export function SweepstakeClient({
                         <p>{bundle.playerName}</p>
                         {bundle.isRevealed ? <span>{bundle.teams.length} teams</span> : null}
                       </div>
-                      {!bundle.sourcePhotoUrl ? (
-                        <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            disabled={isImageBusy(bundle.slotId)}
-                            onChange={(event) => {
-                              const file = event.currentTarget.files?.[0]
+                      <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          disabled={isImageBusy(bundle.slotId)}
+                          onChange={(event) => {
+                            const file = event.currentTarget.files?.[0]
 
-                              if (file) {
-                                void uploadParticipantPhoto(bundle.slotId, file, bundle.isRevealed)
-                              }
+                            if (file) {
+                              void uploadParticipantPhoto(bundle.slotId, file, bundle.isRevealed)
+                            }
 
-                              event.currentTarget.value = ''
-                            }}
-                          />
-                          <span>Add photo</span>
-                        </label>
-                      ) : null}
+                            event.currentTarget.value = ''
+                          }}
+                        />
+                        <span>{bundle.sourcePhotoUrl ? 'Change photo' : 'Add photo'}</span>
+                      </label>
                     </div>
                   </header>
 
@@ -379,6 +381,19 @@ export function SweepstakeClient({
                           disabled={isImageBusy(bundle.slotId)}
                         >
                           Retry
+                        </button>
+                      ) : null}
+                      {bundle.sourcePhotoUrl &&
+                      bundle.isRevealed &&
+                      bundle.fanImageStatus === 'idle' &&
+                      !imageOperation ? (
+                        <button
+                          type="button"
+                          className="text-button"
+                          onClick={() => void requestFanImages(bundle.slotId, true)}
+                          disabled={isImageBusy(bundle.slotId)}
+                        >
+                          Generate
                         </button>
                       ) : null}
                     </div>
