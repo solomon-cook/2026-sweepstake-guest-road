@@ -1,5 +1,4 @@
 import sharp from 'sharp'
-import convertHeic from 'heic-convert'
 import {
   loadParticipantImageSlot,
   markParticipantFanImagesFailed,
@@ -53,54 +52,38 @@ export function isHeicParticipantPhoto(input: { mimeType: string; fileName?: str
   )
 }
 
-async function toSharpInputBytes(
-  fileBytes: Uint8Array<ArrayBufferLike>,
-  input: { mimeType?: string; fileName?: string } = {},
-) {
-  if (!isHeicParticipantPhoto({ mimeType: input.mimeType ?? '', fileName: input.fileName })) {
-    return fileBytes
-  }
-
-  try {
-    const sourceBuffer = Buffer.from(fileBytes)
-    const converted = await convertHeic({
-      buffer: sourceBuffer.buffer.slice(
-        sourceBuffer.byteOffset,
-        sourceBuffer.byteOffset + sourceBuffer.byteLength,
-      ),
-      format: 'JPEG',
-      quality: 0.9,
-    })
-
-    return new Uint8Array(converted)
-  } catch (error) {
-    console.error('Failed to convert HEIC participant photo.', {
-      mimeType: input.mimeType ?? null,
-      fileName: input.fileName ?? null,
-      message: error instanceof Error ? error.message : 'Unknown HEIC conversion error.',
-    })
-    throw new Error('Failed to convert HEIC/HEIF photo. Try exporting it as JPEG or PNG.', { cause: error })
-  }
-}
-
 export async function normalizeParticipantPhoto(
   fileBytes: Uint8Array<ArrayBufferLike>,
   input: { mimeType?: string; fileName?: string } = {},
 ) {
-  const sharpInput = await toSharpInputBytes(fileBytes, input)
-  const normalized = await sharp(sharpInput)
-    .rotate()
-    .resize({
-      width: 1024,
-      height: 1024,
-      fit: 'inside',
-      withoutEnlargement: true,
-    })
-    .jpeg({
-      quality: 84,
-      mozjpeg: true,
-    })
-    .toBuffer()
+  let normalized: Buffer
+
+  try {
+    normalized = await sharp(fileBytes)
+      .rotate()
+      .resize({
+        width: 1024,
+        height: 1024,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .jpeg({
+        quality: 84,
+        mozjpeg: true,
+      })
+      .toBuffer()
+  } catch (error) {
+    if (isHeicParticipantPhoto({ mimeType: input.mimeType ?? '', fileName: input.fileName })) {
+      console.error('Failed to normalize HEIC participant photo.', {
+        mimeType: input.mimeType ?? null,
+        fileName: input.fileName ?? null,
+        message: error instanceof Error ? error.message : 'Unknown HEIC normalization error.',
+      })
+      throw new Error('Failed to convert HEIC/HEIF photo. Try exporting it as JPEG or PNG.', { cause: error })
+    }
+
+    throw error
+  }
 
   if (normalized.byteLength > MAX_PARTICIPANT_PHOTO_BYTES) {
     throw new Error('Participant photos must be 2MB or smaller after processing.')

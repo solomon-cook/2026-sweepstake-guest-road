@@ -8,6 +8,9 @@ import {
 import { normalizeParticipantPhoto } from '@/lib/fan-image-generator'
 import { toParticipantImageResponse } from '@/lib/participant-image-view'
 
+export const runtime = 'nodejs'
+export const maxDuration = 30
+
 function isAllowedParticipantImage(file: File) {
   const normalizedName = file.name.toLowerCase()
   const hasAllowedExtension = [...ALLOWED_PARTICIPANT_IMAGE_EXTENSIONS].some((extension) =>

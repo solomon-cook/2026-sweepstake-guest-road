@@ -19,6 +19,7 @@ const ALLOWED_UPLOAD_TYPES = new Set([
   'image/heif-sequence',
 ])
 const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.heics', '.heifs']
+const MAX_UPLOAD_FILE_BYTES = 4 * 1024 * 1024
 
 type ParticipantImageApiResponse =
   | {
@@ -69,6 +70,12 @@ async function readParticipantImageResponse(response: Response) {
 
   if (!text) {
     return { error: `Empty response from photo API (${response.status}).` } satisfies ParticipantImageApiResponse
+  }
+
+  if (text.trimStart().startsWith('<!DOCTYPE html') || response.headers.get('content-type')?.includes('text/html')) {
+    return {
+      error: `Photo API returned a server error (${response.status}). Check the server logs for the detailed error.`,
+    } satisfies ParticipantImageApiResponse
   }
 
   try {
@@ -289,6 +296,18 @@ export function SweepstakeClient({
 
     if (!isAllowedUploadFile(file)) {
       const message = 'Choose a JPEG, PNG, WebP, HEIC, or HEIF image.'
+      setDraw((current) =>
+        mergeBundleImageState(current, slotId, {
+          fanImageStatus: 'failed',
+          fanImageError: message,
+        }),
+      )
+      setError(message)
+      return
+    }
+
+    if (file.size > MAX_UPLOAD_FILE_BYTES) {
+      const message = 'Choose a photo smaller than 4MB before uploading.'
       setDraw((current) =>
         mergeBundleImageState(current, slotId, {
           fanImageStatus: 'failed',
