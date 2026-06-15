@@ -1909,21 +1909,21 @@ code {
 
   .matchup-percentage {
     font-size: clamp(1.55rem, 9vw, 2.5rem);
-    position: relative;
+    position: absolute;
     writing-mode: horizontal-tb;
   }
 
   .matchup-percentage.is-home {
     bottom: auto;
-    grid-column: 1;
-    justify-self: start;
     left: auto;
+    right: 12px;
+    top: 12px;
     transform: none;
   }
 
   .matchup-percentage.is-away {
-    grid-column: 2;
-    justify-self: end;
+    bottom: 12px;
+    left: 12px;
     right: auto;
     top: auto;
   }
