@@ -65,7 +65,12 @@ export async function POST(
     return NextResponse.json(toParticipantImageResponse(refreshed!))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to upload participant photo.'
-    const status = message.includes('2MB') || message.includes('JPEG, PNG, WebP, HEIC, or HEIF') ? 400 : 500
+    const status =
+      message.includes('2MB') ||
+      message.includes('JPEG, PNG, WebP, HEIC, or HEIF') ||
+      message.includes('HEIC/HEIF')
+        ? 400
+        : 500
     return NextResponse.json({ error: message }, { status })
   }
 }

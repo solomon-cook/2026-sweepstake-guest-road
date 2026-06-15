@@ -1,7 +1,7 @@
 import type { ParticipantImageSlot } from './participant-image-repository'
 
 function buildParticipantImageUrl(slotId: string, kind: 'source' | 'neutral' | 'ecstatic' | 'devastated') {
-  return `/api/participants/${slotId}/images/${kind}`
+  return `/api/participants/${encodeURIComponent(slotId)}/images/${kind}`
 }
 
 export function toParticipantImageResponse(slot: ParticipantImageSlot) {

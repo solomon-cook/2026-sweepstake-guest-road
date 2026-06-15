@@ -7,6 +7,8 @@ export const ALLOWED_PARTICIPANT_IMAGE_MIME_TYPES = new Set([
   'image/webp',
   'image/heic',
   'image/heif',
+  'image/heic-sequence',
+  'image/heif-sequence',
 ])
 export const ALLOWED_PARTICIPANT_IMAGE_EXTENSIONS = new Set([
   '.jpg',
@@ -15,6 +17,8 @@ export const ALLOWED_PARTICIPANT_IMAGE_EXTENSIONS = new Set([
   '.webp',
   '.heic',
   '.heif',
+  '.heics',
+  '.heifs',
 ])
 export const MAX_PARTICIPANT_PHOTO_BYTES = 2 * 1024 * 1024
 

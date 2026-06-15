@@ -9,8 +9,32 @@ import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
 
-const ALLOWED_UPLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'])
-const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']
+const ALLOWED_UPLOAD_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+  'image/heic-sequence',
+  'image/heif-sequence',
+])
+const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.heics', '.heifs']
+
+type ParticipantImageApiResponse =
+  | {
+      slotId: string
+      sourcePhotoUrl?: string | null
+      fanImageStatus: PersistedBundle['fanImageStatus']
+      fanImageError?: string | null
+      fanImageTeamName?: string | null
+      fanImageUrls?: PersistedBundle['fanImageUrls']
+      error?: string | null
+    }
+  | { error: string }
+
+function participantApiPath(slotId: string, path: string) {
+  return `/api/participants/${encodeURIComponent(slotId)}${path}`
+}
 
 function hasPlayerName(bundle: PersistedBundle) {
   return bundle.playerName.trim().length > 0
@@ -38,6 +62,20 @@ function isAllowedUploadFile(file: File) {
     ALLOWED_UPLOAD_TYPES.has(file.type) ||
     ALLOWED_UPLOAD_EXTENSIONS.some((extension) => normalizedName.endsWith(extension))
   )
+}
+
+async function readParticipantImageResponse(response: Response) {
+  const text = await response.text()
+
+  if (!text) {
+    return { error: `Empty response from photo API (${response.status}).` } satisfies ParticipantImageApiResponse
+  }
+
+  try {
+    return JSON.parse(text) as ParticipantImageApiResponse
+  } catch {
+    return { error: text } satisfies ParticipantImageApiResponse
+  }
 }
 
 function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperation) {
@@ -209,20 +247,10 @@ export function SweepstakeClient({
     setError('')
 
     try {
-      const response = await fetch(`/api/participants/${slotId}/fan-images${force ? '?force=1' : ''}`, {
+      const response = await fetch(participantApiPath(slotId, `/fan-images${force ? '?force=1' : ''}`), {
         method: 'POST',
       })
-      const nextState = (await response.json()) as
-        | {
-            slotId: string
-            sourcePhotoUrl?: string | null
-            fanImageStatus: PersistedBundle['fanImageStatus']
-            fanImageError?: string | null
-            fanImageTeamName?: string | null
-            fanImageUrls?: PersistedBundle['fanImageUrls']
-            error?: string | null
-          }
-        | { error: string }
+      const nextState = await readParticipantImageResponse(response)
 
       if (!response.ok || 'error' in nextState) {
         throw new Error(
@@ -277,21 +305,11 @@ export function SweepstakeClient({
     try {
       const formData = new FormData()
       formData.set('photo', file)
-      const response = await fetch(`/api/participants/${slotId}/photo`, {
+      const response = await fetch(participantApiPath(slotId, '/photo'), {
         method: 'POST',
         body: formData,
       })
-      const nextState = (await response.json()) as
-        | {
-            slotId: string
-            sourcePhotoUrl?: string | null
-            fanImageStatus: PersistedBundle['fanImageStatus']
-            fanImageError?: string | null
-            fanImageTeamName?: string | null
-            fanImageUrls?: PersistedBundle['fanImageUrls']
-            error?: string | null
-          }
-        | { error: string }
+      const nextState = await readParticipantImageResponse(response)
 
       if (!response.ok || 'error' in nextState) {
         throw new Error(
@@ -387,7 +405,7 @@ export function SweepstakeClient({
                       <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
                         <input
                           type="file"
-                          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+                          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,.heic,.heif,.heics,.heifs"
                           disabled={isImageBusy(bundle.slotId)}
                           onChange={(event) => {
                             const file = event.currentTarget.files?.[0]
@@ -399,7 +417,7 @@ export function SweepstakeClient({
                             event.currentTarget.value = ''
                           }}
                         />
-                        <span>{bundle.sourcePhotoUrl ? 'Change photo' : 'Add photo'}</span>
+                        <span>{bundle.sourcePhotoUrl ? 'Change profile photo' : 'Add photo'}</span>
                       </label>
                     </div>
                   </header>

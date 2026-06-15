@@ -12,7 +12,7 @@ import {
 const OPENAI_IMAGE_ENDPOINT = 'https://api.openai.com/v1/images/edits'
 const OPENAI_IMAGE_MODEL = 'gpt-image-1'
 const GENERATED_IMAGE_MIME_TYPE = 'image/jpeg'
-const HEIC_MIME_TYPES = new Set(['image/heic', 'image/heif'])
+const HEIC_MIME_TYPES = new Set(['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence'])
 
 type Expression = 'ecstatic' | 'neutral' | 'devastated'
 
@@ -47,7 +47,9 @@ export function isHeicParticipantPhoto(input: { mimeType: string; fileName?: str
   return (
     HEIC_MIME_TYPES.has(input.mimeType) ||
     normalizedFileName.endsWith('.heic') ||
-    normalizedFileName.endsWith('.heif')
+    normalizedFileName.endsWith('.heif') ||
+    normalizedFileName.endsWith('.heics') ||
+    normalizedFileName.endsWith('.heifs')
   )
 }
 
@@ -59,17 +61,26 @@ async function toSharpInputBytes(
     return fileBytes
   }
 
-  const sourceBuffer = Buffer.from(fileBytes)
-  const converted = await convertHeic({
-    buffer: sourceBuffer.buffer.slice(
-      sourceBuffer.byteOffset,
-      sourceBuffer.byteOffset + sourceBuffer.byteLength,
-    ),
-    format: 'JPEG',
-    quality: 0.9,
-  })
+  try {
+    const sourceBuffer = Buffer.from(fileBytes)
+    const converted = await convertHeic({
+      buffer: sourceBuffer.buffer.slice(
+        sourceBuffer.byteOffset,
+        sourceBuffer.byteOffset + sourceBuffer.byteLength,
+      ),
+      format: 'JPEG',
+      quality: 0.9,
+    })
 
-  return new Uint8Array(converted)
+    return new Uint8Array(converted)
+  } catch (error) {
+    console.error('Failed to convert HEIC participant photo.', {
+      mimeType: input.mimeType ?? null,
+      fileName: input.fileName ?? null,
+      message: error instanceof Error ? error.message : 'Unknown HEIC conversion error.',
+    })
+    throw new Error('Failed to convert HEIC/HEIF photo. Try exporting it as JPEG or PNG.', { cause: error })
+  }
 }
 
 export async function normalizeParticipantPhoto(

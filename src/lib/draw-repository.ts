@@ -30,7 +30,7 @@ function buildFlagImageUrl(teamId?: string) {
 }
 
 function buildParticipantImageUrl(slotId: string, kind: 'source' | 'neutral' | 'ecstatic' | 'devastated') {
-  return `/api/participants/${slotId}/images/${kind}`
+  return `/api/participants/${encodeURIComponent(slotId)}/images/${kind}`
 }
 
 function normalizeFanImageStatus(value: string | null | undefined): FanImageStatus {

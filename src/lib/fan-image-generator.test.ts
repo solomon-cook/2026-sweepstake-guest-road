@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildFanImagePrompt } from './fan-image-generator'
+import { buildFanImagePrompt, isHeicParticipantPhoto } from './fan-image-generator'
 import { readParticipantImageBytes, selectTopRatedTeam } from './participant-image-repository'
 
 describe('participant fan image helpers', () => {
@@ -85,5 +85,12 @@ describe('participant fan image helpers', () => {
     expect(prompt).toContain('Alex')
     expect(prompt).toContain('France national football shirt')
     expect(prompt).toContain('devastated expression')
+  })
+
+  test('detects HEIC uploads by mime type or extension', () => {
+    expect(isHeicParticipantPhoto({ mimeType: 'image/heic' })).toBe(true)
+    expect(isHeicParticipantPhoto({ mimeType: 'image/heif' })).toBe(true)
+    expect(isHeicParticipantPhoto({ mimeType: '', fileName: 'portrait.HEIC' })).toBe(true)
+    expect(isHeicParticipantPhoto({ mimeType: 'image/jpeg', fileName: 'portrait.jpg' })).toBe(false)
   })
 })
