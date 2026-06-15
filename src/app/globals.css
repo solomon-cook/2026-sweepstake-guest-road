@@ -1858,7 +1858,7 @@ code {
     gap: 10px;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     min-height: 0;
-    padding: 12px;
+    padding: 12px 12px 62px;
   }
 
   .versus-diagonal::before {
@@ -1885,9 +1885,10 @@ code {
   }
 
   .matchup-owner.is-away {
-    bottom: auto;
-    grid-column: 2;
-    right: auto;
+    bottom: 12px;
+    max-width: min(50%, 170px);
+    position: absolute;
+    right: 12px;
   }
 
   .matchup-owner p {
