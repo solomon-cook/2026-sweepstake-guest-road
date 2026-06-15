@@ -1899,12 +1899,12 @@ code {
   }
 
   .matchup-photo {
-    height: 46px;
-    width: 46px;
+    height: 62px;
+    width: 62px;
   }
 
   .matchup-photo span {
-    font-size: 0.8rem;
+    font-size: 1rem;
   }
 
   .matchup-percentage {
@@ -1951,18 +1951,24 @@ code {
   }
 
   .matchup-team h2 {
-    font-size: clamp(1.35rem, 8.5vw, 2.15rem);
-    line-height: 0.95;
-    margin-bottom: 6px;
+    font-size: clamp(0.92rem, 4.6vw, 1.2rem);
+    line-height: 1;
+    margin-bottom: 4px;
   }
 
   .matchup-flag-frame {
-    height: clamp(74px, 28vw, 104px);
-    padding: 8px;
-    width: clamp(98px, 38vw, 132px);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    height: clamp(54px, 20vw, 74px);
+    padding: 0;
+    width: clamp(74px, 27vw, 96px);
   }
 
   .matchup-flag-frame img {
+    border: 0;
+    border-radius: 0;
     max-height: 100%;
     max-width: 100%;
   }
