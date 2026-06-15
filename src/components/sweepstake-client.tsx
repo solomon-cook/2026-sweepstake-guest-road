@@ -696,34 +696,6 @@ export function SweepstakeClient({
               src={activePhotoPreview.imageUrl}
               alt={activePhotoPreview.imageLabel}
             />
-            <div className="photo-lightbox-actions">
-              <label
-                className={`bundle-photo-button ${
-                  isImageBusy(activePhotoPreview.bundle.slotId) ? 'is-disabled' : ''
-                }`}
-              >
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/heic-sequence,image/heif-sequence,.heic,.heif,.heics,.heifs"
-                  disabled={isImageBusy(activePhotoPreview.bundle.slotId)}
-                  onChange={(event) => {
-                    const file = event.currentTarget.files?.[0]
-
-                    if (file) {
-                      void uploadParticipantPhoto(
-                        activePhotoPreview.bundle.slotId,
-                        file,
-                        activePhotoPreview.bundle.isRevealed,
-                      )
-                    }
-
-                    event.currentTarget.value = ''
-                  }}
-                />
-                <span>Re-upload photo</span>
-              </label>
-              <p className="photo-reupload-warning">Warning: this costs Sol 20p every time you do this.</p>
-            </div>
           </div>
         </div>
       ) : null}
