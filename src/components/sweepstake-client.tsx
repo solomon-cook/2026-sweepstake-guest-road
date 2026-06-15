@@ -10,8 +10,11 @@ import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
 type ParticipantPhotoPreview = {
   bundle: PersistedBundle
+}
+type ParticipantPhotoFrame = {
   imageUrl: string
   imageLabel: string
+  expressionLabel: string
 }
 
 const ALLOWED_UPLOAD_TYPES = new Set([
@@ -26,6 +29,7 @@ const ALLOWED_UPLOAD_TYPES = new Set([
 const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.heics', '.heifs']
 const MAX_UPLOAD_FILE_BYTES = 4 * 1024 * 1024
 const READY_STATUS_DISPLAY_MS = 3600
+const PHOTO_CYCLE_INTERVAL_MS = 1900
 
 type ParticipantImageApiResponse =
   | {
@@ -131,6 +135,44 @@ function getBundlePreviewImage(bundle: PersistedBundle) {
   return null
 }
 
+function getBundlePhotoFrames(bundle: PersistedBundle): ParticipantPhotoFrame[] {
+  const frames: ParticipantPhotoFrame[] = []
+
+  if (bundle.fanImageUrls?.neutral) {
+    frames.push({
+      imageUrl: bundle.fanImageUrls.neutral,
+      imageLabel: `Neutral AI profile photo for ${bundle.playerName}`,
+      expressionLabel: 'Calm',
+    })
+  }
+
+  if (bundle.fanImageUrls?.ecstatic) {
+    frames.push({
+      imageUrl: bundle.fanImageUrls.ecstatic,
+      imageLabel: `Ecstatic AI profile photo for ${bundle.playerName}`,
+      expressionLabel: 'Ecstatic',
+    })
+  }
+
+  if (bundle.fanImageUrls?.devastated) {
+    frames.push({
+      imageUrl: bundle.fanImageUrls.devastated,
+      imageLabel: `Devastated AI profile photo for ${bundle.playerName}`,
+      expressionLabel: 'Devastated',
+    })
+  }
+
+  if (!frames.length && bundle.sourcePhotoUrl) {
+    frames.push({
+      imageUrl: bundle.sourcePhotoUrl,
+      imageLabel: `Uploaded profile photo for ${bundle.playerName}`,
+      expressionLabel: 'Original',
+    })
+  }
+
+  return frames
+}
+
 export function SweepstakeClient({
   initialDraw,
 }: {
@@ -144,6 +186,7 @@ export function SweepstakeClient({
   const [showJoinForm, setShowJoinForm] = useState(false)
   const [activeBundle, setActiveBundle] = useState<PersistedBundle | null>(null)
   const [activePhotoPreview, setActivePhotoPreview] = useState<ParticipantPhotoPreview | null>(null)
+  const [activePhotoFrameIndex, setActivePhotoFrameIndex] = useState(0)
   const [pendingDraw, setPendingDraw] = useState<PersistedDraw | null>(null)
   const [activeImageOperations, setActiveImageOperations] = useState<Record<string, ImageOperation>>({})
   const [recentlyReadyPhotos, setRecentlyReadyPhotos] = useState<Record<string, boolean>>({})
@@ -165,6 +208,24 @@ export function SweepstakeClient({
     }
   }, [])
 
+  const activePhotoFrames = activePhotoPreview ? getBundlePhotoFrames(activePhotoPreview.bundle) : []
+  const currentPhotoFrame =
+    activePhotoFrames.length > 0
+      ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
+      : null
+
+  useEffect(() => {
+    if (!activePhotoPreview || activePhotoFrames.length <= 1) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setActivePhotoFrameIndex((current) => (current + 1) % activePhotoFrames.length)
+    }, PHOTO_CYCLE_INTERVAL_MS)
+
+    return () => window.clearInterval(timer)
+  }, [activePhotoFrames.length, activePhotoPreview])
+
   function closeRevealFlow() {
     setActiveBundle(null)
     setPendingDraw(null)
@@ -172,6 +233,7 @@ export function SweepstakeClient({
 
   function closePhotoPreview() {
     setActivePhotoPreview(null)
+    setActivePhotoFrameIndex(0)
   }
 
   function startReveal(bundle: PersistedBundle) {
@@ -320,10 +382,6 @@ export function SweepstakeClient({
         current?.bundle.slotId === slotId
           ? {
               bundle: { ...current.bundle, ...imageState },
-              imageUrl: imageState.fanImageUrls?.neutral ?? imageState.sourcePhotoUrl ?? current.imageUrl,
-              imageLabel: imageState.fanImageUrls?.neutral
-                ? `Neutral AI profile photo for ${current.bundle.playerName}`
-                : `Uploaded profile photo for ${current.bundle.playerName}`,
             }
           : current,
       )
@@ -406,10 +464,6 @@ export function SweepstakeClient({
         current?.bundle.slotId === slotId
           ? {
               bundle: { ...current.bundle, ...imageState },
-              imageUrl: imageState.fanImageUrls?.neutral ?? imageState.sourcePhotoUrl ?? current.imageUrl,
-              imageLabel: imageState.fanImageUrls?.neutral
-                ? `Neutral AI profile photo for ${current.bundle.playerName}`
-                : `Uploaded profile photo for ${current.bundle.playerName}`,
             }
           : current,
       )
@@ -499,11 +553,12 @@ export function SweepstakeClient({
                           className="bundle-photo-preview"
                           aria-label="View AI profile photo"
                           onClick={() =>
-                            setActivePhotoPreview({
-                              bundle,
-                              imageUrl: previewImage.imageUrl,
-                              imageLabel: previewImage.imageLabel,
-                            })
+                            {
+                              setActivePhotoFrameIndex(0)
+                              setActivePhotoPreview({
+                                bundle,
+                              })
+                            }
                           }
                         >
                           <img src={previewImage.imageUrl} alt="" />
@@ -691,11 +746,27 @@ export function SweepstakeClient({
                 Close
               </button>
             </div>
-            <img
-              className="photo-lightbox-image"
-              src={activePhotoPreview.imageUrl}
-              alt={activePhotoPreview.imageLabel}
-            />
+            {currentPhotoFrame ? (
+              <>
+                <div className="photo-lightbox-stage">
+                  <div key={currentPhotoFrame.imageUrl} className="photo-lightbox-frame">
+                    <img
+                      className="photo-lightbox-image"
+                      src={currentPhotoFrame.imageUrl}
+                      alt={currentPhotoFrame.imageLabel}
+                    />
+                  </div>
+                </div>
+                {activePhotoFrames.length > 1 ? (
+                  <div className="photo-lightbox-carousel-meta" aria-live="polite">
+                    <p>
+                      <span className="photo-expression-chip">{currentPhotoFrame.expressionLabel}</span>
+                      {activePhotoFrameIndex % activePhotoFrames.length + 1} of {activePhotoFrames.length}
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}

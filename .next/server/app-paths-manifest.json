@@ -1,4 +1,4 @@
 {
-  "/matchups/page": "app/matchups/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/matchups/page": "app/matchups/page.js"
 }
