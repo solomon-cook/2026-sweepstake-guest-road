@@ -1794,6 +1794,7 @@ code {
 
   .matchup-card h2 {
     font-size: clamp(1.6rem, 8vw, 2.4rem);
+    overflow-wrap: anywhere;
   }
 
   .panel-actions {
@@ -1807,42 +1808,48 @@ code {
       linear-gradient(180deg, rgba(255, 255, 255, 0.62), transparent 36%),
       linear-gradient(145deg, rgba(239, 239, 236, 0.98), rgba(247, 247, 244, 0.92));
     border-color: rgba(79, 82, 81, 0.42);
-    border-radius: 24px;
-    min-height: min(660px, calc(100svh - 192px));
+    border-radius: 18px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 0;
+    padding: 12px;
   }
 
   .versus-diagonal::before {
-    height: 2px;
-    mask-image: linear-gradient(90deg, #000 0 36%, transparent 36% 64%, #000 64% 100%);
-    -webkit-mask-image: linear-gradient(90deg, #000 0 36%, transparent 36% 64%, #000 64% 100%);
-    width: 118%;
+    opacity: 0.18;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    width: 96%;
   }
 
   .versus-diagonal::after {
-    height: 2px;
-    mask-image: linear-gradient(90deg, #000 0 32%, transparent 32% 68%, #000 68% 100%);
-    -webkit-mask-image: linear-gradient(90deg, #000 0 32%, transparent 32% 68%, #000 68% 100%);
-    width: 74%;
+    display: none;
   }
 
   .matchup-owner {
+    min-width: 0;
+    position: relative;
     gap: 7px;
-    max-width: 44%;
+    max-width: none;
   }
 
   .matchup-owner.is-home {
-    left: 14px;
-    top: 14px;
+    grid-column: 1;
+    left: auto;
+    top: auto;
   }
 
   .matchup-owner.is-away {
-    bottom: 14px;
-    right: 14px;
+    bottom: auto;
+    grid-column: 2;
+    right: auto;
   }
 
   .matchup-owner p {
     font-size: 0.82rem;
     line-height: 1.05;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
   }
 
   .matchup-photo {
@@ -1855,72 +1862,79 @@ code {
   }
 
   .matchup-percentage {
-    font-size: clamp(1.75rem, 12vw, 3.3rem);
-    writing-mode: vertical-rl;
+    font-size: clamp(1.55rem, 9vw, 2.5rem);
+    position: relative;
+    writing-mode: horizontal-tb;
   }
 
   .matchup-percentage.is-home {
-    bottom: 16px;
-    left: 14px;
-    transform: rotate(180deg);
+    bottom: auto;
+    grid-column: 1;
+    justify-self: start;
+    left: auto;
+    transform: none;
   }
 
   .matchup-percentage.is-away {
-    right: 14px;
-    top: 16px;
+    grid-column: 2;
+    justify-self: end;
+    right: auto;
+    top: auto;
   }
 
   .versus-teams {
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    grid-column: 1 / -1;
     grid-template-columns: minmax(0, 1fr);
-    inset: 20% 54px 18%;
+    inset: auto;
+    position: relative;
     transform: none;
   }
 
   .matchup-team.is-home {
     align-self: start;
     justify-self: start;
-    max-width: 170px;
+    max-width: min(72%, 190px);
   }
 
   .matchup-team.is-away {
     align-self: end;
     justify-self: end;
-    max-width: 170px;
+    max-width: min(72%, 190px);
   }
 
   .matchup-team h2 {
-    font-size: clamp(1.7rem, 12vw, 2.75rem);
-    line-height: 0.92;
-    margin-bottom: 8px;
+    font-size: clamp(1.35rem, 8.5vw, 2.15rem);
+    line-height: 0.95;
+    margin-bottom: 6px;
   }
 
   .matchup-flag-frame {
-    height: 104px;
-    padding: 10px;
-    width: 138px;
+    height: clamp(74px, 28vw, 104px);
+    padding: 8px;
+    width: clamp(98px, 38vw, 132px);
   }
 
   .matchup-flag-frame img {
-    max-height: 82px;
-    max-width: 116px;
+    max-height: 100%;
+    max-width: 100%;
   }
 
   .matchup-team > strong {
-    font-size: clamp(1.65rem, 10vw, 2.4rem);
-    margin-top: 8px;
+    font-size: clamp(1.45rem, 8vw, 2.15rem);
+    margin-top: 7px;
   }
 
   .matchup-team > span {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
   }
 
   .versus-mark {
-    font-size: clamp(2rem, 12vw, 3rem);
+    font-size: clamp(1.55rem, 8vw, 2.25rem);
     grid-row: 2;
     justify-self: center;
-    margin: -10px 0;
+    margin: -6px 0;
     z-index: 3;
   }
 
