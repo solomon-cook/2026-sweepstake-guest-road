@@ -1,7 +1,21 @@
 import { getPrismaClient } from './prisma'
 import type { FanImageKind, FanImageStatus, TeamScore } from './types'
 
-export const ALLOWED_PARTICIPANT_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+export const ALLOWED_PARTICIPANT_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+])
+export const ALLOWED_PARTICIPANT_IMAGE_EXTENSIONS = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.heic',
+  '.heif',
+])
 export const MAX_PARTICIPANT_PHOTO_BYTES = 2 * 1024 * 1024
 
 export type ParticipantImageSlot = {

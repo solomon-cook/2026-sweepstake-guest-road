@@ -1,4 +1,5 @@
 import sharp from 'sharp'
+import convertHeic from 'heic-convert'
 import {
   loadParticipantImageSlot,
   markParticipantFanImagesFailed,
@@ -11,6 +12,7 @@ import {
 const OPENAI_IMAGE_ENDPOINT = 'https://api.openai.com/v1/images/edits'
 const OPENAI_IMAGE_MODEL = 'gpt-image-1'
 const GENERATED_IMAGE_MIME_TYPE = 'image/jpeg'
+const HEIC_MIME_TYPES = new Set(['image/heic', 'image/heif'])
 
 type Expression = 'ecstatic' | 'neutral' | 'devastated'
 
@@ -39,8 +41,43 @@ export function buildFanImagePrompt(input: {
   ].join(' ')
 }
 
-export async function normalizeParticipantPhoto(fileBytes: Uint8Array<ArrayBufferLike>) {
-  const normalized = await sharp(fileBytes)
+export function isHeicParticipantPhoto(input: { mimeType: string; fileName?: string }) {
+  const normalizedFileName = input.fileName?.toLowerCase() ?? ''
+
+  return (
+    HEIC_MIME_TYPES.has(input.mimeType) ||
+    normalizedFileName.endsWith('.heic') ||
+    normalizedFileName.endsWith('.heif')
+  )
+}
+
+async function toSharpInputBytes(
+  fileBytes: Uint8Array<ArrayBufferLike>,
+  input: { mimeType?: string; fileName?: string } = {},
+) {
+  if (!isHeicParticipantPhoto({ mimeType: input.mimeType ?? '', fileName: input.fileName })) {
+    return fileBytes
+  }
+
+  const sourceBuffer = Buffer.from(fileBytes)
+  const converted = await convertHeic({
+    buffer: sourceBuffer.buffer.slice(
+      sourceBuffer.byteOffset,
+      sourceBuffer.byteOffset + sourceBuffer.byteLength,
+    ),
+    format: 'JPEG',
+    quality: 0.9,
+  })
+
+  return new Uint8Array(converted)
+}
+
+export async function normalizeParticipantPhoto(
+  fileBytes: Uint8Array<ArrayBufferLike>,
+  input: { mimeType?: string; fileName?: string } = {},
+) {
+  const sharpInput = await toSharpInputBytes(fileBytes, input)
+  const normalized = await sharp(sharpInput)
     .rotate()
     .resize({
       width: 1024,

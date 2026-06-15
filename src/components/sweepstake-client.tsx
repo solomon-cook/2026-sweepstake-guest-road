@@ -9,6 +9,9 @@ import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
 
+const ALLOWED_UPLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'])
+const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']
+
 function hasPlayerName(bundle: PersistedBundle) {
   return bundle.playerName.trim().length > 0
 }
@@ -29,6 +32,14 @@ function mergeBundleImageState(draw: PersistedDraw, slotId: string, imageState: 
   }
 }
 
+function isAllowedUploadFile(file: File) {
+  const normalizedName = file.name.toLowerCase()
+  return (
+    ALLOWED_UPLOAD_TYPES.has(file.type) ||
+    ALLOWED_UPLOAD_EXTENSIONS.some((extension) => normalizedName.endsWith(extension))
+  )
+}
+
 function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperation) {
   if (imageOperation === 'uploading-and-generating') {
     return 'Uploading photo, then sending to OpenAI...'
@@ -47,9 +58,8 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
   }
 
   if (bundle.fanImageStatus === 'failed') {
-    return bundle.fanImageError
-      ? `OpenAI generation failed: ${bundle.fanImageError}`
-      : 'OpenAI generation failed'
+    const failurePrefix = bundle.sourcePhotoUrl ? 'OpenAI generation failed' : 'Photo upload failed'
+    return bundle.fanImageError ? `${failurePrefix}: ${bundle.fanImageError}` : failurePrefix
   }
 
   if (bundle.fanImageStatus === 'ready') {
@@ -249,6 +259,18 @@ export function SweepstakeClient({
   async function uploadParticipantPhoto(slotId: string, file: File, shouldGenerateImmediately: boolean) {
     let shouldRequestGeneration = false
 
+    if (!isAllowedUploadFile(file)) {
+      const message = 'Choose a JPEG, PNG, WebP, HEIC, or HEIF image.'
+      setDraw((current) =>
+        mergeBundleImageState(current, slotId, {
+          fanImageStatus: 'failed',
+          fanImageError: message,
+        }),
+      )
+      setError(message)
+      return
+    }
+
     setImageOperation(slotId, 'uploading')
     setError('')
 
@@ -291,7 +313,14 @@ export function SweepstakeClient({
 
       shouldRequestGeneration = shouldGenerateImmediately && Boolean(imageState.sourcePhotoUrl)
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to upload participant photo.')
+      const message = nextError instanceof Error ? nextError.message : 'Failed to upload participant photo.'
+      setDraw((current) =>
+        mergeBundleImageState(current, slotId, {
+          fanImageStatus: 'failed',
+          fanImageError: message,
+        }),
+      )
+      setError(message)
     } finally {
       setImageOperation(slotId, null)
     }
@@ -358,7 +387,7 @@ export function SweepstakeClient({
                       <label className={`bundle-photo-button ${isImageBusy(bundle.slotId) ? 'is-disabled' : ''}`}>
                         <input
                           type="file"
-                          accept="image/jpeg,image/png,image/webp"
+                          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
                           disabled={isImageBusy(bundle.slotId)}
                           onChange={(event) => {
                             const file = event.currentTarget.files?.[0]
@@ -381,7 +410,7 @@ export function SweepstakeClient({
                       aria-live="polite"
                     >
                       <p>{photoStatus}</p>
-                      {bundle.fanImageStatus === 'failed' && !imageOperation ? (
+                      {bundle.sourcePhotoUrl && bundle.fanImageStatus === 'failed' && !imageOperation ? (
                         <button
                           type="button"
                           className="text-button"
