@@ -1,11 +1,11 @@
 {
+  "/_not-found/page": "/_not-found",
   "/api/participants/[slotId]/fan-images/route": "/api/participants/[slotId]/fan-images",
   "/api/participants/[slotId]/images/[kind]/route": "/api/participants/[slotId]/images/[kind]",
   "/api/draw/route": "/api/draw",
   "/api/team-flags/[teamId]/route": "/api/team-flags/[teamId]",
   "/api/participants/[slotId]/photo/route": "/api/participants/[slotId]/photo",
-  "/_not-found/page": "/_not-found",
-  "/matchups/page": "/matchups",
   "/more-info/page": "/more-info",
+  "/matchups/page": "/matchups",
   "/page": "/"
 }

@@ -1,4 +1,5 @@
 import { generateBalancedAllocation } from './allocator'
+import { buildFlagImageUrl } from './flag-image'
 import { getPrismaClient } from './prisma'
 import type {
   AllocationResult,
@@ -24,10 +25,6 @@ const LEGACY_DEFAULT_NAMES = [
 ] as const
 const ALLOWED_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024
-
-function buildFlagImageUrl(teamId?: string) {
-  return teamId ? `/api/team-flags/${teamId}` : undefined
-}
 
 function buildParticipantImageUrl(slotId: string, kind: 'source' | 'neutral' | 'ecstatic' | 'devastated') {
   return `/api/participants/${encodeURIComponent(slotId)}/images/${kind}`
@@ -176,10 +173,14 @@ export function toPersistedDraw(
     .map((slot) => {
       const orderedTeams = [...slot.teamAssignments]
         .sort((left, right) => left.teamOrder - right.teamOrder)
-        .map((assignment) => ({
-          ...assignment.team,
-          flagImageUrl: buildFlagImageUrl(assignment.team.id),
-        }))
+        .map((assignment) => {
+          const { flagImageBytes, flagImageMimeType, ...team } = assignment.team
+
+          return {
+            ...team,
+            flagImageUrl: buildFlagImageUrl(team.flagCode, flagImageBytes, flagImageMimeType),
+          }
+        })
       const hasSourcePhoto = Boolean(slot.photoData && slot.photoMimeType)
       const generatedImageMimeType = slot.generatedImageMimeType || 'image/jpeg'
       const fanImageTeamName =
@@ -288,6 +289,8 @@ async function loadPersistedDraw(playerCount: PlayerCount) {
                   impliedProbability: true,
                   score: true,
                   rank: true,
+                  flagImageBytes: true,
+                  flagImageMimeType: true,
                 },
               },
             },

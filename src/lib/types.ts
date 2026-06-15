@@ -13,6 +13,8 @@ export type TeamSeed = {
 export type TeamScore = TeamSeed & {
   id?: string
   flagImageUrl?: string
+  flagImageBytes?: Uint8Array<ArrayBufferLike> | null
+  flagImageMimeType?: string | null
   impliedProbability: number
   score: number
   rank: number
