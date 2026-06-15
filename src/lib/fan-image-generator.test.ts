@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { buildFanImagePrompt, isHeicParticipantPhoto } from './fan-image-generator'
+import { buildFanImagePrompt } from './fan-image-generator'
 import { readParticipantImageBytes, selectTopRatedTeam } from './participant-image-repository'
+import { isHeicParticipantPhoto } from './participant-photo-normalizer'
 
 describe('participant fan image helpers', () => {
   test('selects the highest-ranked assigned team without mutating assignments', () => {

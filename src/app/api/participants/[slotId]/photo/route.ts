@@ -5,7 +5,7 @@ import {
   loadParticipantImageSlot,
   saveParticipantSourcePhoto,
 } from '@/lib/participant-image-repository'
-import { normalizeParticipantPhoto } from '@/lib/fan-image-generator'
+import { normalizeParticipantPhoto } from '@/lib/participant-photo-normalizer'
 import { toParticipantImageResponse } from '@/lib/participant-image-view'
 
 export const runtime = 'nodejs'
