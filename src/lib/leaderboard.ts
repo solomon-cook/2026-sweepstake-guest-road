@@ -1,5 +1,6 @@
 import { buildOwnerLookup, normalizeTeamName, unassignedSide } from './matchups'
 import type {
+  PlayerLeaderboardRow,
   BracketMatchView,
   FormResult,
   GroupStandingView,
@@ -13,6 +14,17 @@ import type {
 
 type MutableStanding = Omit<GroupStandingView, 'position' | 'form'> & {
   form: FormResult[]
+}
+
+export type AllocationTeamDisplayState = {
+  isAlive: boolean
+  isDimmed: boolean
+  sortOrder: number
+}
+
+type KnockoutState = {
+  isAlive: boolean
+  roundValue: number
 }
 
 const KNOCKOUT_ROUND_ORDER: Record<string, number> = {
@@ -125,6 +137,10 @@ function roundSortValue(round: string) {
   return KNOCKOUT_ROUND_ORDER[normalized] ?? 99
 }
 
+function knockoutRoundValue(round: string) {
+  return KNOCKOUT_ROUND_ORDER[round.toLowerCase()] ?? 0
+}
+
 function normalizeKnockoutRound(round: string | null | undefined) {
   const normalized = (round || 'Knockout').toLowerCase()
 
@@ -163,6 +179,31 @@ function attachFixtureSide(teamName: string, teamsByName: Map<string, TeamScore>
   return {
     ...unassignedSide(teamName || 'TBD'),
     ownerName: 'TBD',
+  }
+}
+
+function isResolvedMatch(homeScore?: number | null, awayScore?: number | null) {
+  return typeof homeScore === 'number' && typeof awayScore === 'number' && homeScore !== awayScore
+}
+
+function setKnockoutState(
+  states: Map<string, KnockoutState>,
+  teamName: string,
+  nextState: KnockoutState,
+) {
+  if (!teamName || teamName === 'TBD') {
+    return
+  }
+
+  const key = normalizeTeamName(teamName)
+  const current = states.get(key)
+
+  if (
+    !current ||
+    nextState.roundValue > current.roundValue ||
+    (nextState.roundValue === current.roundValue && current.isAlive !== nextState.isAlive)
+  ) {
+    states.set(key, nextState)
   }
 }
 
@@ -242,6 +283,164 @@ export function buildGroupTables(
     }))
 }
 
+export function buildTeamDisplayStates(
+  teams: TeamScore[],
+  draw: PersistedDraw,
+  fixtures: MatchFixture[],
+) {
+  const groupTables = buildGroupTables(teams, draw, fixtures)
+  const bracketMatches = buildBracketMatches(teams, draw, fixtures)
+  const states = new Map<string, AllocationTeamDisplayState>()
+  const knockoutStates = new Map<string, KnockoutState>()
+
+  for (const group of groupTables) {
+    for (const standing of group.standings) {
+      const isAlive = standing.position <= 2
+      const sortOrder =
+        (isAlive ? 100 : 0) +
+        (5 - standing.position) * 10 +
+        standing.points * 2 +
+        standing.goalDifference / 100
+
+      states.set(normalizeTeamName(standing.teamName), {
+        isAlive,
+        isDimmed: !isAlive,
+        sortOrder,
+      })
+    }
+  }
+
+  for (const match of bracketMatches) {
+    const nextRoundValue = knockoutRoundValue(match.round)
+
+    if (!nextRoundValue) {
+      continue
+    }
+
+    if (isResolvedMatch(match.homeScore, match.awayScore)) {
+      const homeWon = match.homeScore! > match.awayScore!
+
+      setKnockoutState(knockoutStates, match.home.teamName, {
+        isAlive: homeWon,
+        roundValue: nextRoundValue,
+      })
+      setKnockoutState(knockoutStates, match.away.teamName, {
+        isAlive: !homeWon,
+        roundValue: nextRoundValue,
+      })
+      continue
+    }
+
+    setKnockoutState(knockoutStates, match.home.teamName, {
+      isAlive: true,
+      roundValue: nextRoundValue,
+    })
+    setKnockoutState(knockoutStates, match.away.teamName, {
+      isAlive: true,
+      roundValue: nextRoundValue,
+    })
+  }
+
+  for (const [teamName, knockoutState] of knockoutStates) {
+    states.set(teamName, {
+      isAlive: knockoutState.isAlive,
+      isDimmed: !knockoutState.isAlive,
+      sortOrder: 200 + knockoutState.roundValue * 20 + (knockoutState.isAlive ? 10 : 0),
+    })
+  }
+
+  for (const team of teams) {
+    const key = normalizeTeamName(team.name)
+
+    if (!states.has(key)) {
+      states.set(key, {
+        isAlive: false,
+        isDimmed: false,
+        sortOrder: 50 - team.rank / 100,
+      })
+    }
+  }
+
+  return Object.fromEntries(states)
+}
+
+export function buildPlayerLeaderboard(
+  teams: TeamScore[],
+  draw: PersistedDraw,
+  fixtures: MatchFixture[],
+): PlayerLeaderboardRow[] {
+  const displayStates = buildTeamDisplayStates(teams, draw, fixtures)
+
+  return draw.allocation.bundles
+    .filter((bundle) => bundle.playerName.trim())
+    .map((bundle) => {
+      const playerTeams = bundle.teams
+        .map((team) => {
+          const displayState = displayStates[normalizeTeamName(team.name)]
+
+          return {
+            teamName: team.name,
+            teamFlagImageUrl: team.flagImageUrl || team.flag || null,
+            teamScore: team.score,
+            teamRank: team.rank,
+            isAlive: displayState?.isAlive ?? false,
+            sortOrder: displayState?.sortOrder ?? 0,
+          }
+        })
+        .sort((left, right) => {
+          return (
+            Number(right.isAlive) - Number(left.isAlive) ||
+            right.sortOrder - left.sortOrder ||
+            (left.teamRank ?? 999) - (right.teamRank ?? 999) ||
+            left.teamName.localeCompare(right.teamName)
+          )
+        })
+
+      const aliveTeams = playerTeams.filter((team) => team.isAlive)
+      const aliveScoreTotal = Number(
+        aliveTeams.reduce((sum, team) => sum + (team.teamScore ?? 0), 0).toFixed(2),
+      )
+
+      return {
+        slotId: bundle.slotId,
+        playerName: bundle.playerName,
+        ownerSourcePhotoUrl: bundle.sourcePhotoUrl ?? null,
+        ownerNeutralPhotoUrl: bundle.fanImageUrls?.neutral ?? null,
+        ownerEcstaticPhotoUrl: bundle.fanImageUrls?.ecstatic ?? null,
+        ownerDevastatedPhotoUrl: bundle.fanImageUrls?.devastated ?? null,
+        aliveTeamCount: aliveTeams.length,
+        eliminatedTeamCount: playerTeams.length - aliveTeams.length,
+        totalTeamCount: playerTeams.length,
+        aliveScoreTotal,
+        bestAliveTeamRank: aliveTeams.reduce<number | null>((best, team) => {
+          if (typeof team.teamRank !== 'number') {
+            return best
+          }
+
+          return best === null ? team.teamRank : Math.min(best, team.teamRank)
+        }, null),
+        teams: playerTeams.map((team) => ({
+          teamName: team.teamName,
+          teamFlagImageUrl: team.teamFlagImageUrl,
+          teamScore: team.teamScore,
+          teamRank: team.teamRank,
+          isAlive: team.isAlive,
+        })),
+      }
+    })
+    .sort((left, right) => {
+      const leftBestRank = left.bestAliveTeamRank ?? Number.POSITIVE_INFINITY
+      const rightBestRank = right.bestAliveTeamRank ?? Number.POSITIVE_INFINITY
+
+      return (
+        right.aliveTeamCount - left.aliveTeamCount ||
+        right.aliveScoreTotal - left.aliveScoreTotal ||
+        leftBestRank - rightBestRank ||
+        left.playerName.localeCompare(right.playerName)
+      )
+    })
+}
+
 export function buildBracketMatches(
   teams: TeamScore[],
   draw: PersistedDraw,
@@ -280,6 +479,7 @@ export function buildLeaderboardData(
   return {
     groups: buildGroupTables(teams, draw, fixtures),
     bracket: buildBracketMatches(teams, draw, fixtures),
+    players: buildPlayerLeaderboard(teams, draw, fixtures),
     warnings,
   }
 }

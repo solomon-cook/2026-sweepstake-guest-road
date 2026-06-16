@@ -890,7 +890,7 @@ svg text {
   background: rgba(255, 255, 255, 0.28);
   border-bottom: 1px solid rgba(79, 82, 81, 0.12);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .leaderboard-tabs button {
@@ -1028,6 +1028,90 @@ svg text {
 .leaderboard-table tbody tr.is-elite-team td:nth-child(2) {
   background:
     linear-gradient(90deg, rgba(248, 250, 252, 0.98) 82%, rgba(248, 250, 252, 0) 100%);
+}
+
+.leaderboard-player-table {
+  min-width: 980px;
+}
+
+.leaderboard-player-table th:nth-child(2),
+.leaderboard-player-table td:nth-child(2) {
+  min-width: 250px;
+}
+
+.leaderboard-player-cell {
+  background: linear-gradient(90deg, rgba(244, 244, 241, 0.98) 84%, rgba(244, 244, 241, 0));
+  min-width: 250px;
+  position: sticky;
+  left: 0;
+  text-align: left;
+  z-index: 1;
+}
+
+.leaderboard-table tbody tr.is-elite-team .leaderboard-player-cell {
+  background:
+    linear-gradient(90deg, rgba(248, 250, 252, 0.98) 82%, rgba(248, 250, 252, 0) 100%);
+}
+
+.leaderboard-player-count {
+  color: var(--color-night);
+  font-weight: 900;
+}
+
+.leaderboard-player-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.leaderboard-player-chip {
+  align-items: center;
+  border: 1px solid rgba(79, 82, 81, 0.12);
+  border-radius: 999px;
+  color: var(--color-night);
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 800;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 10px;
+}
+
+.leaderboard-player-chip img {
+  border: 1px solid rgba(79, 82, 81, 0.2);
+  border-radius: 3px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.leaderboard-player-chip.is-alive {
+  background: rgba(57, 173, 56, 0.1);
+  border-color: rgba(57, 173, 56, 0.22);
+}
+
+.leaderboard-player-chip.is-out {
+  background: rgba(79, 82, 81, 0.06);
+  color: rgba(79, 82, 81, 0.62);
+}
+
+.leaderboard-player-mobile-score {
+  align-items: baseline;
+  color: var(--color-night);
+  display: inline-flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.leaderboard-player-mobile-score strong {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.leaderboard-player-mobile-score span {
+  color: rgba(79, 82, 81, 0.56);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .leaderboard-mobile-row-details {
@@ -1653,7 +1737,7 @@ svg text {
     white-space: normal;
   }
 
-  .leaderboard-table td:not(.leaderboard-position):not(.leaderboard-team-cell) {
+  .leaderboard-table td:not(.leaderboard-position):not(.leaderboard-team-cell):not(.leaderboard-player-cell) {
     display: none;
   }
 
@@ -1676,6 +1760,13 @@ svg text {
   }
 
   .leaderboard-team-cell {
+    background: transparent !important;
+    min-width: 0 !important;
+    padding: 11px 12px 12px !important;
+    position: static !important;
+  }
+
+  .leaderboard-player-cell {
     background: transparent !important;
     min-width: 0 !important;
     padding: 11px 12px 12px !important;
@@ -1741,6 +1832,19 @@ svg text {
     font-size: 0.62rem;
     height: 22px;
     width: 22px;
+  }
+
+  .leaderboard-mobile-row-details--players {
+    grid-template-columns: auto 1fr;
+  }
+
+  .leaderboard-player-chip-list {
+    grid-column: 1 / -1;
+  }
+
+  .leaderboard-player-chip {
+    font-size: 0.74rem;
+    padding: 5px 9px;
   }
 
   .leaderboard-mobile-stats {

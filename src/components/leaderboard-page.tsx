@@ -2,9 +2,16 @@
 
 import { type CSSProperties, useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
-import type { BracketMatchView, FormResult, GroupStandingView, LeaderboardData, TeamOwnerView } from '@/lib/types'
+import type {
+  BracketMatchView,
+  FormResult,
+  GroupStandingView,
+  LeaderboardData,
+  PlayerLeaderboardRow,
+  TeamOwnerView,
+} from '@/lib/types'
 
-type LeaderboardTab = 'groups' | 'knockout'
+type LeaderboardTab = 'groups' | 'players' | 'knockout'
 const WING_ROUNDS = ['Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals'] as const
 const MOBILE_TREE_SLOTS = [
   'r16-top-1',
@@ -39,6 +46,10 @@ function initials(name: string) {
 
 function ownerPhotoUrl(owner: TeamOwnerView) {
   return owner.ownerNeutralPhotoUrl || owner.ownerSourcePhotoUrl || null
+}
+
+function playerPhotoUrl(player: PlayerLeaderboardRow) {
+  return player.ownerNeutralPhotoUrl || player.ownerSourcePhotoUrl || null
 }
 
 function teamCode(owner: TeamOwnerView) {
@@ -105,6 +116,10 @@ function OwnerIdentity({ owner }: { owner: TeamOwnerView }) {
   )
 }
 
+function formatAliveScore(value: number) {
+  return value.toFixed(2)
+}
+
 function GroupRow({ standing }: { standing: GroupStandingView }) {
   const isEliteTeam = standing.position <= 2
 
@@ -166,6 +181,76 @@ function GroupRow({ standing }: { standing: GroupStandingView }) {
   )
 }
 
+function PlayerIdentity({ player }: { player: PlayerLeaderboardRow }) {
+  const photoUrl = playerPhotoUrl(player)
+
+  return (
+    <div className="leaderboard-owner">
+      <span className="leaderboard-avatar">
+        {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(player.playerName)}</span>}
+      </span>
+      <span className="leaderboard-owner-copy">
+        <strong>{player.playerName}</strong>
+        <span>
+          {player.aliveTeamCount} alive of {player.totalTeamCount}
+        </span>
+      </span>
+    </div>
+  )
+}
+
+function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; position: number }) {
+  const isLeading = position <= 2
+
+  return (
+    <tr className={isLeading ? 'is-elite-team' : ''}>
+      <td className="leaderboard-position">{position}</td>
+      <td className="leaderboard-player-cell">
+        <PlayerIdentity player={player} />
+        <div className="leaderboard-mobile-row-details leaderboard-mobile-row-details--players">
+          <div className="leaderboard-mobile-points">
+            <strong>{player.aliveTeamCount}</strong>
+            <span>Alive</span>
+          </div>
+          <div className="leaderboard-player-mobile-score">
+            <strong>{formatAliveScore(player.aliveScoreTotal)}</strong>
+            <span>Alive score</span>
+          </div>
+          <div className="leaderboard-player-chip-list">
+            {player.teams.map((team) => (
+              <span
+                key={`${player.slotId}-${team.teamName}`}
+                className={`leaderboard-player-chip ${team.isAlive ? 'is-alive' : 'is-out'}`}
+              >
+                {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}
+                {team.teamName}
+              </span>
+            ))}
+          </div>
+        </div>
+      </td>
+      <td className="leaderboard-player-count">{player.aliveTeamCount}</td>
+      <td className="leaderboard-player-count">{player.eliminatedTeamCount}</td>
+      <td className="leaderboard-points">{formatAliveScore(player.aliveScoreTotal)}</td>
+      <td>{player.bestAliveTeamRank ? `#${player.bestAliveTeamRank}` : '-'}</td>
+      <td>
+        <div className="leaderboard-player-chip-list">
+          {player.teams.map((team) => (
+            <span
+              key={`${player.slotId}-desktop-${team.teamName}`}
+              className={`leaderboard-player-chip ${team.isAlive ? 'is-alive' : 'is-out'}`}
+              title={`${team.teamName}${team.teamRank ? ` (#${team.teamRank})` : ''}`}
+            >
+              {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}
+              {team.teamName}
+            </span>
+          ))}
+        </div>
+      </td>
+    </tr>
+  )
+}
+
 function GroupStageView({ data }: { data: LeaderboardData }) {
   return (
     <section className="leaderboard-groups" aria-label="Group stage leaderboard">
@@ -198,6 +283,45 @@ function GroupStageView({ data }: { data: LeaderboardData }) {
           </div>
         </article>
       ))}
+    </section>
+  )
+}
+
+function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
+  if (!data.players.length) {
+    return (
+      <section className="leaderboard-empty">
+        <p className="section-kicker">Players</p>
+        <h2>No players have claimed a bundle yet.</h2>
+      </section>
+    )
+  }
+
+  return (
+    <section className="leaderboard-groups" aria-label="Player leaderboard">
+      <article className="leaderboard-group">
+        <h2>Players</h2>
+        <div className="leaderboard-table-scroll">
+          <table className="leaderboard-table leaderboard-player-table">
+            <thead>
+              <tr>
+                <th aria-label="Position" />
+                <th>Player</th>
+                <th>Alive</th>
+                <th>Out</th>
+                <th>Alive Score</th>
+                <th>Best Alive</th>
+                <th>Teams</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.players.map((player, index) => (
+                <PlayerRow key={player.slotId} player={player} position={index + 1} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
     </section>
   )
 }
@@ -417,6 +541,15 @@ export function LeaderboardPage({ data }: { data: LeaderboardData }) {
           <button
             type="button"
             role="tab"
+            aria-selected={activeTab === 'players'}
+            className={activeTab === 'players' ? 'is-active' : ''}
+            onClick={() => setActiveTab('players')}
+          >
+            Players
+          </button>
+          <button
+            type="button"
+            role="tab"
             aria-selected={activeTab === 'knockout'}
             className={activeTab === 'knockout' ? 'is-active' : ''}
             onClick={() => setActiveTab('knockout')}
@@ -425,7 +558,9 @@ export function LeaderboardPage({ data }: { data: LeaderboardData }) {
           </button>
         </div>
 
-        {activeTab === 'groups' ? <GroupStageView data={data} /> : <KnockoutView data={data} />}
+        {activeTab === 'groups' ? <GroupStageView data={data} /> : null}
+        {activeTab === 'players' ? <PlayerLeaderboardView data={data} /> : null}
+        {activeTab === 'knockout' ? <KnockoutView data={data} /> : null}
       </section>
     </main>
   )

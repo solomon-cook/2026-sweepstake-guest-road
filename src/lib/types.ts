@@ -162,6 +162,29 @@ export type GroupTableView = {
   standings: GroupStandingView[]
 }
 
+export type PlayerLeaderboardTeamView = {
+  teamName: string
+  teamFlagImageUrl?: string | null
+  teamScore?: number | null
+  teamRank?: number | null
+  isAlive: boolean
+}
+
+export type PlayerLeaderboardRow = {
+  slotId: string
+  playerName: string
+  ownerSourcePhotoUrl?: string | null
+  ownerNeutralPhotoUrl?: string | null
+  ownerEcstaticPhotoUrl?: string | null
+  ownerDevastatedPhotoUrl?: string | null
+  aliveTeamCount: number
+  eliminatedTeamCount: number
+  totalTeamCount: number
+  aliveScoreTotal: number
+  bestAliveTeamRank: number | null
+  teams: PlayerLeaderboardTeamView[]
+}
+
 export type BracketMatchView = {
   id: string
   round: string
@@ -177,5 +200,6 @@ export type BracketMatchView = {
 export type LeaderboardData = {
   groups: GroupTableView[]
   bracket: BracketMatchView[]
+  players: PlayerLeaderboardRow[]
   warnings: string[]
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { toPersistedDraw } from './draw-repository'
-import { buildBracketMatches, buildGroupTables } from './leaderboard'
+import { buildBracketMatches, buildGroupTables, buildLeaderboardData, buildPlayerLeaderboard } from './leaderboard'
 import { TEAM_SEED_SCORES } from './team-source'
 import type { MatchFixture, PersistedDraw } from './types'
 
@@ -148,6 +148,151 @@ describe('leaderboard knockout bracket', () => {
         ownerName: 'TBD',
         isAssigned: false,
       },
+    })
+  })
+})
+
+describe('player leaderboard', () => {
+  test('ranks players by alive teams first and alive score second', () => {
+    const players = buildPlayerLeaderboard(
+      [
+        team('Mexico'),
+        team('South Africa'),
+        team('South Korea'),
+        team('Czech Republic'),
+        team('Germany'),
+        team('Curaçao'),
+        team('Ivory Coast'),
+        team('Ecuador'),
+        team('Netherlands'),
+        team('Japan'),
+        team('Sweden'),
+        team('Tunisia'),
+      ],
+      toPersistedDraw(7, [
+        {
+          id: 'slot-alice',
+          slotIndex: 0,
+          playerName: 'Alice',
+          totalScore: 12,
+          isRevealed: true,
+          teamAssignments: [
+            { teamOrder: 0, team: team('Mexico') },
+            { teamOrder: 1, team: team('Germany') },
+            { teamOrder: 2, team: team('South Korea') },
+          ],
+        },
+        {
+          id: 'slot-bob',
+          slotIndex: 1,
+          playerName: 'Bob',
+          totalScore: 11,
+          isRevealed: true,
+          teamAssignments: [
+            { teamOrder: 0, team: team('Czech Republic') },
+            { teamOrder: 1, team: team('South Africa') },
+            { teamOrder: 2, team: team('Tunisia') },
+          ],
+        },
+        {
+          id: 'slot-charlie',
+          slotIndex: 2,
+          playerName: 'Charlie',
+          totalScore: 9,
+          isRevealed: true,
+          teamAssignments: [
+            { teamOrder: 0, team: team('Netherlands') },
+            { teamOrder: 1, team: team('Sweden') },
+            { teamOrder: 2, team: team('Japan') },
+          ],
+        },
+        {
+          id: 'slot-empty',
+          slotIndex: 3,
+          playerName: '',
+          totalScore: 7,
+          isRevealed: false,
+          teamAssignments: [{ teamOrder: 0, team: team('Ecuador') }],
+        },
+      ]),
+      [
+        fixture({ id: 'a1', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'South Korea', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'a2', round: 'Group A', homeTeam: 'Czech Republic', awayTeam: 'South Africa', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'a3', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'Czech Republic', homeScore: 1, awayScore: 1 }),
+        fixture({ id: 'a4', round: 'Group A', homeTeam: 'South Africa', awayTeam: 'South Korea', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'a5', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'South Africa', homeScore: 3, awayScore: 1 }),
+        fixture({ id: 'a6', round: 'Group A', homeTeam: 'South Korea', awayTeam: 'Czech Republic', homeScore: 0, awayScore: 2 }),
+        fixture({ id: 'e1', round: 'Group E', homeTeam: 'Germany', awayTeam: 'Ecuador', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'e2', round: 'Group E', homeTeam: 'Curaçao', awayTeam: 'Ivory Coast', homeScore: 0, awayScore: 1 }),
+        fixture({ id: 'e3', round: 'Group E', homeTeam: 'Germany', awayTeam: 'Curaçao', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'e4', round: 'Group E', homeTeam: 'Ecuador', awayTeam: 'Ivory Coast', homeScore: 1, awayScore: 1 }),
+        fixture({ id: 'e5', round: 'Group E', homeTeam: 'Germany', awayTeam: 'Ivory Coast', homeScore: 0, awayScore: 0 }),
+        fixture({ id: 'e6', round: 'Group E', homeTeam: 'Ecuador', awayTeam: 'Curaçao', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f1', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Japan', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'f2', round: 'Group F', homeTeam: 'Sweden', awayTeam: 'Tunisia', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f3', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Sweden', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f4', round: 'Group F', homeTeam: 'Japan', awayTeam: 'Tunisia', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f5', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Tunisia', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'f6', round: 'Group F', homeTeam: 'Japan', awayTeam: 'Sweden', homeScore: 0, awayScore: 1 }),
+        fixture({
+          id: 'r32',
+          round: 'Round of 32',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Mexico',
+          awayTeam: 'Germany',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(players.map((player) => player.playerName)).toEqual(['Alice', 'Charlie', 'Bob'])
+    expect(players[0]).toMatchObject({
+      aliveTeamCount: 2,
+      aliveScoreTotal: Number((team('Mexico').score + team('Germany').score).toFixed(2)),
+      bestAliveTeamRank: Math.min(team('Mexico').rank, team('Germany').rank),
+    })
+    expect(players[1].aliveTeamCount).toBe(2)
+    expect(players[1].aliveScoreTotal).toBeLessThan(players[0].aliveScoreTotal)
+    expect(players[2]).toMatchObject({
+      aliveTeamCount: 1,
+      teams: [
+        { teamName: 'Czech Republic', isAlive: true },
+        { teamName: 'South Africa', isAlive: false },
+        { teamName: 'Tunisia', isAlive: false },
+      ],
+    })
+    expect(players[2].aliveScoreTotal).toBe(team('Czech Republic').score)
+  })
+
+  test('breaks ties deterministically and carries players through leaderboard data', () => {
+    const draw = toPersistedDraw(7, [
+      {
+        id: 'slot-zoe',
+        slotIndex: 0,
+        playerName: 'Zoe',
+        totalScore: 10,
+        isRevealed: true,
+        teamAssignments: [{ teamOrder: 0, team: team('Mexico') }],
+      },
+      {
+        id: 'slot-amy',
+        slotIndex: 1,
+        playerName: 'Amy',
+        totalScore: 10,
+        isRevealed: true,
+        teamAssignments: [{ teamOrder: 0, team: team('Mexico') }],
+      },
+    ])
+
+    const data = buildLeaderboardData([team('Mexico')], draw, [])
+
+    expect(data.players.map((player) => player.playerName)).toEqual(['Amy', 'Zoe'])
+    expect(data.players[0]).toMatchObject({
+      aliveTeamCount: 1,
+      aliveScoreTotal: team('Mexico').score,
+      bestAliveTeamRank: team('Mexico').rank,
     })
   })
 })
