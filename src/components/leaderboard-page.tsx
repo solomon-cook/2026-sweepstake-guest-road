@@ -339,6 +339,14 @@ function MobileBracket({ rounds }: { rounds: Map<string, BracketMatchView[]> }) 
   return (
     <section className="leaderboard-bracket-mobile" aria-label="Mobile knockout stage bracket">
       <div className="leaderboard-mobile-tree">
+        <div className="leaderboard-mobile-connector is-top-r16-left" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-top-r16-right" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-top-qf" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-final-top" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-final-bottom" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-bottom-qf" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-bottom-r16-left" aria-hidden="true" />
+        <div className="leaderboard-mobile-connector is-bottom-r16-right" aria-hidden="true" />
         {treeMatches.map(({ match, slot }) => (
           <CompactBracketMatch key={match.id} match={match} className={`is-mobile-${slot}`} />
         ))}
