@@ -4,6 +4,7 @@ export function HeaderLinks() {
   return (
     <nav className="header-links" aria-label="Secondary pages">
       <Link href="/">Allocation</Link>
+      <Link href="/leaderboard">Leaderboard</Link>
       <Link href="/matchups">Matchups</Link>
       <Link href="/more-info">More info</Link>
     </nav>

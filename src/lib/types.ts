@@ -127,3 +127,55 @@ export type MatchupView = {
   away: MatchupSide
   odds?: MatchOdds | null
 }
+
+export type FormResult = 'win' | 'draw' | 'loss' | 'empty'
+
+export type TeamOwnerView = {
+  teamName: string
+  teamFlagImageUrl?: string | null
+  ownerName: string
+  ownerSourcePhotoUrl?: string | null
+  ownerNeutralPhotoUrl?: string | null
+  ownerEcstaticPhotoUrl?: string | null
+  ownerDevastatedPhotoUrl?: string | null
+  teamScore?: number | null
+  teamRank?: number | null
+  isAssigned: boolean
+}
+
+export type GroupStandingView = TeamOwnerView & {
+  group: string
+  position: number
+  played: number
+  won: number
+  drawn: number
+  lost: number
+  goalsFor: number
+  goalsAgainst: number
+  goalDifference: number
+  points: number
+  form: FormResult[]
+}
+
+export type GroupTableView = {
+  group: string
+  standings: GroupStandingView[]
+}
+
+export type BracketMatchView = {
+  id: string
+  round: string
+  startsAt: string
+  status: FixtureStatus
+  statusLabel: string
+  homeScore?: number | null
+  awayScore?: number | null
+  home: TeamOwnerView
+  away: TeamOwnerView
+}
+
+export type LeaderboardData = {
+  groups: GroupTableView[]
+  bracket: BracketMatchView[]
+  warnings: string[]
+}

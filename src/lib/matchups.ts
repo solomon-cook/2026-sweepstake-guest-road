@@ -1,4 +1,11 @@
-import type { MatchFixture, MatchOdds, MatchupSide, MatchupView, PersistedDraw } from './types'
+import type {
+  MatchFixture,
+  MatchOdds,
+  MatchupSide,
+  MatchupView,
+  PersistedDraw,
+  TeamOwnerView,
+} from './types'
 
 const LIVE_STATUS_CODES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'])
 const UPCOMING_STATUS_CODES = new Set(['NS', 'TBD'])
@@ -68,8 +75,8 @@ export function selectPreviousFixtures(fixtures: MatchFixture[], limit = 16) {
     .slice(0, limit)
 }
 
-function buildOwnerLookup(draw: PersistedDraw) {
-  const lookup = new Map<string, MatchupSide>()
+export function buildOwnerLookup(draw: PersistedDraw) {
+  const lookup = new Map<string, TeamOwnerView>()
 
   for (const bundle of draw.allocation.bundles) {
     const ownerName = bundle.playerName.trim()
@@ -97,7 +104,7 @@ function buildOwnerLookup(draw: PersistedDraw) {
   return lookup
 }
 
-function unassignedSide(teamName: string): MatchupSide {
+export function unassignedSide(teamName: string): TeamOwnerView {
   return {
     teamName,
     teamFlagImageUrl: null,
