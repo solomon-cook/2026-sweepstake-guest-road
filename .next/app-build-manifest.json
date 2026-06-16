@@ -11,20 +11,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/api/team-flags/[teamId]/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/team-flags/[teamId]/route.js"
-    ],
     "/api/participants/[slotId]/images/[kind]/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/participants/[slotId]/images/[kind]/route.js"
-    ],
-    "/matchups/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/matchups/page.js"
     ]
   }
 }

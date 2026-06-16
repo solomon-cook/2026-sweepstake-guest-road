@@ -1,5 +1,7 @@
 import { SweepstakeClient } from '@/components/sweepstake-client'
+import { buildAllocationDisplayState } from '@/lib/allocation-status'
 import { getOrCreateDraw } from '@/lib/draw-repository'
+import { loadFixtures } from '@/lib/fixture-provider'
 import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
@@ -55,7 +57,10 @@ export default async function Page() {
       )
     }
 
-    return <SweepstakeClient initialDraw={initialDraw} />
+    const fixtureResult = await loadFixtures()
+    const allocationDisplayState = buildAllocationDisplayState(result.teams, initialDraw, fixtureResult.fixtures)
+
+    return <SweepstakeClient initialDraw={initialDraw} allocationDisplayState={allocationDisplayState} />
   }
 
   if (result.status === 'empty') {

@@ -2,9 +2,11 @@
 
 import type { FormEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import type { AllocationDisplayState } from '@/lib/allocation-status'
 import { CardPackOpening } from '@/components/card-pack-opening'
 import { HeaderLinks } from '@/components/header-links'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
+import { normalizeTeamName } from '@/lib/matchups'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
@@ -51,8 +53,8 @@ function hasPlayerName(bundle: PersistedBundle) {
   return bundle.playerName.trim().length > 0
 }
 
-function getBundleTeamRowClass(rank: number) {
-  return rank <= 10 ? 'is-great-team' : ''
+function getBundleTeamRowClass(rank: number, isDimmed: boolean) {
+  return [rank <= 10 ? 'is-great-team' : '', isDimmed ? 'is-dimmed-team' : ''].filter(Boolean).join(' ')
 }
 
 function mergeBundleImageState(draw: PersistedDraw, slotId: string, imageState: Partial<PersistedBundle>) {
@@ -124,7 +126,21 @@ function bundlePhotoStatus(bundle: PersistedBundle, imageOperation?: ImageOperat
   return ''
 }
 
-function getBundlePreviewImage(bundle: PersistedBundle) {
+function getBundlePreviewImage(bundle: PersistedBundle, mood: 'neutral' | 'ecstatic' | 'devastated') {
+  if (mood === 'ecstatic' && bundle.fanImageUrls?.ecstatic) {
+    return {
+      imageUrl: bundle.fanImageUrls.ecstatic,
+      imageLabel: `Ecstatic AI profile photo for ${bundle.playerName}`,
+    }
+  }
+
+  if (mood === 'devastated' && bundle.fanImageUrls?.devastated) {
+    return {
+      imageUrl: bundle.fanImageUrls.devastated,
+      imageLabel: `Devastated AI profile photo for ${bundle.playerName}`,
+    }
+  }
+
   if (bundle.fanImageUrls?.neutral) {
     return {
       imageUrl: bundle.fanImageUrls.neutral,
@@ -175,8 +191,10 @@ function getBundlePhotoFrames(bundle: PersistedBundle): ParticipantPhotoFrame[] 
 
 export function SweepstakeClient({
   initialDraw,
+  allocationDisplayState,
 }: {
   initialDraw: PersistedDraw
+  allocationDisplayState: AllocationDisplayState
 }) {
   const [playerCount] = useState<PlayerCount>(initialDraw.playerCount)
   const [draw, setDraw] = useState(initialDraw)
@@ -534,7 +552,16 @@ export function SweepstakeClient({
               const imageOperation = getImageOperation(bundle.slotId)
               const isReadyStatusTransient = bundle.fanImageStatus === 'ready' && Boolean(recentlyReadyPhotos[bundle.slotId])
               const photoStatus = bundlePhotoStatus(bundle, imageOperation, isReadyStatusTransient)
-              const previewImage = getBundlePreviewImage(bundle)
+              const bundleMood = allocationDisplayState.bundleMoodBySlotId[bundle.slotId] ?? 'neutral'
+              const previewImage = getBundlePreviewImage(bundle, bundleMood)
+              const displayedTeams = [...bundle.teams].sort((left, right) => {
+                const leftState = allocationDisplayState.teamsByName[normalizeTeamName(left.name)]
+                const rightState = allocationDisplayState.teamsByName[normalizeTeamName(right.name)]
+                const leftScore = leftState?.sortOrder ?? 0
+                const rightScore = rightState?.sortOrder ?? 0
+
+                return rightScore - leftScore || left.rank - right.rank || left.name.localeCompare(right.name)
+              })
 
               return (
                 <article
@@ -622,8 +649,14 @@ export function SweepstakeClient({
 
                   {bundle.isRevealed ? (
                     <ul className="bundle-team-list">
-                      {bundle.teams.map((team) => (
-                        <li key={team.name} className={getBundleTeamRowClass(team.rank)}>
+                      {displayedTeams.map((team) => (
+                        <li
+                          key={team.name}
+                          className={getBundleTeamRowClass(
+                            team.rank,
+                            Boolean(allocationDisplayState.teamsByName[normalizeTeamName(team.name)]?.isDimmed),
+                          )}
+                        >
                           <div>
                             <span className="bundle-team-name">
                               {team.flagImageUrl ? (

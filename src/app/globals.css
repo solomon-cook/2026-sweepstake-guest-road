@@ -513,6 +513,14 @@ svg text {
   color: var(--color-blue);
 }
 
+.bundle-card li.is-dimmed-team {
+  opacity: 0.5;
+}
+
+.bundle-card li.is-dimmed-team img {
+  filter: grayscale(0.35);
+}
+
 .bundle-card li:last-child,
 .favorite-row:last-child {
   border-bottom: 0;
