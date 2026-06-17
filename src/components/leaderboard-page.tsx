@@ -11,7 +11,7 @@ import type {
   TeamOwnerView,
 } from '@/lib/types'
 
-type LeaderboardTab = 'groups' | 'players' | 'knockout'
+type TournamentTab = 'groups' | 'knockout'
 const WING_ROUNDS = ['Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals'] as const
 const MOBILE_TREE_SLOTS = [
   'r16-top-1',
@@ -297,7 +297,7 @@ function GroupStageView({ data }: { data: LeaderboardData }) {
   )
 }
 
-function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
+export function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
   if (!data.players.length) {
     return (
       <section className="leaderboard-empty">
@@ -516,29 +516,60 @@ function KnockoutView({ data }: { data: LeaderboardData }) {
   )
 }
 
-export function LeaderboardPage({ data }: { data: LeaderboardData }) {
-  const [activeTab, setActiveTab] = useState<LeaderboardTab>('groups')
+function LeaderboardWarnings({ data, label }: { data: LeaderboardData; label: string }) {
+  if (!data.warnings.length) {
+    return null
+  }
 
+  return (
+    <section className="matchup-warning" aria-label={`${label} warnings`}>
+      {data.warnings.slice(0, 4).map((warning) => (
+        <p key={warning}>{warning}</p>
+      ))}
+    </section>
+  )
+}
+
+function LeaderboardPageShell({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <main className="page-shell leaderboard-shell">
       <section className="top-bar leaderboard-top-bar">
         <div>
           <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
-          <h1>Leaderboard</h1>
+          <h1>{title}</h1>
         </div>
         <HeaderLinks />
       </section>
+      {children}
+    </main>
+  )
+}
 
-      {data.warnings.length ? (
-        <section className="matchup-warning" aria-label="Leaderboard warnings">
-          {data.warnings.slice(0, 4).map((warning) => (
-            <p key={warning}>{warning}</p>
-          ))}
-        </section>
-      ) : null}
-
+export function HomePage({ data }: { data: LeaderboardData }) {
+  return (
+    <LeaderboardPageShell title="Home">
+      <LeaderboardWarnings data={data} label="Home" />
       <section className="leaderboard-panel">
-        <div className="leaderboard-tabs" role="tablist" aria-label="Leaderboard views">
+        <PlayerLeaderboardView data={data} />
+      </section>
+    </LeaderboardPageShell>
+  )
+}
+
+export function TournamentPage({ data }: { data: LeaderboardData }) {
+  const [activeTab, setActiveTab] = useState<TournamentTab>('groups')
+
+  return (
+    <LeaderboardPageShell title="Tournament">
+      <LeaderboardWarnings data={data} label="Tournament" />
+      <section className="leaderboard-panel">
+        <div className="leaderboard-tabs" role="tablist" aria-label="Tournament views">
           <button
             type="button"
             role="tab"
@@ -547,15 +578,6 @@ export function LeaderboardPage({ data }: { data: LeaderboardData }) {
             onClick={() => setActiveTab('groups')}
           >
             Group Stage
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'players'}
-            className={activeTab === 'players' ? 'is-active' : ''}
-            onClick={() => setActiveTab('players')}
-          >
-            Players
           </button>
           <button
             type="button"
@@ -569,9 +591,8 @@ export function LeaderboardPage({ data }: { data: LeaderboardData }) {
         </div>
 
         {activeTab === 'groups' ? <GroupStageView data={data} /> : null}
-        {activeTab === 'players' ? <PlayerLeaderboardView data={data} /> : null}
         {activeTab === 'knockout' ? <KnockoutView data={data} /> : null}
       </section>
-    </main>
+    </LeaderboardPageShell>
   )
 }
