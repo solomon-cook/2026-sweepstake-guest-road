@@ -153,7 +153,7 @@ describe('leaderboard knockout bracket', () => {
 })
 
 describe('player leaderboard', () => {
-  test('keeps incomplete group-stage teams pending on the homepage', () => {
+  test('treats current top-two teams as through while unfinished groups keep others pending', () => {
     const players = buildPlayerLeaderboard(
       [team('Mexico'), team('South Korea'), team('Czech Republic'), team('South Africa')],
       toPersistedDraw(7, [
@@ -188,13 +188,13 @@ describe('player leaderboard', () => {
     expect(players).toMatchObject([
       {
         playerName: 'Alice',
-        mood: 'devastated',
-        aliveTeamCount: 0,
+        mood: 'ecstatic',
+        aliveTeamCount: 2,
         eliminatedTeamCount: 0,
         totalTeamCount: 3,
         teams: [
-          { teamName: 'Mexico', status: 'pending' },
-          { teamName: 'Czech Republic', status: 'pending' },
+          { teamName: 'Mexico', status: 'alive' },
+          { teamName: 'Czech Republic', status: 'alive' },
           { teamName: 'South Korea', status: 'pending' },
         ],
       },

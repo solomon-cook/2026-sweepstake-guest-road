@@ -205,7 +205,7 @@ function PlayerIdentity({ player }: { player: PlayerLeaderboardRow }) {
       <span className="leaderboard-owner-copy">
         <strong>{player.playerName}</strong>
         <span>
-          {player.aliveTeamCount} alive of {player.totalTeamCount}
+          {player.aliveTeamCount} currently through of {player.totalTeamCount}
         </span>
       </span>
     </div>
@@ -223,7 +223,7 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
         <div className="leaderboard-mobile-row-details leaderboard-mobile-row-details--players">
           <dl className="leaderboard-player-mobile-stats">
             <div>
-              <dt>Alive</dt>
+              <dt>Through</dt>
               <dd>{player.aliveTeamCount}</dd>
             </div>
             <div>
@@ -231,11 +231,11 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
               <dd>{player.eliminatedTeamCount}</dd>
             </div>
             <div>
-              <dt>Alive Score</dt>
+              <dt>Through Score</dt>
               <dd>{formatAliveScore(player.aliveScoreTotal)}</dd>
             </div>
             <div>
-              <dt>Best Alive</dt>
+              <dt>Best Through</dt>
               <dd>{player.bestAliveTeamRank ? `#${player.bestAliveTeamRank}` : '-'}</dd>
             </div>
           </dl>
@@ -330,10 +330,10 @@ export function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
               <tr>
                 <th aria-label="Position" />
                 <th>Player</th>
-                <th>Alive</th>
+                <th>Through</th>
                 <th>Out</th>
-                <th>Alive Score</th>
-                <th>Best Alive</th>
+                <th>Through Score</th>
+                <th>Best Through</th>
                 <th>Teams</th>
               </tr>
             </thead>

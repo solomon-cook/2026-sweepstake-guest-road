@@ -322,7 +322,13 @@ export function buildTeamDisplayStates(
     const isComplete = group.standings.every((standing) => standing.played >= matchesRequired)
 
     for (const standing of group.standings) {
-      const status: TeamSurvivalStatus = isComplete ? (standing.position <= 2 ? 'alive' : 'out') : 'pending'
+      const status: TeamSurvivalStatus = isComplete
+        ? standing.position <= 2
+          ? 'alive'
+          : 'out'
+        : standing.position <= 2
+          ? 'alive'
+          : 'pending'
       const sortOrder =
         survivalStatusValue(status) * 100 +
         (5 - standing.position) * 10 +
