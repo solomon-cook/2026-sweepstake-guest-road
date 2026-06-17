@@ -7,6 +7,8 @@ export type AllocationDisplayState = {
   teamsByName: ReturnType<typeof buildTeamDisplayStates>
 }
 
+type AllocationTeamDisplayState = ReturnType<typeof buildTeamDisplayStates>[string]
+
 function selectBundleMood(draw: PersistedDraw, teamsByName: Record<string, AllocationTeamDisplayState>) {
   return Object.fromEntries(
     draw.allocation.bundles.map((bundle) => {
