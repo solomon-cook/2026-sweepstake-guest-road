@@ -1311,26 +1311,6 @@ svg text {
   color: rgba(79, 82, 81, 0.62);
 }
 
-.leaderboard-player-mobile-score {
-  align-items: baseline;
-  color: var(--color-night);
-  display: inline-flex;
-  gap: 4px;
-  justify-content: flex-end;
-}
-
-.leaderboard-player-mobile-score strong {
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.leaderboard-player-mobile-score span {
-  color: rgba(79, 82, 81, 0.56);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
 .leaderboard-mobile-row-details {
   display: none;
 }
@@ -2060,16 +2040,64 @@ svg text {
   }
 
   .leaderboard-mobile-row-details--players {
-    grid-template-columns: auto 1fr;
+    display: block;
   }
 
-  .leaderboard-player-chip-list {
+  .leaderboard-mobile-row-details--players .leaderboard-player-chip-list {
     grid-column: 1 / -1;
+    margin-top: 10px;
   }
 
   .leaderboard-player-chip {
     font-size: 0.74rem;
     padding: 5px 9px;
+  }
+
+  .leaderboard-player-mobile-stats {
+    border: 1px solid rgba(79, 82, 81, 0.1);
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 10px 0 0;
+    overflow: hidden;
+  }
+
+  .leaderboard-player-mobile-stats div {
+    background: rgba(255, 255, 255, 0.36);
+    border-right: 1px solid rgba(79, 82, 81, 0.08);
+    display: grid;
+    grid-gap: 3px;
+    gap: 3px;
+    justify-items: center;
+    min-width: 0;
+    padding: 8px 4px;
+  }
+
+  .leaderboard-player-mobile-stats div:last-child {
+    border-right: 0;
+  }
+
+  .leaderboard-player-mobile-stats dt,
+  .leaderboard-player-mobile-stats dd {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .leaderboard-player-mobile-stats dt {
+    color: rgba(79, 82, 81, 0.54);
+    font-size: 0.6rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .leaderboard-player-mobile-stats dd {
+    color: var(--color-night);
+    font-size: 0.82rem;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
   }
 
   .leaderboard-mobile-stats {

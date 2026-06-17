@@ -208,14 +208,24 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
       <td className="leaderboard-player-cell">
         <PlayerIdentity player={player} />
         <div className="leaderboard-mobile-row-details leaderboard-mobile-row-details--players">
-          <div className="leaderboard-mobile-points">
-            <strong>{player.aliveTeamCount}</strong>
-            <span>Alive</span>
-          </div>
-          <div className="leaderboard-player-mobile-score">
-            <strong>{formatAliveScore(player.aliveScoreTotal)}</strong>
-            <span>Alive score</span>
-          </div>
+          <dl className="leaderboard-player-mobile-stats">
+            <div>
+              <dt>Alive</dt>
+              <dd>{player.aliveTeamCount}</dd>
+            </div>
+            <div>
+              <dt>Out</dt>
+              <dd>{player.eliminatedTeamCount}</dd>
+            </div>
+            <div>
+              <dt>Alive Score</dt>
+              <dd>{formatAliveScore(player.aliveScoreTotal)}</dd>
+            </div>
+            <div>
+              <dt>Best Alive</dt>
+              <dd>{player.bestAliveTeamRank ? `#${player.bestAliveTeamRank}` : '-'}</dd>
+            </div>
+          </dl>
           <div className="leaderboard-player-chip-list">
             {player.teams.map((team) => (
               <span
