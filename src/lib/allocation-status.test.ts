@@ -177,4 +177,160 @@ describe('buildAllocationDisplayState', () => {
       'slot-charlie': 'neutral',
     })
   })
+
+  test('builds team stats and prefers a live next matchup', () => {
+    const state = buildAllocationDisplayState(
+      [team('Mexico'), team('South Korea'), team('Czech Republic'), team('South Africa')],
+      makeDraw(),
+      [
+        fixture({
+          id: 'mex-kor',
+          startsAt: '2026-06-12T19:00:00.000Z',
+          homeTeam: 'Mexico',
+          awayTeam: 'South Korea',
+          homeScore: 2,
+          awayScore: 0,
+        }),
+        fixture({
+          id: 'cze-mex',
+          startsAt: '2026-06-16T19:00:00.000Z',
+          homeTeam: 'Czech Republic',
+          awayTeam: 'Mexico',
+          homeScore: 1,
+          awayScore: 1,
+        }),
+        fixture({
+          id: 'mex-live',
+          round: 'Round of 32',
+          startsAt: '2026-06-20T19:00:00.000Z',
+          status: 'live',
+          statusLabel: '45′',
+          homeTeam: 'Mexico',
+          awayTeam: 'Japan',
+          homeScore: 1,
+          awayScore: 0,
+        }),
+        fixture({
+          id: 'mex-future',
+          startsAt: '2026-06-24T19:00:00.000Z',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Mexico',
+          awayTeam: 'Czech Republic',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(state.teamDetailsByName.mexico).toMatchObject({
+      teamName: 'Mexico',
+      played: 2,
+      won: 1,
+      drawn: 1,
+      lost: 0,
+      goalsFor: 3,
+      goalsAgainst: 1,
+      goalDifference: 2,
+      points: 4,
+      nextMatchup: {
+        id: 'mex-live',
+        opponentName: 'Japan',
+        isHome: true,
+        teamScore: 1,
+        opponentScore: 0,
+        result: 'win',
+      },
+      previousMatchups: [
+        {
+          id: 'cze-mex',
+          opponentName: 'Czech Republic',
+          isHome: false,
+          teamScore: 1,
+          opponentScore: 1,
+          result: 'draw',
+        },
+        {
+          id: 'mex-kor',
+          opponentName: 'South Korea',
+          isHome: true,
+          teamScore: 2,
+          opponentScore: 0,
+          result: 'win',
+        },
+      ],
+    })
+  })
+
+  test('falls back to the next scheduled fixture when no live matchup exists', () => {
+    const state = buildAllocationDisplayState(
+      [team('Mexico'), team('South Korea'), team('Czech Republic')],
+      makeDraw(),
+      [
+        fixture({
+          id: 'later',
+          startsAt: '2026-06-24T19:00:00.000Z',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Mexico',
+          awayTeam: 'Czech Republic',
+          homeScore: null,
+          awayScore: null,
+        }),
+        fixture({
+          id: 'sooner',
+          startsAt: '2026-06-20T19:00:00.000Z',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'South Korea',
+          awayTeam: 'Mexico',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(state.teamDetailsByName.mexico.nextMatchup).toMatchObject({
+      id: 'sooner',
+      opponentName: 'South Korea',
+      isHome: false,
+      result: 'pending',
+    })
+  })
+
+  test('limits previous matchups to the newest five and handles teams with no fixtures', () => {
+    const previousFixtures = Array.from({ length: 6 }, (_, index) =>
+      fixture({
+        id: `mex-${index + 1}`,
+        startsAt: `2026-06-${String(index + 10).padStart(2, '0')}T19:00:00.000Z`,
+        homeTeam: index % 2 === 0 ? 'Mexico' : 'South Korea',
+        awayTeam: index % 2 === 0 ? 'South Korea' : 'Mexico',
+        homeScore: index % 2 === 0 ? 2 : 0,
+        awayScore: index % 2 === 0 ? 0 : 2,
+      }),
+    )
+    const state = buildAllocationDisplayState(
+      [team('Mexico'), team('South Korea'), team('Japan')],
+      makeDraw(),
+      previousFixtures,
+    )
+
+    expect(state.teamDetailsByName.mexico.previousMatchups.map((matchup) => matchup.id)).toEqual([
+      'mex-6',
+      'mex-5',
+      'mex-4',
+      'mex-3',
+      'mex-2',
+    ])
+    expect(state.teamDetailsByName.japan).toMatchObject({
+      played: 0,
+      won: 0,
+      drawn: 0,
+      lost: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      nextMatchup: null,
+      previousMatchups: [],
+    })
+  })
 })

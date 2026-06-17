@@ -2,7 +2,7 @@
 
 import type { FormEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import type { AllocationDisplayState } from '@/lib/allocation-status'
+import type { AllocationDisplayState, AllocationTeamDetail, AllocationTeamFixtureSummary } from '@/lib/allocation-status'
 import { CardPackOpening } from '@/components/card-pack-opening'
 import { HeaderLinks } from '@/components/header-links'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
@@ -55,6 +55,66 @@ function hasPlayerName(bundle: PersistedBundle) {
 
 function getBundleTeamRowClass(rank: number, isDimmed: boolean) {
   return [rank <= 10 ? 'is-great-team' : '', isDimmed ? 'is-dimmed-team' : ''].filter(Boolean).join(' ')
+}
+
+function formatMatchTime(value: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(new Date(value))
+}
+
+function formatGoalDifference(value: number) {
+  return value > 0 ? `+${value}` : String(value)
+}
+
+function formatMatchScore(matchup: AllocationTeamFixtureSummary) {
+  if (typeof matchup.teamScore !== 'number' || typeof matchup.opponentScore !== 'number') {
+    return matchup.statusLabel
+  }
+
+  return `${matchup.teamScore} - ${matchup.opponentScore}`
+}
+
+function formatResultLabel(result: AllocationTeamFixtureSummary['result']) {
+  if (result === 'pending') {
+    return 'Next'
+  }
+
+  return result.charAt(0).toUpperCase()
+}
+
+function TeamMatchupRow({
+  matchup,
+  label,
+}: {
+  matchup: AllocationTeamFixtureSummary
+  label?: string
+}) {
+  const detailLine = [matchup.round, matchup.venue].filter(Boolean).join(' · ')
+
+  return (
+    <article className={`team-matchup-row is-${matchup.result}`}>
+      <div className="team-matchup-opponent">
+        {matchup.opponentFlagImageUrl ? (
+          <img src={matchup.opponentFlagImageUrl} alt="" width={24} height={18} />
+        ) : null}
+        <div>
+          <p>{matchup.isHome ? 'vs' : '@'} {matchup.opponentName}</p>
+          <span>{label ?? formatMatchTime(matchup.startsAt)}</span>
+        </div>
+      </div>
+      <div className="team-matchup-score">
+        <strong>{formatMatchScore(matchup)}</strong>
+        <span>{formatResultLabel(matchup.result)}</span>
+      </div>
+      {detailLine ? <p className="team-matchup-detail">{detailLine}</p> : null}
+    </article>
+  )
 }
 
 function mergeBundleImageState(draw: PersistedDraw, slotId: string, imageState: Partial<PersistedBundle>) {
@@ -204,6 +264,7 @@ export function SweepstakeClient({
   const [showJoinForm, setShowJoinForm] = useState(false)
   const [activeBundle, setActiveBundle] = useState<PersistedBundle | null>(null)
   const [activePhotoPreview, setActivePhotoPreview] = useState<ParticipantPhotoPreview | null>(null)
+  const [selectedTeamDetail, setSelectedTeamDetail] = useState<AllocationTeamDetail | null>(null)
   const [activePhotoFrameIndex, setActivePhotoFrameIndex] = useState(0)
   const [pendingDraw, setPendingDraw] = useState<PersistedDraw | null>(null)
   const [activeImageOperations, setActiveImageOperations] = useState<Record<string, ImageOperation>>({})
@@ -252,6 +313,10 @@ export function SweepstakeClient({
   function closePhotoPreview() {
     setActivePhotoPreview(null)
     setActivePhotoFrameIndex(0)
+  }
+
+  function closeTeamDetail() {
+    setSelectedTeamDetail(null)
   }
 
   function startReveal(bundle: PersistedBundle) {
@@ -657,22 +722,33 @@ export function SweepstakeClient({
                             Boolean(allocationDisplayState.teamsByName[normalizeTeamName(team.name)]?.isDimmed),
                           )}
                         >
-                          <div>
-                            <span className="bundle-team-name">
-                              {team.flagImageUrl ? (
-                                <img
-                                  className="bundle-team-flag"
-                                  src={team.flagImageUrl}
-                                  alt={`${team.name} flag`}
-                                  width={20}
-                                  height={15}
-                                />
-                              ) : null}
-                              {team.name}
-                            </span>
-                            <small>Group {team.group}</small>
-                          </div>
-                          <strong>#{team.rank}</strong>
+                          <button
+                            type="button"
+                            className="bundle-team-button"
+                            aria-label={`View ${team.name} team stats`}
+                            onClick={() => {
+                              setSelectedTeamDetail(
+                                allocationDisplayState.teamDetailsByName[normalizeTeamName(team.name)] ?? null,
+                              )
+                            }}
+                          >
+                            <div>
+                              <span className="bundle-team-name">
+                                {team.flagImageUrl ? (
+                                  <img
+                                    className="bundle-team-flag"
+                                    src={team.flagImageUrl}
+                                    alt={`${team.name} flag`}
+                                    width={20}
+                                    height={15}
+                                  />
+                                ) : null}
+                                {team.name}
+                              </span>
+                              <small>Group {team.group}</small>
+                            </div>
+                            <strong>#{team.rank}</strong>
+                          </button>
                         </li>
                       ))}
                     </ul>
@@ -800,6 +876,94 @@ export function SweepstakeClient({
                 ) : null}
               </>
             ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {selectedTeamDetail ? (
+        <div
+          className="photo-lightbox-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="team-lightbox-title"
+          onClick={closeTeamDetail}
+        >
+          <div className="photo-lightbox team-lightbox" onClick={(event) => event.stopPropagation()}>
+            <div className="photo-lightbox-header team-lightbox-header">
+              <div className="team-lightbox-title-row">
+                {selectedTeamDetail.teamFlagImageUrl ? (
+                  <img
+                    src={selectedTeamDetail.teamFlagImageUrl}
+                    alt={`${selectedTeamDetail.teamName} flag`}
+                    width={48}
+                    height={36}
+                  />
+                ) : null}
+                <div>
+                  <p className="section-kicker">
+                    Group {selectedTeamDetail.group} · #{selectedTeamDetail.rank}
+                  </p>
+                  <h2 id="team-lightbox-title">{selectedTeamDetail.teamName}</h2>
+                </div>
+              </div>
+              <button type="button" className="photo-lightbox-close" onClick={closeTeamDetail}>
+                Close
+              </button>
+            </div>
+
+            <dl className="team-stat-grid">
+              <div>
+                <dt>Record</dt>
+                <dd>
+                  {selectedTeamDetail.won}-{selectedTeamDetail.drawn}-{selectedTeamDetail.lost}
+                </dd>
+              </div>
+              <div>
+                <dt>Goals for</dt>
+                <dd>{selectedTeamDetail.goalsFor}</dd>
+              </div>
+              <div>
+                <dt>Goals against</dt>
+                <dd>{selectedTeamDetail.goalsAgainst}</dd>
+              </div>
+              <div>
+                <dt>Goal diff</dt>
+                <dd>{formatGoalDifference(selectedTeamDetail.goalDifference)}</dd>
+              </div>
+              <div>
+                <dt>Points</dt>
+                <dd>{selectedTeamDetail.points}</dd>
+              </div>
+            </dl>
+
+            <section className="team-lightbox-section">
+              <div className="team-lightbox-section-heading">
+                <p className="section-kicker">Next matchup</p>
+              </div>
+              {selectedTeamDetail.nextMatchup ? (
+                <TeamMatchupRow
+                  matchup={selectedTeamDetail.nextMatchup}
+                  label={formatMatchTime(selectedTeamDetail.nextMatchup.startsAt)}
+                />
+              ) : (
+                <p className="team-lightbox-empty">No next matchup found.</p>
+              )}
+            </section>
+
+            <section className="team-lightbox-section">
+              <div className="team-lightbox-section-heading">
+                <p className="section-kicker">Previous matchups</p>
+              </div>
+              {selectedTeamDetail.previousMatchups.length ? (
+                <div className="team-matchup-list">
+                  {selectedTeamDetail.previousMatchups.map((matchup) => (
+                    <TeamMatchupRow key={matchup.id} matchup={matchup} />
+                  ))}
+                </div>
+              ) : (
+                <p className="team-lightbox-empty">No previous matchups yet.</p>
+              )}
+            </section>
           </div>
         </div>
       ) : null}
