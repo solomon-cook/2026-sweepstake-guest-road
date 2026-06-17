@@ -323,7 +323,7 @@ export function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
   return (
     <section className="leaderboard-groups" aria-label="Player leaderboard">
       <article className="leaderboard-group">
-        <h2>Players</h2>
+        <h2>Leaderboard</h2>
         <div className="leaderboard-table-scroll">
           <table className="leaderboard-table leaderboard-player-table">
             <thead>
@@ -566,7 +566,7 @@ function LeaderboardPageShell({
 
 export function HomePage({ data }: { data: LeaderboardData }) {
   return (
-    <LeaderboardPageShell title="Home">
+    <LeaderboardPageShell title="Sweepstake">
       <LeaderboardWarnings data={data} label="Home" />
       <section className="leaderboard-panel">
         <PlayerLeaderboardView data={data} />
