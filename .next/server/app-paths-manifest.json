@@ -1,13 +1,4 @@
 {
-  "/api/participants/[slotId]/fan-images/route": "app/api/participants/[slotId]/fan-images/route.js",
   "/api/participants/[slotId]/images/[kind]/route": "app/api/participants/[slotId]/images/[kind]/route.js",
-  "/api/draw/route": "app/api/draw/route.js",
-  "/api/team-flags/[teamId]/route": "app/api/team-flags/[teamId]/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/participants/[slotId]/photo/route": "app/api/participants/[slotId]/photo/route.js",
-  "/leaderboard/page": "app/leaderboard/page.js",
-  "/matchups/page": "app/matchups/page.js",
-  "/more-info/page": "app/more-info/page.js",
-  "/page": "app/page.js",
-  "/allocation/page": "app/allocation/page.js"
+  "/leaderboard/page": "app/leaderboard/page.js"
 }

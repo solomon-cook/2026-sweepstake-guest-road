@@ -1933,7 +1933,7 @@ svg text {
     border-bottom: 1px solid rgba(79, 82, 81, 0.1);
     display: grid;
     grid-template-columns: 36px minmax(0, 1fr);
-    min-height: 94px;
+    min-height: 82px;
   }
 
   .leaderboard-table tr:last-child {
@@ -1971,7 +1971,7 @@ svg text {
   .leaderboard-team-cell {
     background: transparent !important;
     min-width: 0 !important;
-    padding: 11px 12px 12px !important;
+    padding: 9px 10px 10px !important;
     position: static !important;
   }
 
@@ -1983,12 +1983,12 @@ svg text {
   }
 
   .leaderboard-owner {
-    gap: 10px;
+    gap: 9px;
   }
 
   .leaderboard-avatar {
-    height: 40px;
-    width: 40px;
+    height: 38px;
+    width: 38px;
   }
 
   .leaderboard-owner-copy {
@@ -2005,43 +2005,51 @@ svg text {
 
   .leaderboard-mobile-row-details {
     align-items: center;
+    background: rgba(255, 255, 255, 0.46);
+    border: 1px solid rgba(79, 82, 81, 0.08);
+    border-radius: 8px;
     display: grid;
-    grid-gap: 8px 10px;
-    gap: 8px 10px;
-    grid-template-columns: auto 1fr;
-    margin-top: 10px;
+    grid-gap: 5px;
+    gap: 5px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    margin-top: 7px;
+    padding: 4px 5px;
   }
 
   .leaderboard-mobile-points {
     align-items: baseline;
     color: var(--color-night);
     display: inline-flex;
-    gap: 4px;
+    gap: 3px;
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .leaderboard-mobile-points strong {
-    font-size: 1.25rem;
+    font-size: 0.98rem;
     line-height: 1;
   }
 
   .leaderboard-mobile-points span {
     color: rgba(79, 82, 81, 0.56);
-    font-size: 0.72rem;
+    font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
   }
 
   .leaderboard-mobile-form {
     display: flex;
-    gap: 5px;
+    gap: 3px;
+    grid-column: 3;
+    grid-row: 1;
     justify-content: flex-end;
   }
 
   .leaderboard-mobile-form .leaderboard-form-chip {
-    border-width: 2px;
-    font-size: 0.62rem;
-    height: 22px;
-    width: 22px;
+    border-width: 1px;
+    font-size: 0.52rem;
+    height: 17px;
+    width: 17px;
   }
 
   .leaderboard-mobile-row-details--players {
@@ -2109,17 +2117,20 @@ svg text {
     display: grid;
     grid-gap: 0;
     gap: 0;
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 1;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     margin: 0;
+    min-width: 0;
   }
 
   .leaderboard-mobile-stats div {
-    border-right: 1px solid rgba(79, 82, 81, 0.08);
+    border-right: 1px solid rgba(79, 82, 81, 0.07);
     display: grid;
-    grid-gap: 2px;
-    gap: 2px;
+    grid-gap: 1px;
+    gap: 1px;
     justify-items: center;
+    min-width: 0;
   }
 
   .leaderboard-mobile-stats div:last-child {
@@ -2132,15 +2143,17 @@ svg text {
   }
 
   .leaderboard-mobile-stats dt {
-    color: rgba(79, 82, 81, 0.48);
-    font-size: 0.62rem;
+    color: rgba(79, 82, 81, 0.52);
+    font-size: 0.5rem;
     font-weight: 900;
+    line-height: 1;
   }
 
   .leaderboard-mobile-stats dd {
     color: rgba(25, 33, 63, 0.9);
-    font-size: 0.78rem;
+    font-size: 0.66rem;
     font-weight: 800;
+    line-height: 1;
   }
 
   .leaderboard-bracket-desktop {

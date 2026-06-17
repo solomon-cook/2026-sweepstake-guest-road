@@ -147,7 +147,7 @@ function GroupRow({ standing }: { standing: GroupStandingView }) {
             <span>Pts</span>
           </div>
           <div className="leaderboard-mobile-form">
-            {standing.form.slice(0, 3).map((result, index) => (
+            {standing.form.map((result, index) => (
               <FormChip key={`${standing.teamName}-mobile-${index}`} result={result} />
             ))}
           </div>
