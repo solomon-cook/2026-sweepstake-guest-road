@@ -961,6 +961,27 @@ svg text {
   gap: 8px;
 }
 
+.team-form-strip {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.team-form-strip p {
+  margin: 0;
+}
+
+.team-form-strip .leaderboard-form {
+  gap: 6px;
+}
+
+.team-form-strip .leaderboard-form-chip {
+  border-width: 2px;
+  height: 26px;
+  width: 26px;
+}
+
 .team-lightbox-section-heading {
   align-items: center;
   display: flex;

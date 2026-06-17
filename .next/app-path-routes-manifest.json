@@ -1,13 +1,13 @@
 {
-  "/api/draw/route": "/api/draw",
   "/api/participants/[slotId]/fan-images/route": "/api/participants/[slotId]/fan-images",
+  "/api/draw/route": "/api/draw",
+  "/_not-found/page": "/_not-found",
   "/api/participants/[slotId]/images/[kind]/route": "/api/participants/[slotId]/images/[kind]",
   "/api/team-flags/[teamId]/route": "/api/team-flags/[teamId]",
   "/api/participants/[slotId]/photo/route": "/api/participants/[slotId]/photo",
-  "/_not-found/page": "/_not-found",
-  "/leaderboard/page": "/leaderboard",
   "/more-info/page": "/more-info",
   "/allocation/page": "/allocation",
+  "/leaderboard/page": "/leaderboard",
   "/matchups/page": "/matchups",
   "/page": "/"
 }

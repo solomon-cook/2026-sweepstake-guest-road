@@ -216,18 +216,14 @@ function TeamDetailLightbox({
           </div>
         </dl>
 
-        {team.groupStageMatchups.length ? (
-          <section className="team-lightbox-section">
-            <div className="team-lightbox-section-heading">
-              <p className="section-kicker">Group stage matches</p>
-            </div>
-            <div className="team-matchup-list">
-              {team.groupStageMatchups.map((matchup) => (
-                <TeamMatchupRow key={matchup.id} matchup={matchup} />
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <section className="team-form-strip" aria-label="Group stage form">
+          <p className="section-kicker">Group stage form</p>
+          <div className="leaderboard-form">
+            {team.form.map((result, index) => (
+              <FormChip key={`${team.teamName}-detail-form-${index}`} result={result} />
+            ))}
+          </div>
+        </section>
 
         <section className="team-lightbox-section">
           <div className="team-lightbox-section-heading">
