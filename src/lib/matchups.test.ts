@@ -63,6 +63,9 @@ describe('matchup mapping', () => {
     expect(normalizeTeamName('Bosnia & Herzegovina')).toBe('bosniaandherzegovina')
     expect(normalizeTeamName('Türkiye')).toBe('turkey')
     expect(normalizeTeamName('USA')).toBe('unitedstates')
+    expect(normalizeTeamName('DR Congo')).toBe('drcongo')
+    expect(normalizeTeamName('Congo DR')).toBe('drcongo')
+    expect(normalizeTeamName('Democratic Republic of the Congo')).toBe('drcongo')
   })
 
   test('maps fixtures to existing draw owners without mutating allocation data', () => {
@@ -87,6 +90,37 @@ describe('matchup mapping', () => {
     })
     expect(result.matchups[0].odds?.home).toBe('2.10')
     expect(draw).toEqual(before)
+  })
+
+  test('matches Congo DR fixtures to the existing DR Congo allocation', () => {
+    const draw = toPersistedDraw(7, [
+      {
+        id: 'slot-dr-congo',
+        slotIndex: 0,
+        playerName: 'Pat',
+        totalScore: 10,
+        isRevealed: true,
+        teamAssignments: [
+          {
+            teamOrder: 0,
+            team: TEAM_SEED_SCORES.find((team) => team.name === 'DR Congo')!,
+          },
+        ],
+      },
+    ])
+
+    const result = buildMatchups(
+      draw,
+      [fixture({ homeTeam: 'Congo DR', awayTeam: 'France' })],
+      {},
+    )
+
+    expect(result.matchups[0].home).toMatchObject({
+      ownerName: 'Pat',
+      teamName: 'DR Congo',
+      isAssigned: true,
+    })
+    expect(result.warnings).not.toContain('No sweepstake owner found for Congo DR.')
   })
 
   test('calculates matchup odds from persisted team scores when no external odds exist', () => {

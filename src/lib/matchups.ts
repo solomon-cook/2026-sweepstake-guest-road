@@ -17,7 +17,13 @@ const TEAM_NAME_ALIASES: Record<string, string> = {
   unitedstatesofamerica: 'unitedstates',
   coteivoire: 'ivorycoast',
   cotedivoire: 'ivorycoast',
-  drcongo: 'democraticrepublicofthecongo',
+  drcongo: 'drcongo',
+  drc: 'drcongo',
+  congodr: 'drcongo',
+  congodemocraticrepublic: 'drcongo',
+  democraticrepublicofthecongo: 'drcongo',
+  democraticrepublicofcongo: 'drcongo',
+  congokinshasa: 'drcongo',
 }
 
 export function normalizeTeamName(value: string) {
