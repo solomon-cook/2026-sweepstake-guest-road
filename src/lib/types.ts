@@ -173,6 +173,7 @@ export type PlayerLeaderboardTeamView = {
 export type PlayerLeaderboardRow = {
   slotId: string
   playerName: string
+  mood: FanImageKind
   ownerSourcePhotoUrl?: string | null
   ownerNeutralPhotoUrl?: string | null
   ownerEcstaticPhotoUrl?: string | null

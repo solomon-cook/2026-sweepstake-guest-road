@@ -1,12 +1,13 @@
 import { buildOwnerLookup, normalizeTeamName, unassignedSide } from './matchups'
 import type {
-  PlayerLeaderboardRow,
   BracketMatchView,
+  FanImageKind,
   FormResult,
   GroupStandingView,
   GroupTableView,
   LeaderboardData,
   MatchFixture,
+  PlayerLeaderboardRow,
   PersistedDraw,
   TeamOwnerView,
   TeamScore,
@@ -400,10 +401,13 @@ export function buildPlayerLeaderboard(
       const aliveScoreTotal = Number(
         aliveTeams.reduce((sum, team) => sum + (team.teamScore ?? 0), 0).toFixed(2),
       )
+      const mood: FanImageKind =
+        aliveTeams.length === 0 ? 'devastated' : aliveTeams.length > playerTeams.length / 2 ? 'ecstatic' : 'neutral'
 
       return {
         slotId: bundle.slotId,
         playerName: bundle.playerName,
+        mood,
         ownerSourcePhotoUrl: bundle.sourcePhotoUrl ?? null,
         ownerNeutralPhotoUrl: bundle.fanImageUrls?.neutral ?? null,
         ownerEcstaticPhotoUrl: bundle.fanImageUrls?.ecstatic ?? null,

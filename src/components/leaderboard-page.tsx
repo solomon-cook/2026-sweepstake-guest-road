@@ -49,6 +49,14 @@ function ownerPhotoUrl(owner: TeamOwnerView) {
 }
 
 function playerPhotoUrl(player: PlayerLeaderboardRow) {
+  if (player.mood === 'ecstatic') {
+    return player.ownerEcstaticPhotoUrl || player.ownerNeutralPhotoUrl || player.ownerSourcePhotoUrl || null
+  }
+
+  if (player.mood === 'devastated') {
+    return player.ownerDevastatedPhotoUrl || player.ownerNeutralPhotoUrl || player.ownerSourcePhotoUrl || null
+  }
+
   return player.ownerNeutralPhotoUrl || player.ownerSourcePhotoUrl || null
 }
 

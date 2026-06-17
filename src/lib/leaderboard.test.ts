@@ -249,13 +249,16 @@ describe('player leaderboard', () => {
 
     expect(players.map((player) => player.playerName)).toEqual(['Alice', 'Charlie', 'Bob'])
     expect(players[0]).toMatchObject({
+      mood: 'ecstatic',
       aliveTeamCount: 2,
       aliveScoreTotal: Number((team('Mexico').score + team('Germany').score).toFixed(2)),
       bestAliveTeamRank: Math.min(team('Mexico').rank, team('Germany').rank),
     })
     expect(players[1].aliveTeamCount).toBe(2)
+    expect(players[1].mood).toBe('ecstatic')
     expect(players[1].aliveScoreTotal).toBeLessThan(players[0].aliveScoreTotal)
     expect(players[2]).toMatchObject({
+      mood: 'neutral',
       aliveTeamCount: 1,
       teams: [
         { teamName: 'Czech Republic', isAlive: true },
@@ -290,9 +293,61 @@ describe('player leaderboard', () => {
 
     expect(data.players.map((player) => player.playerName)).toEqual(['Amy', 'Zoe'])
     expect(data.players[0]).toMatchObject({
+      mood: 'ecstatic',
       aliveTeamCount: 1,
       aliveScoreTotal: team('Mexico').score,
       bestAliveTeamRank: team('Mexico').rank,
     })
+  })
+
+  test('marks players as devastated when all of their teams are out', () => {
+    const players = buildPlayerLeaderboard(
+      [
+        team('Mexico'),
+        team('South Africa'),
+        team('South Korea'),
+        team('Czech Republic'),
+        team('Netherlands'),
+        team('Japan'),
+        team('Sweden'),
+        team('Tunisia'),
+      ],
+      toPersistedDraw(7, [
+        {
+          id: 'slot-bob',
+          slotIndex: 0,
+          playerName: 'Bob',
+          totalScore: 4,
+          isRevealed: true,
+          teamAssignments: [
+            { teamOrder: 0, team: team('South Africa') },
+            { teamOrder: 1, team: team('South Korea') },
+            { teamOrder: 2, team: team('Tunisia') },
+          ],
+        },
+      ]),
+      [
+        fixture({ id: 'a1', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'South Korea', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'a2', round: 'Group A', homeTeam: 'Czech Republic', awayTeam: 'South Africa', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'a3', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'Czech Republic', homeScore: 1, awayScore: 1 }),
+        fixture({ id: 'a4', round: 'Group A', homeTeam: 'South Africa', awayTeam: 'South Korea', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'a5', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'South Africa', homeScore: 3, awayScore: 1 }),
+        fixture({ id: 'a6', round: 'Group A', homeTeam: 'South Korea', awayTeam: 'Czech Republic', homeScore: 0, awayScore: 2 }),
+        fixture({ id: 'f1', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Japan', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'f2', round: 'Group F', homeTeam: 'Sweden', awayTeam: 'Tunisia', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f3', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Sweden', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f4', round: 'Group F', homeTeam: 'Japan', awayTeam: 'Tunisia', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f5', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Tunisia', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'f6', round: 'Group F', homeTeam: 'Japan', awayTeam: 'Sweden', homeScore: 0, awayScore: 1 }),
+      ],
+    )
+
+    expect(players).toMatchObject([
+      {
+        playerName: 'Bob',
+        mood: 'devastated',
+        aliveTeamCount: 0,
+      },
+    ])
   })
 })
