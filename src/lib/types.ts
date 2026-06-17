@@ -129,6 +129,7 @@ export type MatchupView = {
 }
 
 export type FormResult = 'win' | 'draw' | 'loss' | 'empty'
+export type TeamSurvivalStatus = 'alive' | 'pending' | 'out'
 
 export type TeamOwnerView = {
   teamName: string
@@ -167,7 +168,7 @@ export type PlayerLeaderboardTeamView = {
   teamFlagImageUrl?: string | null
   teamScore?: number | null
   teamRank?: number | null
-  isAlive: boolean
+  status: TeamSurvivalStatus
 }
 
 export type PlayerLeaderboardRow = {

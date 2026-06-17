@@ -153,6 +153,55 @@ describe('leaderboard knockout bracket', () => {
 })
 
 describe('player leaderboard', () => {
+  test('keeps incomplete group-stage teams pending on the homepage', () => {
+    const players = buildPlayerLeaderboard(
+      [team('Mexico'), team('South Korea'), team('Czech Republic'), team('South Africa')],
+      toPersistedDraw(7, [
+        {
+          id: 'slot-alice',
+          slotIndex: 0,
+          playerName: 'Alice',
+          totalScore: 10,
+          isRevealed: true,
+          teamAssignments: [
+            { teamOrder: 0, team: team('Mexico') },
+            { teamOrder: 1, team: team('South Korea') },
+            { teamOrder: 2, team: team('Czech Republic') },
+          ],
+        },
+      ]),
+      [
+        fixture({ id: 'a1', round: 'Group A', homeTeam: 'Mexico', awayTeam: 'South Korea', homeScore: 2, awayScore: 0 }),
+        fixture({
+          id: 'a2',
+          round: 'Group A',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Czech Republic',
+          awayTeam: 'South Africa',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(players).toMatchObject([
+      {
+        playerName: 'Alice',
+        mood: 'devastated',
+        aliveTeamCount: 0,
+        eliminatedTeamCount: 0,
+        totalTeamCount: 3,
+        teams: [
+          { teamName: 'Mexico', status: 'pending' },
+          { teamName: 'Czech Republic', status: 'pending' },
+          { teamName: 'South Korea', status: 'pending' },
+        ],
+      },
+    ])
+    expect(players[0].aliveTeamCount + players[0].eliminatedTeamCount).toBeLessThan(players[0].totalTeamCount)
+  })
+
   test('ranks players by alive teams first and alive score second', () => {
     const players = buildPlayerLeaderboard(
       [
@@ -261,9 +310,9 @@ describe('player leaderboard', () => {
       mood: 'neutral',
       aliveTeamCount: 1,
       teams: [
-        { teamName: 'Czech Republic', isAlive: true },
-        { teamName: 'South Africa', isAlive: false },
-        { teamName: 'Tunisia', isAlive: false },
+        { teamName: 'Czech Republic', status: 'alive' },
+        { teamName: 'South Africa', status: 'out' },
+        { teamName: 'Tunisia', status: 'out' },
       ],
     })
     expect(players[2].aliveScoreTotal).toBe(team('Czech Republic').score)
@@ -289,7 +338,22 @@ describe('player leaderboard', () => {
       },
     ])
 
-    const data = buildLeaderboardData([team('Mexico')], draw, [])
+    const data = buildLeaderboardData(
+      [team('Mexico')],
+      draw,
+      [
+        fixture({
+          id: 'r32-mex',
+          round: 'Round of 32',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Mexico',
+          awayTeam: 'TBD',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
 
     expect(data.players.map((player) => player.playerName)).toEqual(['Amy', 'Zoe'])
     expect(data.players[0]).toMatchObject({

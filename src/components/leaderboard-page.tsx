@@ -8,6 +8,7 @@ import type {
   GroupStandingView,
   LeaderboardData,
   PlayerLeaderboardRow,
+  TeamSurvivalStatus,
   TeamOwnerView,
 } from '@/lib/types'
 
@@ -128,6 +129,10 @@ function formatAliveScore(value: number) {
   return value.toFixed(2)
 }
 
+function playerChipClass(status: TeamSurvivalStatus) {
+  return status === 'alive' ? 'is-alive' : status === 'pending' ? 'is-pending' : 'is-out'
+}
+
 function GroupRow({ standing }: { standing: GroupStandingView }) {
   const isEliteTeam = standing.position <= 2
 
@@ -238,7 +243,7 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
             {player.teams.map((team) => (
               <span
                 key={`${player.slotId}-${team.teamName}`}
-                className={`leaderboard-player-chip ${team.isAlive ? 'is-alive' : 'is-out'}`}
+                className={`leaderboard-player-chip ${playerChipClass(team.status)}`}
               >
                 {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}
                 {team.teamName}
@@ -256,7 +261,7 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
           {player.teams.map((team) => (
             <span
               key={`${player.slotId}-desktop-${team.teamName}`}
-              className={`leaderboard-player-chip ${team.isAlive ? 'is-alive' : 'is-out'}`}
+              className={`leaderboard-player-chip ${playerChipClass(team.status)}`}
               title={`${team.teamName}${team.teamRank ? ` (#${team.teamRank})` : ''}`}
             >
               {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}

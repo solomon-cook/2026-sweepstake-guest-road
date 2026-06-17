@@ -9,6 +9,7 @@ import type {
   MatchFixture,
   PlayerLeaderboardRow,
   PersistedDraw,
+  TeamSurvivalStatus,
   TeamOwnerView,
   TeamScore,
 } from './types'
@@ -18,6 +19,7 @@ type MutableStanding = Omit<GroupStandingView, 'position' | 'form'> & {
 }
 
 export type AllocationTeamDisplayState = {
+  status: TeamSurvivalStatus
   isAlive: boolean
   isDimmed: boolean
   sortOrder: number
@@ -187,6 +189,27 @@ function isResolvedMatch(homeScore?: number | null, awayScore?: number | null) {
   return typeof homeScore === 'number' && typeof awayScore === 'number' && homeScore !== awayScore
 }
 
+function survivalStatusValue(status: TeamSurvivalStatus) {
+  if (status === 'alive') {
+    return 2
+  }
+
+  if (status === 'pending') {
+    return 1
+  }
+
+  return 0
+}
+
+function makeDisplayState(status: TeamSurvivalStatus, sortOrder: number): AllocationTeamDisplayState {
+  return {
+    status,
+    isAlive: status === 'alive',
+    isDimmed: status === 'out',
+    sortOrder,
+  }
+}
+
 function setKnockoutState(
   states: Map<string, KnockoutState>,
   teamName: string,
@@ -295,19 +318,18 @@ export function buildTeamDisplayStates(
   const knockoutStates = new Map<string, KnockoutState>()
 
   for (const group of groupTables) {
+    const matchesRequired = Math.max(0, group.standings.length - 1)
+    const isComplete = group.standings.every((standing) => standing.played >= matchesRequired)
+
     for (const standing of group.standings) {
-      const isAlive = standing.position <= 2
+      const status: TeamSurvivalStatus = isComplete ? (standing.position <= 2 ? 'alive' : 'out') : 'pending'
       const sortOrder =
-        (isAlive ? 100 : 0) +
+        survivalStatusValue(status) * 100 +
         (5 - standing.position) * 10 +
         standing.points * 2 +
         standing.goalDifference / 100
 
-      states.set(normalizeTeamName(standing.teamName), {
-        isAlive,
-        isDimmed: !isAlive,
-        sortOrder,
-      })
+      states.set(normalizeTeamName(standing.teamName), makeDisplayState(status, sortOrder))
     }
   }
 
@@ -343,22 +365,15 @@ export function buildTeamDisplayStates(
   }
 
   for (const [teamName, knockoutState] of knockoutStates) {
-    states.set(teamName, {
-      isAlive: knockoutState.isAlive,
-      isDimmed: !knockoutState.isAlive,
-      sortOrder: 200 + knockoutState.roundValue * 20 + (knockoutState.isAlive ? 10 : 0),
-    })
+    const status: TeamSurvivalStatus = knockoutState.isAlive ? 'alive' : 'out'
+    states.set(teamName, makeDisplayState(status, 300 + knockoutState.roundValue * 20 + (knockoutState.isAlive ? 10 : 0)))
   }
 
   for (const team of teams) {
     const key = normalizeTeamName(team.name)
 
     if (!states.has(key)) {
-      states.set(key, {
-        isAlive: false,
-        isDimmed: false,
-        sortOrder: 50 - team.rank / 100,
-      })
+      states.set(key, makeDisplayState('pending', 50 - team.rank / 100))
     }
   }
 
@@ -384,20 +399,21 @@ export function buildPlayerLeaderboard(
             teamFlagImageUrl: team.flagImageUrl || team.flag || null,
             teamScore: team.score,
             teamRank: team.rank,
-            isAlive: displayState?.isAlive ?? false,
+            status: displayState?.status ?? 'pending',
             sortOrder: displayState?.sortOrder ?? 0,
           }
         })
         .sort((left, right) => {
           return (
-            Number(right.isAlive) - Number(left.isAlive) ||
+            survivalStatusValue(right.status) - survivalStatusValue(left.status) ||
             right.sortOrder - left.sortOrder ||
             (left.teamRank ?? 999) - (right.teamRank ?? 999) ||
             left.teamName.localeCompare(right.teamName)
           )
         })
 
-      const aliveTeams = playerTeams.filter((team) => team.isAlive)
+      const aliveTeams = playerTeams.filter((team) => team.status === 'alive')
+      const outTeams = playerTeams.filter((team) => team.status === 'out')
       const aliveScoreTotal = Number(
         aliveTeams.reduce((sum, team) => sum + (team.teamScore ?? 0), 0).toFixed(2),
       )
@@ -413,7 +429,7 @@ export function buildPlayerLeaderboard(
         ownerEcstaticPhotoUrl: bundle.fanImageUrls?.ecstatic ?? null,
         ownerDevastatedPhotoUrl: bundle.fanImageUrls?.devastated ?? null,
         aliveTeamCount: aliveTeams.length,
-        eliminatedTeamCount: playerTeams.length - aliveTeams.length,
+        eliminatedTeamCount: outTeams.length,
         totalTeamCount: playerTeams.length,
         aliveScoreTotal,
         bestAliveTeamRank: aliveTeams.reduce<number | null>((best, team) => {
@@ -428,7 +444,7 @@ export function buildPlayerLeaderboard(
           teamFlagImageUrl: team.teamFlagImageUrl,
           teamScore: team.teamScore,
           teamRank: team.teamRank,
-          isAlive: team.isAlive,
+          status: team.status,
         })),
       }
     })
