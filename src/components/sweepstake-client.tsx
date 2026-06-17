@@ -30,6 +30,7 @@ const ALLOWED_UPLOAD_TYPES = new Set([
 ])
 const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.heics', '.heifs']
 const MAX_UPLOAD_FILE_BYTES = 4 * 1024 * 1024
+const MATCH_TIME_ZONE = 'Europe/London'
 const READY_STATUS_DISPLAY_MS = 3600
 const PHOTO_CYCLE_INTERVAL_MS = 1900
 
@@ -64,7 +65,7 @@ function formatMatchTime(value: string) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short',
+    timeZone: MATCH_TIME_ZONE,
   }).format(new Date(value))
 }
 

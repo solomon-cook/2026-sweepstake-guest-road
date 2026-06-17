@@ -15,6 +15,7 @@ import type {
 } from '@/lib/types'
 
 type TournamentTab = 'groups' | 'knockout'
+const MATCH_TIME_ZONE = 'Europe/London'
 const WING_ROUNDS = ['Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals'] as const
 const MOBILE_TREE_SLOTS = [
   'r16-top-1',
@@ -93,6 +94,7 @@ function formatMatchTime(value: string) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: MATCH_TIME_ZONE,
   }).format(new Date(value))
 }
 
@@ -103,7 +105,7 @@ function formatTeamDetailMatchTime(value: string) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short',
+    timeZone: MATCH_TIME_ZONE,
   }).format(new Date(value))
 }
 
@@ -499,7 +501,7 @@ function GroupStageView({ data }: { data: LeaderboardData }) {
                   <th>GA</th>
                   <th>GD</th>
                   <th>Pts</th>
-                  <th>Last 5</th>
+                  <th>Last 3</th>
                 </tr>
               </thead>
               <tbody>

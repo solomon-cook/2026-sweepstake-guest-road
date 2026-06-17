@@ -1,6 +1,8 @@
 import { selectMatchupOwnerPhoto } from '@/lib/matchups'
 import type { MatchupSide, MatchupView } from '@/lib/types'
 
+const MATCHUP_TIME_ZONE = 'Europe/London'
+
 function formatMatchTime(value: string) {
   return new Intl.DateTimeFormat('en-GB', {
     weekday: 'short',
@@ -8,8 +10,57 @@ function formatMatchTime(value: string) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short',
+    timeZone: MATCHUP_TIME_ZONE,
   }).format(new Date(value))
+}
+
+function formatCompactMatchTime(value: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: MATCHUP_TIME_ZONE,
+  }).format(new Date(value))
+}
+
+function formatCompactMatchDate(value: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: MATCHUP_TIME_ZONE,
+  }).format(new Date(value))
+}
+
+function dateKey(value: Date | string) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: MATCHUP_TIME_ZONE,
+    year: 'numeric',
+  }).formatToParts(new Date(value))
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? ''
+
+  return `${part('year')}-${part('month')}-${part('day')}`
+}
+
+function compactDateLabel(value: string, now = new Date()) {
+  const matchDate = dateKey(value)
+  const today = dateKey(now)
+  const yesterday = dateKey(new Date(now.getTime() - 24 * 60 * 60 * 1000))
+  const tomorrow = dateKey(new Date(now.getTime() + 24 * 60 * 60 * 1000))
+
+  if (matchDate === yesterday) {
+    return 'Yesterday'
+  }
+
+  if (matchDate === today) {
+    return 'Today'
+  }
+
+  if (matchDate === tomorrow) {
+    return 'Tomorrow'
+  }
+
+  return formatCompactMatchDate(value)
 }
 
 function initials(side: MatchupSide) {
@@ -84,8 +135,41 @@ function MatchupTeam({
   )
 }
 
+function CompactMatchupSide({
+  side,
+  align,
+  photoUrl,
+}: {
+  side: MatchupSide
+  align: 'home' | 'away'
+  photoUrl: string | null
+}) {
+  return (
+    <div className={`compact-matchup-side is-${align} ${side.isAssigned ? '' : 'is-unassigned'}`}>
+      <div className="compact-matchup-owner">
+        <div className="compact-matchup-photo">
+          {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(side)}</span>}
+        </div>
+        <p>{side.ownerName}</p>
+      </div>
+      <div className="compact-matchup-team">
+        <div className="compact-matchup-flag">
+          {side.teamFlagImageUrl ? (
+            <img src={side.teamFlagImageUrl} alt={`${side.teamName} flag`} width={96} height={72} />
+          ) : (
+            <span aria-hidden="true">Flag</span>
+          )}
+        </div>
+        <h3>{side.teamName}</h3>
+      </div>
+    </div>
+  )
+}
+
 export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: string }) {
   const hasScore = matchup.fixture.homeScore !== null && matchup.fixture.awayScore !== null
+  const compactShowsScore = matchup.fixture.status !== 'upcoming' && hasScore
+  const compactDetail = compactShowsScore ? matchup.fixture.statusLabel : compactDateLabel(matchup.fixture.startsAt)
   const homeProbability = formatProbability(matchup.odds?.homeProbability)
   const awayProbability = formatProbability(matchup.odds?.awayProbability)
   const homeRank = formatRank(matchup.home.teamRank)
@@ -120,6 +204,20 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
           <span>{formatMatchTime(matchup.fixture.startsAt)}</span>
         </div>
       </header>
+
+      <div className="matchup-compact" aria-label={`${matchup.fixture.homeTeam} versus ${matchup.fixture.awayTeam}`}>
+        <CompactMatchupSide side={matchup.home} align="home" photoUrl={homePhotoUrl} />
+        <div className="compact-matchup-center">
+          <span>{compactShowsScore ? 'Score' : 'Kickoff'}</span>
+          <strong>
+            {compactShowsScore
+              ? `${matchup.fixture.homeScore} - ${matchup.fixture.awayScore}`
+              : formatCompactMatchTime(matchup.fixture.startsAt)}
+          </strong>
+          <em>{compactDetail}</em>
+        </div>
+        <CompactMatchupSide side={matchup.away} align="away" photoUrl={awayPhotoUrl} />
+      </div>
 
       <div className="versus-screen">
         <div className="versus-diagonal" aria-hidden="true" />
