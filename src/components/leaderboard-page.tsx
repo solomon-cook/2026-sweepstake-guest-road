@@ -2,6 +2,8 @@
 
 import { type CSSProperties, useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
+import type { AllocationTeamDetail, AllocationTeamFixtureSummary } from '@/lib/allocation-status'
+import { normalizeTeamName } from '@/lib/matchups'
 import type {
   BracketMatchView,
   FormResult,
@@ -92,6 +94,169 @@ function formatMatchTime(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value))
+}
+
+function formatTeamDetailMatchTime(value: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(new Date(value))
+}
+
+function formatGoalDifference(value: number) {
+  return value > 0 ? `+${value}` : String(value)
+}
+
+function formatMatchScore(matchup: AllocationTeamFixtureSummary) {
+  if (typeof matchup.teamScore !== 'number' || typeof matchup.opponentScore !== 'number') {
+    return matchup.statusLabel
+  }
+
+  return `${matchup.teamScore} - ${matchup.opponentScore}`
+}
+
+function formatResultLabel(result: AllocationTeamFixtureSummary['result']) {
+  if (result === 'pending') {
+    return 'Next'
+  }
+
+  return result.charAt(0).toUpperCase()
+}
+
+function TeamMatchupRow({
+  matchup,
+  label,
+}: {
+  matchup: AllocationTeamFixtureSummary
+  label?: string
+}) {
+  const detailLine = [matchup.round, matchup.venue].filter(Boolean).join(' · ')
+
+  return (
+    <article className={`team-matchup-row is-${matchup.result}`}>
+      <div className="team-matchup-opponent">
+        {matchup.opponentFlagImageUrl ? (
+          <img src={matchup.opponentFlagImageUrl} alt="" width={24} height={18} />
+        ) : null}
+        <div>
+          <p>
+            {matchup.isHome ? 'vs' : '@'} {matchup.opponentName}
+          </p>
+          <span>{label ?? formatTeamDetailMatchTime(matchup.startsAt)}</span>
+        </div>
+      </div>
+      <div className="team-matchup-score">
+        <strong>{formatMatchScore(matchup)}</strong>
+        <span>{formatResultLabel(matchup.result)}</span>
+      </div>
+      {detailLine ? <p className="team-matchup-detail">{detailLine}</p> : null}
+    </article>
+  )
+}
+
+function TeamDetailLightbox({
+  team,
+  onClose,
+}: {
+  team: AllocationTeamDetail
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="photo-lightbox-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="team-lightbox-title"
+      onClick={onClose}
+    >
+      <div className="photo-lightbox team-lightbox" onClick={(event) => event.stopPropagation()}>
+        <div className="photo-lightbox-header team-lightbox-header">
+          <div className="team-lightbox-title-row">
+            {team.teamFlagImageUrl ? (
+              <img src={team.teamFlagImageUrl} alt={`${team.teamName} flag`} width={48} height={36} />
+            ) : null}
+            <div>
+              <p className="section-kicker">
+                Group {team.group} · #{team.rank}
+              </p>
+              <h2 id="team-lightbox-title">{team.teamName}</h2>
+            </div>
+          </div>
+          <button type="button" className="photo-lightbox-close" onClick={onClose}>
+            Close
+          </button>
+        </div>
+
+        <dl className="team-stat-grid">
+          <div>
+            <dt>Record</dt>
+            <dd>
+              {team.won}-{team.drawn}-{team.lost}
+            </dd>
+          </div>
+          <div>
+            <dt>Goals for</dt>
+            <dd>{team.goalsFor}</dd>
+          </div>
+          <div>
+            <dt>Goals against</dt>
+            <dd>{team.goalsAgainst}</dd>
+          </div>
+          <div>
+            <dt>Goal diff</dt>
+            <dd>{formatGoalDifference(team.goalDifference)}</dd>
+          </div>
+          <div>
+            <dt>Points</dt>
+            <dd>{team.points}</dd>
+          </div>
+        </dl>
+
+        {team.groupStageMatchups.length ? (
+          <section className="team-lightbox-section">
+            <div className="team-lightbox-section-heading">
+              <p className="section-kicker">Group stage matches</p>
+            </div>
+            <div className="team-matchup-list">
+              {team.groupStageMatchups.map((matchup) => (
+                <TeamMatchupRow key={matchup.id} matchup={matchup} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="team-lightbox-section">
+          <div className="team-lightbox-section-heading">
+            <p className="section-kicker">Next matchup</p>
+          </div>
+          {team.nextMatchup ? (
+            <TeamMatchupRow matchup={team.nextMatchup} label={formatTeamDetailMatchTime(team.nextMatchup.startsAt)} />
+          ) : (
+            <p className="team-lightbox-empty">No next matchup found.</p>
+          )}
+        </section>
+
+        <section className="team-lightbox-section">
+          <div className="team-lightbox-section-heading">
+            <p className="section-kicker">Previous matchups</p>
+          </div>
+          {team.previousMatchups.length ? (
+            <div className="team-matchup-list">
+              {team.previousMatchups.map((matchup) => (
+                <TeamMatchupRow key={matchup.id} matchup={matchup} />
+              ))}
+            </div>
+          ) : (
+            <p className="team-lightbox-empty">No previous matchups yet.</p>
+          )}
+        </section>
+      </div>
+    </div>
+  )
 }
 
 function FormChip({ result }: { result: FormResult }) {
@@ -212,8 +377,59 @@ function PlayerIdentity({ player }: { player: PlayerLeaderboardRow }) {
   )
 }
 
-function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; position: number }) {
-  const isLeading = position <= 2
+function PlayerTeamChip({
+  player,
+  team,
+  variant = '',
+  onSelectTeam,
+}: {
+  player: PlayerLeaderboardRow
+  team: PlayerLeaderboardRow['teams'][number]
+  variant?: string
+  onSelectTeam?: (teamName: string) => void
+}) {
+  const className = `leaderboard-player-chip ${playerChipClass(team.status)}`
+  const title = `${team.teamName}${team.teamRank ? ` (#${team.teamRank})` : ''}`
+  const keyPrefix = variant ? `${player.slotId}-${variant}` : player.slotId
+  const content = (
+    <>
+      {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}
+      {team.teamName}
+    </>
+  )
+
+  if (onSelectTeam) {
+    return (
+      <button
+        key={`${keyPrefix}-${team.teamName}`}
+        type="button"
+        className={className}
+        title={title}
+        aria-label={`View ${team.teamName} team stats`}
+        onClick={() => onSelectTeam(team.teamName)}
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <span key={`${keyPrefix}-${team.teamName}`} className={className} title={title}>
+      {content}
+    </span>
+  )
+}
+
+function PlayerRow({
+  player,
+  position,
+  onSelectTeam,
+}: {
+  player: PlayerLeaderboardRow
+  position: number
+  onSelectTeam?: (teamName: string) => void
+}) {
+  const isLeading = position === 1
 
   return (
     <tr className={isLeading ? 'is-elite-team' : ''}>
@@ -241,13 +457,7 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
           </dl>
           <div className="leaderboard-player-chip-list">
             {player.teams.map((team) => (
-              <span
-                key={`${player.slotId}-${team.teamName}`}
-                className={`leaderboard-player-chip ${playerChipClass(team.status)}`}
-              >
-                {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}
-                {team.teamName}
-              </span>
+              <PlayerTeamChip key={`${player.slotId}-${team.teamName}`} player={player} team={team} onSelectTeam={onSelectTeam} />
             ))}
           </div>
         </div>
@@ -259,14 +469,13 @@ function PlayerRow({ player, position }: { player: PlayerLeaderboardRow; positio
       <td>
         <div className="leaderboard-player-chip-list">
           {player.teams.map((team) => (
-            <span
+            <PlayerTeamChip
               key={`${player.slotId}-desktop-${team.teamName}`}
-              className={`leaderboard-player-chip ${playerChipClass(team.status)}`}
-              title={`${team.teamName}${team.teamRank ? ` (#${team.teamRank})` : ''}`}
-            >
-              {team.teamFlagImageUrl ? <img src={team.teamFlagImageUrl} alt="" width={18} height={13} /> : null}
-              {team.teamName}
-            </span>
+              player={player}
+              team={team}
+              variant="desktop"
+              onSelectTeam={onSelectTeam}
+            />
           ))}
         </div>
       </td>
@@ -310,7 +519,20 @@ function GroupStageView({ data }: { data: LeaderboardData }) {
   )
 }
 
-export function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
+export function PlayerLeaderboardView({
+  data,
+  teamDetailsByName,
+}: {
+  data: LeaderboardData
+  teamDetailsByName?: Record<string, AllocationTeamDetail>
+}) {
+  const [selectedTeamDetail, setSelectedTeamDetail] = useState<AllocationTeamDetail | null>(null)
+  const handleSelectTeam = teamDetailsByName
+    ? (teamName: string) => {
+        setSelectedTeamDetail(teamDetailsByName[normalizeTeamName(teamName)] ?? null)
+      }
+    : undefined
+
   if (!data.players.length) {
     return (
       <section className="leaderboard-empty">
@@ -321,31 +543,41 @@ export function PlayerLeaderboardView({ data }: { data: LeaderboardData }) {
   }
 
   return (
-    <section className="leaderboard-groups" aria-label="Player leaderboard">
-      <article className="leaderboard-group">
-        <h2>Leaderboard</h2>
-        <div className="leaderboard-table-scroll">
-          <table className="leaderboard-table leaderboard-player-table">
-            <thead>
-              <tr>
-                <th aria-label="Position" />
-                <th>Player</th>
-                <th>Through</th>
-                <th>Out</th>
-                <th>Through Score</th>
-                <th>Best Through</th>
-                <th>Teams</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.players.map((player, index) => (
-                <PlayerRow key={player.slotId} player={player} position={index + 1} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
-    </section>
+    <>
+      <section className="leaderboard-groups" aria-label="Player leaderboard">
+        <article className="leaderboard-group">
+          <h2>Leaderboard</h2>
+          <div className="leaderboard-table-scroll">
+            <table className="leaderboard-table leaderboard-player-table">
+              <thead>
+                <tr>
+                  <th aria-label="Position" />
+                  <th>Player</th>
+                  <th>Through</th>
+                  <th>Out</th>
+                  <th>Through Score</th>
+                  <th>Best Through</th>
+                  <th>Teams</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.players.map((player, index) => (
+                  <PlayerRow
+                    key={player.slotId}
+                    player={player}
+                    position={index + 1}
+                    onSelectTeam={handleSelectTeam}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+      {selectedTeamDetail ? (
+        <TeamDetailLightbox team={selectedTeamDetail} onClose={() => setSelectedTeamDetail(null)} />
+      ) : null}
+    </>
   )
 }
 
@@ -564,12 +796,18 @@ function LeaderboardPageShell({
   )
 }
 
-export function HomePage({ data }: { data: LeaderboardData }) {
+export function HomePage({
+  data,
+  teamDetailsByName,
+}: {
+  data: LeaderboardData
+  teamDetailsByName?: Record<string, AllocationTeamDetail>
+}) {
   return (
     <LeaderboardPageShell title="Sweepstake">
       <LeaderboardWarnings data={data} label="Home" />
-      <section className="leaderboard-panel">
-        <PlayerLeaderboardView data={data} />
+      <section className="leaderboard-panel leaderboard-panel--plain">
+        <PlayerLeaderboardView data={data} teamDetailsByName={teamDetailsByName} />
       </section>
     </LeaderboardPageShell>
   )

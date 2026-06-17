@@ -32,6 +32,7 @@ export type AllocationTeamDetail = {
   points: number
   isAlive: boolean
   isDimmed: boolean
+  groupStageMatchups: AllocationTeamFixtureSummary[]
   nextMatchup: AllocationTeamFixtureSummary | null
   previousMatchups: AllocationTeamFixtureSummary[]
 }
@@ -46,6 +47,7 @@ type AllocationTeamDisplayState = ReturnType<typeof buildTeamDisplayStates>[stri
 type FixtureSide = 'home' | 'away'
 
 const PREVIOUS_MATCHUP_LIMIT = 5
+const GROUP_STAGE_MATCHUP_LIMIT = 5
 
 function selectBundleMood(draw: PersistedDraw, teamsByName: Record<string, AllocationTeamDisplayState>) {
   return Object.fromEntries(
@@ -151,6 +153,32 @@ function selectPreviousMatchups(
     .slice(0, PREVIOUS_MATCHUP_LIMIT)
 }
 
+function isGroupRound(round?: string | null) {
+  return !round || /^group\b/i.test(round)
+}
+
+function selectGroupStageMatchups(
+  team: TeamScore,
+  fixtures: MatchFixture[],
+  teamsByName: Map<string, TeamScore>,
+) {
+  return fixtures
+    .flatMap((fixture) => {
+      const side = isGroupRound(fixture.round) ? fixtureSideForTeam(fixture, team.name) : null
+
+      if (!side) {
+        return []
+      }
+
+      const opponentName = side === 'home' ? fixture.awayTeam : fixture.homeTeam
+      const opponent = teamsByName.get(normalizeTeamName(opponentName))
+
+      return opponent?.group === team.group ? [summarizeFixtureForTeam(fixture, side, teamsByName)] : []
+    })
+    .sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt))
+    .slice(0, GROUP_STAGE_MATCHUP_LIMIT)
+}
+
 function buildTeamDetails(
   teams: TeamScore[],
   draw: PersistedDraw,
@@ -187,6 +215,7 @@ function buildTeamDetails(
           points: standing?.points ?? 0,
           isAlive: displayState?.isAlive ?? false,
           isDimmed: displayState?.isDimmed ?? false,
+          groupStageMatchups: selectGroupStageMatchups(team, fixtures, teamsByName),
           nextMatchup: selectNextMatchup(team.name, fixtures, teamsByName),
           previousMatchups: selectPreviousMatchups(team.name, fixtures, teamsByName),
         },

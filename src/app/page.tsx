@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { HomePage } from '@/components/leaderboard-page'
+import { buildAllocationDisplayState } from '@/lib/allocation-status'
 import { getOrCreateDraw } from '@/lib/draw-repository'
 import { loadFixtures } from '@/lib/fixture-provider'
 import { buildLeaderboardData } from '@/lib/leaderboard'
@@ -41,11 +42,13 @@ export default async function Page() {
   }
 
   let data
+  let teamDetailsByName
 
   try {
     const draw = await getOrCreateDraw(7, result.teams)
     const fixtureResult = await loadFixtures()
     data = buildLeaderboardData(result.teams, draw, fixtureResult.fixtures, fixtureResult.warnings)
+    teamDetailsByName = buildAllocationDisplayState(result.teams, draw, fixtureResult.fixtures).teamDetailsByName
   } catch (error) {
     return (
       <SetupState
@@ -55,5 +58,5 @@ export default async function Page() {
     )
   }
 
-  return <HomePage data={data} />
+  return <HomePage data={data} teamDetailsByName={teamDetailsByName} />
 }
