@@ -3511,15 +3511,16 @@ code {
   }
 
   .compact-matchup-owner {
-    align-items: flex-start;
+    align-items: center;
     display: flex;
     flex-direction: column;
     gap: 4px;
     min-width: 0;
+    width: 58px;
   }
 
   .compact-matchup-side.is-away .compact-matchup-owner {
-    align-items: flex-end;
+    justify-self: end;
   }
 
   .compact-matchup-photo {
@@ -3566,6 +3567,7 @@ code {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
+    text-align: center;
   }
 
   .compact-matchup-team {
