@@ -100,6 +100,43 @@ describe('leaderboard group tables', () => {
     })
   })
 
+  test('ignores upcoming group fixtures with placeholder zero-zero scores', () => {
+    const tables = buildGroupTables(
+      [team('Mexico'), team('South Korea')],
+      makeDraw(),
+      [
+        fixture({
+          id: 'placeholder',
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Mexico',
+          awayTeam: 'South Korea',
+          homeScore: 0,
+          awayScore: 0,
+        }),
+      ],
+    )
+
+    const groupA = tables.find((table) => table.group === 'A')
+
+    expect(groupA?.standings).toMatchObject([
+      {
+        teamName: 'Mexico',
+        played: 0,
+        drawn: 0,
+        points: 0,
+        form: ['empty', 'empty', 'empty', 'empty', 'empty'],
+      },
+      {
+        teamName: 'South Korea',
+        played: 0,
+        drawn: 0,
+        points: 0,
+        form: ['empty', 'empty', 'empty', 'empty', 'empty'],
+      },
+    ])
+  })
+
   test('keeps unassigned teams visible with placeholder owner state', () => {
     const [groupA] = buildGroupTables([team('South Africa')], makeDraw(), [])
 

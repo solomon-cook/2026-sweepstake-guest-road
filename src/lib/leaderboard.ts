@@ -77,6 +77,10 @@ const KNOCKOUT_ROUND_LABELS: Record<string, string> = {
 }
 
 function isScoredFixture(fixture: MatchFixture) {
+  if (fixture.status !== 'live' && fixture.status !== 'finished') {
+    return false
+  }
+
   return typeof fixture.homeScore === 'number' && typeof fixture.awayScore === 'number'
 }
 
