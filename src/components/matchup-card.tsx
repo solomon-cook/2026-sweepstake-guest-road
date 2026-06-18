@@ -79,62 +79,6 @@ function formatProbability(value?: number | null) {
   return value ? `${Math.round(value * 100)}%` : '-'
 }
 
-function formatRank(value?: number | null) {
-  return value ? `#${value}` : '-'
-}
-
-function formatGoals(value?: number | null) {
-  if (typeof value !== 'number') {
-    return '-'
-  }
-
-  return String(value)
-}
-
-function MatchupOwner({
-  side,
-  align,
-  photoUrl,
-}: {
-  side: MatchupSide
-  align: 'home' | 'away'
-  photoUrl: string | null
-}) {
-  return (
-    <div className={`matchup-owner is-${align} ${side.isAssigned ? '' : 'is-unassigned'}`}>
-      <div className="matchup-photo">
-        {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(side)}</span>}
-      </div>
-      <p>{side.ownerName}</p>
-    </div>
-  )
-}
-
-function MatchupTeam({
-  side,
-  score,
-  align,
-}: {
-  side: MatchupSide
-  score?: number | null
-  align: 'home' | 'away'
-}) {
-  return (
-    <div className={`matchup-team is-${align}`}>
-      <h2>{side.teamName}</h2>
-      <div className="matchup-flag-frame">
-        {side.teamFlagImageUrl ? (
-          <img src={side.teamFlagImageUrl} alt={`${side.teamName} flag`} width={208} height={156} />
-        ) : (
-          <span aria-hidden="true">Flag</span>
-        )}
-      </div>
-      <strong>{formatGoals(score)}</strong>
-      <span>{score === 1 ? 'goal' : 'goals'}</span>
-    </div>
-  )
-}
-
 function CompactMatchupSide({
   side,
   align,
@@ -172,8 +116,6 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
   const compactDetail = compactShowsScore ? matchup.fixture.statusLabel : compactDateLabel(matchup.fixture.startsAt)
   const homeProbability = formatProbability(matchup.odds?.homeProbability)
   const awayProbability = formatProbability(matchup.odds?.awayProbability)
-  const homeRank = formatRank(matchup.home.teamRank)
-  const awayRank = formatRank(matchup.away.teamRank)
   const detailLine = [matchup.fixture.round, matchup.fixture.venue, matchup.odds?.source].filter(Boolean).join(' · ')
   const homePhotoUrl = selectMatchupOwnerPhoto(
     matchup.home,
@@ -217,28 +159,6 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
           <em>{compactDetail}</em>
         </div>
         <CompactMatchupSide side={matchup.away} align="away" photoUrl={awayPhotoUrl} />
-      </div>
-
-      <div className="versus-screen">
-        <div className="versus-diagonal" aria-hidden="true" />
-
-        <MatchupOwner side={matchup.home} align="home" photoUrl={homePhotoUrl} />
-        <MatchupOwner side={matchup.away} align="away" photoUrl={awayPhotoUrl} />
-
-        <p className="matchup-percentage is-home" aria-label={`${matchup.fixture.homeTeam} team rank`}>
-          {homeRank}
-        </p>
-        <p className="matchup-percentage is-away" aria-label={`${matchup.fixture.awayTeam} team rank`}>
-          {awayRank}
-        </p>
-
-        <div className="versus-teams">
-          <MatchupTeam side={matchup.home} score={matchup.fixture.homeScore} align="home" />
-          <div className="versus-mark" aria-hidden="true">
-            <span>VS</span>
-          </div>
-          <MatchupTeam side={matchup.away} score={matchup.fixture.awayScore} align="away" />
-        </div>
       </div>
 
       <footer className="matchup-card-footer">
