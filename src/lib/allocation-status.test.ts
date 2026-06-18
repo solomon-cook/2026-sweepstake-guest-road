@@ -329,6 +329,7 @@ describe('buildAllocationDisplayState', () => {
       lost: 0,
       goalsFor: 0,
       goalsAgainst: 0,
+      form: ['empty', 'empty', 'empty'],
       nextMatchup: null,
       previousMatchups: [],
     })

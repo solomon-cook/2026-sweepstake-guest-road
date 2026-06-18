@@ -62,7 +62,7 @@ function fixture(overrides: Partial<MatchFixture>): MatchFixture {
 }
 
 describe('leaderboard group tables', () => {
-  test('calculates standings and last-five form from scored group fixtures', () => {
+  test('calculates standings and last-three form from scored group fixtures', () => {
     const tables = buildGroupTables(
       [team('Mexico'), team('South Korea'), team('Czech Republic'), team('South Africa')],
       makeDraw(),
@@ -90,13 +90,13 @@ describe('leaderboard group tables', () => {
       goalsAgainst: 1,
       goalDifference: 1,
       points: 3,
-      form: ['win', 'empty', 'empty', 'empty', 'empty'],
+      form: ['win', 'empty', 'empty'],
     })
     expect(groupA?.standings[1]).toMatchObject({
       played: 1,
       drawn: 1,
       points: 1,
-      form: ['draw', 'empty', 'empty', 'empty', 'empty'],
+      form: ['draw', 'empty', 'empty'],
     })
   })
 
@@ -125,14 +125,14 @@ describe('leaderboard group tables', () => {
         played: 0,
         drawn: 0,
         points: 0,
-        form: ['empty', 'empty', 'empty', 'empty', 'empty'],
+        form: ['empty', 'empty', 'empty'],
       },
       {
         teamName: 'South Korea',
         played: 0,
         drawn: 0,
         points: 0,
-        form: ['empty', 'empty', 'empty', 'empty', 'empty'],
+        form: ['empty', 'empty', 'empty'],
       },
     ])
   })

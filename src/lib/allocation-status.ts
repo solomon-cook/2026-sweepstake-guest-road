@@ -47,7 +47,7 @@ type AllocationTeamDisplayState = ReturnType<typeof buildTeamDisplayStates>[stri
 type FixtureSide = 'home' | 'away'
 
 const PREVIOUS_MATCHUP_LIMIT = 5
-const EMPTY_FORM: FormResult[] = ['empty', 'empty', 'empty', 'empty', 'empty']
+const EMPTY_FORM: FormResult[] = ['empty', 'empty', 'empty']
 
 function selectBundleMood(draw: PersistedDraw, teamsByName: Record<string, AllocationTeamDisplayState>) {
   return Object.fromEntries(

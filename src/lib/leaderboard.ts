@@ -133,10 +133,10 @@ function compareStandings(left: MutableStanding, right: MutableStanding) {
   )
 }
 
-function withFiveForm(form: FormResult[]) {
-  const emptyForm: FormResult[] = ['empty', 'empty', 'empty', 'empty', 'empty']
+function withThreeForm(form: FormResult[]) {
+  const emptyForm: FormResult[] = ['empty', 'empty', 'empty']
 
-  return [...form.slice(-5).reverse(), ...emptyForm].slice(0, 5)
+  return [...form.slice(-3).reverse(), ...emptyForm].slice(0, 3)
 }
 
 function roundSortValue(round: string) {
@@ -306,7 +306,7 @@ export function buildGroupTables(
       standings: standings.sort(compareStandings).map((standing, index) => ({
         ...standing,
         position: index + 1,
-        form: withFiveForm(standing.form),
+        form: withThreeForm(standing.form),
       })),
     }))
 }
