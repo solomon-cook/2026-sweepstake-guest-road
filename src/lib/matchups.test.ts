@@ -61,6 +61,8 @@ describe('matchup mapping', () => {
   test('normalizes API team names for owner lookup', () => {
     expect(normalizeTeamName('Curaçao')).toBe('curacao')
     expect(normalizeTeamName('Bosnia & Herzegovina')).toBe('bosniaandherzegovina')
+    expect(normalizeTeamName('Bosnia-Herzegovina')).toBe('bosniaandherzegovina')
+    expect(normalizeTeamName('Czechia')).toBe('czechrepublic')
     expect(normalizeTeamName('Türkiye')).toBe('turkey')
     expect(normalizeTeamName('USA')).toBe('unitedstates')
     expect(normalizeTeamName('DR Congo')).toBe('drcongo')
@@ -123,6 +125,68 @@ describe('matchup mapping', () => {
     expect(result.warnings).not.toContain('No sweepstake owner found for Congo DR.')
   })
 
+  test('matches Czechia fixtures to the existing Czech Republic allocation', () => {
+    const draw = toPersistedDraw(7, [
+      {
+        id: 'slot-czech',
+        slotIndex: 0,
+        playerName: 'Callum',
+        totalScore: 10,
+        isRevealed: true,
+        teamAssignments: [
+          {
+            teamOrder: 0,
+            team: TEAM_SEED_SCORES.find((team) => team.name === 'Czech Republic')!,
+          },
+        ],
+      },
+    ])
+
+    const result = buildMatchups(
+      draw,
+      [fixture({ homeTeam: 'Czechia', awayTeam: 'France' })],
+      {},
+    )
+
+    expect(result.matchups[0].home).toMatchObject({
+      ownerName: 'Callum',
+      teamName: 'Czech Republic',
+      isAssigned: true,
+    })
+    expect(result.warnings).not.toContain('No sweepstake owner found for Czechia.')
+  })
+
+  test('matches Bosnia-Herzegovina fixtures to the existing Bosnia and Herzegovina allocation', () => {
+    const draw = toPersistedDraw(7, [
+      {
+        id: 'slot-bosnia',
+        slotIndex: 0,
+        playerName: 'Alex',
+        totalScore: 10,
+        isRevealed: true,
+        teamAssignments: [
+          {
+            teamOrder: 0,
+            team: TEAM_SEED_SCORES.find((team) => team.name === 'Bosnia and Herzegovina')!,
+          },
+        ],
+      },
+    ])
+
+    const result = buildMatchups(
+      draw,
+      [fixture({ homeTeam: 'Bosnia-Herzegovina', awayTeam: 'France' })],
+      {},
+    )
+
+    expect(result.matchups[0].home).toMatchObject({
+      ownerName: 'Alex',
+      teamName: 'Bosnia and Herzegovina',
+      isAssigned: true,
+    })
+    expect(result.warnings).not.toContain('No sweepstake owner found for Bosnia-Herzegovina.')
+  })
+
   test('calculates matchup odds from persisted team scores when no external odds exist', () => {
     const result = buildMatchups(makeDraw(), [fixture({})], {})
     const matchup = result.matchups[0]
@@ -178,10 +242,13 @@ describe('matchup mapping', () => {
   })
 
   test('selects live fixtures first, then upcoming fixtures', () => {
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    const inTwoDays = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+
     const selected = selectDisplayFixtures([
-      fixture({ id: 'later', startsAt: '2026-06-20T20:00:00+00:00' }),
-      fixture({ id: 'live', status: 'live', startsAt: '2026-06-14T18:00:00+00:00' }),
-      fixture({ id: 'soon', startsAt: '2026-06-15T18:00:00+00:00' }),
+      fixture({ id: 'later', startsAt: inTwoDays }),
+      fixture({ id: 'live', status: 'live', startsAt: tomorrow }),
+      fixture({ id: 'soon', startsAt: tomorrow }),
     ])
 
     expect(selected.map((item) => item.id)).toEqual(['live', 'soon', 'later'])

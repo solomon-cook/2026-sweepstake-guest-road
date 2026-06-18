@@ -11,6 +11,8 @@ const LIVE_STATUS_CODES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'I
 const UPCOMING_STATUS_CODES = new Set(['NS', 'TBD'])
 const FINISHED_STATUS_CODES = new Set(['FT', 'AET', 'PEN'])
 const TEAM_NAME_ALIASES: Record<string, string> = {
+  bosniaherzegovina: 'bosniaandherzegovina',
+  czechia: 'czechrepublic',
   turkiye: 'turkey',
   usa: 'unitedstates',
   usmnt: 'unitedstates',
