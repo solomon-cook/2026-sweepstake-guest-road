@@ -7,7 +7,13 @@ import type { MatchupView } from '@/lib/types'
 
 const LOAD_PREVIOUS_MATCHES_BATCH = 4
 
-export function PreviousMatchupsToggle({ matchups }: { matchups: MatchupView[] }) {
+export function PreviousMatchupsToggle({
+  matchups,
+  onSelectPlayer,
+}: {
+  matchups: MatchupView[]
+  onSelectPlayer?: (playerName: string) => void
+}) {
   const [visibleCount, setVisibleCount] = useState(0)
   const visibleMatchups = matchups.slice(0, visibleCount)
   const hasMore = visibleCount < matchups.length
@@ -27,7 +33,12 @@ export function PreviousMatchupsToggle({ matchups }: { matchups: MatchupView[] }
       {visibleMatchups.length ? (
         <div className="previous-matchups-panel">
           {visibleMatchups.map((matchup) => (
-            <MatchupCard key={matchup.fixture.id} matchup={matchup} label="Previous match" />
+            <MatchupCard
+              key={matchup.fixture.id}
+              matchup={matchup}
+              label="Previous match"
+              onSelectPlayer={onSelectPlayer}
+            />
           ))}
         </div>
       ) : null}

@@ -1,6 +1,9 @@
 import { MatchupsPage } from '@/components/matchups-page'
+import { buildAllocationDisplayState } from '@/lib/allocation-status'
 import { getOrCreateDraw } from '@/lib/draw-repository'
-import { loadMatchupData } from '@/lib/fixture-provider'
+import { loadFixtures } from '@/lib/fixture-provider'
+import { buildLeaderboardData } from '@/lib/leaderboard'
+import { buildMatchups, selectDisplayFixtures, selectPreviousFixtures } from '@/lib/matchups'
 import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
@@ -29,11 +32,24 @@ export default async function MatchupsRoute() {
     )
   }
 
-  let matchupData
+  let matchups
+  let previousMatchups
+  let warnings
+  let players
+  let teamDetailsByName
 
   try {
     const draw = await getOrCreateDraw(7, result.teams)
-    matchupData = await loadMatchupData(draw)
+    const fixtureResult = await loadFixtures()
+    const displayFixtures = selectDisplayFixtures(fixtureResult.fixtures)
+    const previousFixtures = selectPreviousFixtures(fixtureResult.fixtures)
+    const currentMatchupResult = buildMatchups(draw, displayFixtures, {})
+    const previousMatchupResult = buildMatchups(draw, previousFixtures, {})
+    matchups = currentMatchupResult.matchups
+    previousMatchups = previousMatchupResult.matchups
+    warnings = [...fixtureResult.warnings, ...currentMatchupResult.warnings, ...previousMatchupResult.warnings]
+    players = buildLeaderboardData(result.teams, draw, fixtureResult.fixtures, fixtureResult.warnings).players
+    teamDetailsByName = buildAllocationDisplayState(result.teams, draw, fixtureResult.fixtures).teamDetailsByName
   } catch (error) {
     return (
       <SetupState
@@ -45,9 +61,11 @@ export default async function MatchupsRoute() {
 
   return (
     <MatchupsPage
-      matchups={matchupData.matchups}
-      previousMatchups={matchupData.previousMatchups}
-      warnings={matchupData.warnings}
+      matchups={matchups}
+      previousMatchups={previousMatchups}
+      warnings={warnings}
+      players={players}
+      teamDetailsByName={teamDetailsByName}
     />
   )
 }

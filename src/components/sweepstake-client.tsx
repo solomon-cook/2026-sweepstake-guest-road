@@ -5,6 +5,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { AllocationDisplayState, AllocationTeamDetail, AllocationTeamFixtureSummary } from '@/lib/allocation-status'
 import { CardPackOpening } from '@/components/card-pack-opening'
 import { HeaderLinks } from '@/components/header-links'
+import {
+  buildPlayerNextMatchups,
+  buildPlayerPhotoFrames,
+  PlayerPhotoLightbox,
+} from '@/components/player-photo-lightbox'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
 import { normalizeTeamName } from '@/lib/matchups'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
@@ -12,11 +17,6 @@ import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
 type ParticipantPhotoPreview = {
   bundle: PersistedBundle
-}
-type ParticipantPhotoFrame = {
-  imageUrl: string
-  imageLabel: string
-  expressionLabel: string
 }
 
 const ALLOWED_UPLOAD_TYPES = new Set([
@@ -213,41 +213,13 @@ function getBundlePreviewImage(bundle: PersistedBundle, mood: 'neutral' | 'ecsta
 }
 
 function getBundlePhotoFrames(bundle: PersistedBundle): ParticipantPhotoFrame[] {
-  const frames: ParticipantPhotoFrame[] = []
-
-  if (bundle.fanImageUrls?.neutral) {
-    frames.push({
-      imageUrl: bundle.fanImageUrls.neutral,
-      imageLabel: `Neutral AI profile photo for ${bundle.playerName}`,
-      expressionLabel: 'Calm',
-    })
-  }
-
-  if (bundle.fanImageUrls?.ecstatic) {
-    frames.push({
-      imageUrl: bundle.fanImageUrls.ecstatic,
-      imageLabel: `Ecstatic AI profile photo for ${bundle.playerName}`,
-      expressionLabel: 'Ecstatic',
-    })
-  }
-
-  if (bundle.fanImageUrls?.devastated) {
-    frames.push({
-      imageUrl: bundle.fanImageUrls.devastated,
-      imageLabel: `Devastated AI profile photo for ${bundle.playerName}`,
-      expressionLabel: 'Devastated',
-    })
-  }
-
-  if (!frames.length && bundle.sourcePhotoUrl) {
-    frames.push({
-      imageUrl: bundle.sourcePhotoUrl,
-      imageLabel: `Uploaded profile photo for ${bundle.playerName}`,
-      expressionLabel: 'Original',
-    })
-  }
-
-  return frames
+  return buildPlayerPhotoFrames({
+    playerName: bundle.playerName,
+    sourcePhotoUrl: bundle.sourcePhotoUrl,
+    neutralPhotoUrl: bundle.fanImageUrls?.neutral,
+    ecstaticPhotoUrl: bundle.fanImageUrls?.ecstatic,
+    devastatedPhotoUrl: bundle.fanImageUrls?.devastated,
+  })
 }
 
 export function SweepstakeClient({
@@ -289,6 +261,16 @@ export function SweepstakeClient({
   }, [])
 
   const activePhotoFrames = activePhotoPreview ? getBundlePhotoFrames(activePhotoPreview.bundle) : []
+  const activePhotoNextMatchups = activePhotoPreview
+    ? buildPlayerNextMatchups(
+        activePhotoPreview.bundle.teams.map((team) => ({
+          teamName: team.name,
+          teamFlagImageUrl: team.flagImageUrl ?? team.flag ?? null,
+          teamRank: team.rank,
+        })),
+        allocationDisplayState.teamDetailsByName,
+      )
+    : []
   const currentPhotoFrame =
     activePhotoFrames.length > 0
       ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
@@ -839,46 +821,14 @@ export function SweepstakeClient({
       ) : null}
 
       {activePhotoPreview ? (
-        <div
-          className="photo-lightbox-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="photo-lightbox-title"
-          onClick={closePhotoPreview}
-        >
-          <div className="photo-lightbox" onClick={(event) => event.stopPropagation()}>
-            <div className="photo-lightbox-header">
-              <div>
-                <p className="section-kicker">Profile photo</p>
-                <h2 id="photo-lightbox-title">{activePhotoPreview.bundle.playerName}</h2>
-              </div>
-              <button type="button" className="photo-lightbox-close" onClick={closePhotoPreview}>
-                Close
-              </button>
-            </div>
-            {currentPhotoFrame ? (
-              <>
-                <div className="photo-lightbox-stage">
-                  <div key={currentPhotoFrame.imageUrl} className="photo-lightbox-frame">
-                    <img
-                      className="photo-lightbox-image"
-                      src={currentPhotoFrame.imageUrl}
-                      alt={currentPhotoFrame.imageLabel}
-                    />
-                  </div>
-                </div>
-                {activePhotoFrames.length > 1 ? (
-                  <div className="photo-lightbox-carousel-meta" aria-live="polite">
-                    <p>
-                      <span className="photo-expression-chip">{currentPhotoFrame.expressionLabel}</span>
-                      {activePhotoFrameIndex % activePhotoFrames.length + 1} of {activePhotoFrames.length}
-                    </p>
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-        </div>
+        <PlayerPhotoLightbox
+          playerName={activePhotoPreview.bundle.playerName}
+          currentFrame={currentPhotoFrame}
+          frameIndex={activePhotoFrames.length ? activePhotoFrameIndex % activePhotoFrames.length : 0}
+          frameCount={activePhotoFrames.length}
+          nextMatchups={activePhotoNextMatchups}
+          onClose={closePhotoPreview}
+        />
       ) : null}
 
       {selectedTeamDetail ? (

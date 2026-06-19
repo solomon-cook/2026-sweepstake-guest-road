@@ -1,7 +1,12 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
 import { MatchupCard } from '@/components/matchup-card'
+import { PlayerPhotoLightbox, buildPlayerNextMatchups, buildPlayerPhotoFrames } from '@/components/player-photo-lightbox'
 import { PreviousMatchupsToggle } from '@/components/previous-matchups-toggle'
-import type { MatchupView } from '@/lib/types'
+import type { AllocationTeamDetail } from '@/lib/allocation-status'
+import type { MatchupView, PlayerLeaderboardRow } from '@/lib/types'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MATCHUP_TIME_ZONE = 'Europe/London'
@@ -75,16 +80,58 @@ export function MatchupsPage({
   matchups,
   previousMatchups,
   warnings,
+  players,
+  teamDetailsByName,
 }: {
   matchups: MatchupView[]
   previousMatchups: MatchupView[]
   warnings: string[]
+  players: PlayerLeaderboardRow[]
+  teamDetailsByName: Record<string, AllocationTeamDetail>
 }) {
   const now = new Date()
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerLeaderboardRow | null>(null)
+  const [activePhotoFrameIndex, setActivePhotoFrameIndex] = useState(0)
   const yesterdayMatchups = previousMatchups.filter((matchup) => isYesterdayMatchup(matchup, now))
   const olderPreviousMatchups = previousMatchups.filter((matchup) => !isYesterdayMatchup(matchup, now))
   const groupedMatchups = buildMatchupGroups([...yesterdayMatchups, ...matchups], now)
   const hasGroupedMatchups = groupedMatchups.length > 0
+  const playerByName = new Map(players.map((player) => [player.playerName, player]))
+  const activePhotoFrames = selectedPlayer
+    ? buildPlayerPhotoFrames({
+        playerName: selectedPlayer.playerName,
+        sourcePhotoUrl: selectedPlayer.ownerSourcePhotoUrl,
+        neutralPhotoUrl: selectedPlayer.ownerNeutralPhotoUrl,
+        ecstaticPhotoUrl: selectedPlayer.ownerEcstaticPhotoUrl,
+        devastatedPhotoUrl: selectedPlayer.ownerDevastatedPhotoUrl,
+      })
+    : []
+  const currentPhotoFrame =
+    activePhotoFrames.length > 0
+      ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
+      : null
+  const nextMatchups = selectedPlayer
+    ? buildPlayerNextMatchups(
+        selectedPlayer.teams.map((team) => ({
+          teamName: team.teamName,
+          teamFlagImageUrl: team.teamFlagImageUrl ?? null,
+          teamRank: team.teamRank ?? null,
+        })),
+        teamDetailsByName,
+      )
+    : []
+
+  useEffect(() => {
+    if (!selectedPlayer || activePhotoFrames.length <= 1) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setActivePhotoFrameIndex((current) => (current + 1) % activePhotoFrames.length)
+    }, 1900)
+
+    return () => window.clearInterval(timer)
+  }, [activePhotoFrames.length, selectedPlayer])
 
   return (
     <main className="page-shell matchup-shell">
@@ -115,6 +162,16 @@ export function MatchupsPage({
                     key={matchup.fixture.id}
                     matchup={matchup}
                     label={labelForMatchup(matchup)}
+                    onSelectPlayer={(playerName) => {
+                      const nextPlayer = playerByName.get(playerName)
+
+                      if (!nextPlayer) {
+                        return
+                      }
+
+                      setActivePhotoFrameIndex(0)
+                      setSelectedPlayer(nextPlayer)
+                    }}
                   />
                 ))}
               </div>
@@ -128,8 +185,33 @@ export function MatchupsPage({
           </article>
         )}
 
-        <PreviousMatchupsToggle matchups={olderPreviousMatchups} />
+        <PreviousMatchupsToggle
+          matchups={olderPreviousMatchups}
+          onSelectPlayer={(playerName) => {
+            const nextPlayer = playerByName.get(playerName)
+
+            if (!nextPlayer) {
+              return
+            }
+
+            setActivePhotoFrameIndex(0)
+            setSelectedPlayer(nextPlayer)
+          }}
+        />
       </section>
+      {selectedPlayer ? (
+        <PlayerPhotoLightbox
+          playerName={selectedPlayer.playerName}
+          currentFrame={currentPhotoFrame}
+          frameIndex={activePhotoFrames.length ? activePhotoFrameIndex % activePhotoFrames.length : 0}
+          frameCount={activePhotoFrames.length}
+          nextMatchups={nextMatchups}
+          onClose={() => {
+            setSelectedPlayer(null)
+            setActivePhotoFrameIndex(0)
+          }}
+        />
+      ) : null}
     </main>
   )
 }

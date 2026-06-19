@@ -892,6 +892,43 @@ svg text {
   padding-top: 16px;
 }
 
+.player-photo-lightbox {
+  width: min(100%, 720px);
+}
+
+.player-photo-lightbox .photo-lightbox-image {
+  max-height: min(46vh, 420px);
+}
+
+.leaderboard-avatar-button,
+.leaderboard-bracket-photo-button,
+.compact-matchup-photo-button {
+  cursor: pointer;
+  padding: 0;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.leaderboard-avatar-button,
+.leaderboard-bracket-photo-button {
+  background: transparent;
+}
+
+.leaderboard-avatar-button:hover,
+.compact-matchup-photo-button:hover {
+  border-color: rgba(57, 173, 56, 0.36);
+  box-shadow: 0 10px 20px rgba(79, 82, 81, 0.12);
+  transform: translateY(-1px);
+}
+
+.leaderboard-bracket-photo-button:hover {
+  border-color: rgba(57, 173, 56, 0.34);
+  box-shadow: 0 8px 16px rgba(79, 82, 81, 0.14);
+  transform: translateY(-1px);
+}
+
 .team-lightbox {
   gap: 16px;
   width: min(100%, 640px);
@@ -986,6 +1023,36 @@ svg text {
   align-items: center;
   display: flex;
   justify-content: space-between;
+}
+
+.player-matchup-list {
+  display: grid;
+  gap: 12px;
+}
+
+.player-matchup-card {
+  display: grid;
+  gap: 8px;
+}
+
+.player-matchup-team {
+  align-items: center;
+  color: var(--color-night);
+  display: inline-flex;
+  gap: 10px;
+}
+
+.player-matchup-team img {
+  border-radius: 5px;
+  display: block;
+  height: 18px;
+  object-fit: cover;
+  width: 24px;
+}
+
+.player-matchup-team strong {
+  font-size: 0.95rem;
+  font-weight: 900;
 }
 
 .team-matchup-list {

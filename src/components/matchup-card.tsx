@@ -83,17 +83,30 @@ function CompactMatchupSide({
   side,
   align,
   photoUrl,
+  onSelectPlayer,
 }: {
   side: MatchupSide
   align: 'home' | 'away'
   photoUrl: string | null
+  onSelectPlayer?: (playerName: string) => void
 }) {
   return (
     <div className={`compact-matchup-side is-${align} ${side.isAssigned ? '' : 'is-unassigned'}`}>
       <div className="compact-matchup-owner">
-        <div className="compact-matchup-photo">
-          {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(side)}</span>}
-        </div>
+        {photoUrl && onSelectPlayer ? (
+          <button
+            type="button"
+            className="compact-matchup-photo compact-matchup-photo-button"
+            aria-label={`View ${side.ownerName} profile photos`}
+            onClick={() => onSelectPlayer(side.ownerName)}
+          >
+            <img src={photoUrl} alt="" />
+          </button>
+        ) : (
+          <div className="compact-matchup-photo">
+            {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(side)}</span>}
+          </div>
+        )}
         <p>{side.ownerName}</p>
       </div>
       <div className="compact-matchup-team">
@@ -110,7 +123,15 @@ function CompactMatchupSide({
   )
 }
 
-export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: string }) {
+export function MatchupCard({
+  matchup,
+  label,
+  onSelectPlayer,
+}: {
+  matchup: MatchupView
+  label: string
+  onSelectPlayer?: (playerName: string) => void
+}) {
   const hasScore = matchup.fixture.homeScore !== null && matchup.fixture.awayScore !== null
   const compactShowsScore = matchup.fixture.status !== 'upcoming' && hasScore
   const compactDetail = compactShowsScore ? matchup.fixture.statusLabel : compactDateLabel(matchup.fixture.startsAt)
@@ -148,7 +169,7 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
       </header>
 
       <div className="matchup-compact" aria-label={`${matchup.fixture.homeTeam} versus ${matchup.fixture.awayTeam}`}>
-        <CompactMatchupSide side={matchup.home} align="home" photoUrl={homePhotoUrl} />
+        <CompactMatchupSide side={matchup.home} align="home" photoUrl={homePhotoUrl} onSelectPlayer={onSelectPlayer} />
         <div className="compact-matchup-center">
           <span>{compactShowsScore ? 'Score' : 'Kickoff'}</span>
           <strong>
@@ -158,7 +179,7 @@ export function MatchupCard({ matchup, label }: { matchup: MatchupView; label: s
           </strong>
           <em>{compactDetail}</em>
         </div>
-        <CompactMatchupSide side={matchup.away} align="away" photoUrl={awayPhotoUrl} />
+        <CompactMatchupSide side={matchup.away} align="away" photoUrl={awayPhotoUrl} onSelectPlayer={onSelectPlayer} />
       </div>
 
       <footer className="matchup-card-footer">

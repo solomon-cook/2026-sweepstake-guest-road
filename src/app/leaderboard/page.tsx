@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { TournamentPage } from '@/components/leaderboard-page'
+import { buildAllocationDisplayState } from '@/lib/allocation-status'
 import { getOrCreateDraw } from '@/lib/draw-repository'
 import { loadFixtures } from '@/lib/fixture-provider'
 import { buildLeaderboardData } from '@/lib/leaderboard'
@@ -35,11 +36,13 @@ export default async function LeaderboardRoute() {
   }
 
   let data
+  let teamDetailsByName
 
   try {
     const draw = await getOrCreateDraw(7, result.teams)
     const fixtureResult = await loadFixtures()
     data = buildLeaderboardData(result.teams, draw, fixtureResult.fixtures, fixtureResult.warnings)
+    teamDetailsByName = buildAllocationDisplayState(result.teams, draw, fixtureResult.fixtures).teamDetailsByName
   } catch (error) {
     return (
       <SetupState
@@ -49,5 +52,5 @@ export default async function LeaderboardRoute() {
     )
   }
 
-  return <TournamentPage data={data} />
+  return <TournamentPage data={data} teamDetailsByName={teamDetailsByName} />
 }

@@ -1,7 +1,12 @@
 'use client'
 
-import { type CSSProperties, useState } from 'react'
+import { type CSSProperties, useEffect, useState } from 'react'
 import { HeaderLinks } from '@/components/header-links'
+import {
+  buildPlayerNextMatchups,
+  buildPlayerPhotoFrames,
+  PlayerPhotoLightbox,
+} from '@/components/player-photo-lightbox'
 import type { AllocationTeamDetail, AllocationTeamFixtureSummary } from '@/lib/allocation-status'
 import { normalizeTeamName } from '@/lib/matchups'
 import type {
@@ -267,27 +272,6 @@ function FormChip({ result }: { result: FormResult }) {
   )
 }
 
-function OwnerIdentity({ owner }: { owner: TeamOwnerView }) {
-  const photoUrl = ownerPhotoUrl(owner)
-
-  return (
-    <div className={`leaderboard-owner ${owner.isAssigned ? '' : 'is-unassigned'}`}>
-      <span className="leaderboard-avatar">
-        {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(owner.ownerName)}</span>}
-      </span>
-      <span className="leaderboard-owner-copy">
-        <strong>{owner.ownerName}</strong>
-        <span>
-          {owner.teamFlagImageUrl ? (
-            <img src={owner.teamFlagImageUrl} alt={`${owner.teamName} flag`} width={22} height={16} />
-          ) : null}
-          {owner.teamName}
-        </span>
-      </span>
-    </div>
-  )
-}
-
 function formatAliveScore(value: number) {
   return value.toFixed(2)
 }
@@ -296,14 +280,48 @@ function playerChipClass(status: TeamSurvivalStatus) {
   return status === 'alive' ? 'is-alive' : status === 'pending' ? 'is-pending' : 'is-out'
 }
 
-function GroupRow({ standing }: { standing: GroupStandingView }) {
+function GroupRow({
+  standing,
+  onSelectTeam,
+}: {
+  standing: GroupStandingView
+  onSelectTeam?: (teamName: string) => void
+}) {
   const isEliteTeam = standing.position <= 2
+  const photoUrl = ownerPhotoUrl(standing)
+  const avatar = (
+    <span className="leaderboard-avatar">
+      {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(standing.ownerName)}</span>}
+    </span>
+  )
 
   return (
     <tr className={isEliteTeam ? 'is-elite-team' : ''}>
       <td className="leaderboard-position">{standing.position}</td>
       <td className="leaderboard-team-cell">
-        <OwnerIdentity owner={standing} />
+        <div className={`leaderboard-owner ${standing.isAssigned ? '' : 'is-unassigned'}`}>
+          {onSelectTeam && photoUrl ? (
+            <button
+              type="button"
+              className="leaderboard-avatar leaderboard-avatar-button"
+              aria-label={`View ${standing.teamName} team stats`}
+              onClick={() => onSelectTeam(standing.teamName)}
+            >
+              <img src={photoUrl} alt="" />
+            </button>
+          ) : (
+            avatar
+          )}
+          <span className="leaderboard-owner-copy">
+            <strong>{standing.ownerName}</strong>
+            <span>
+              {standing.teamFlagImageUrl ? (
+                <img src={standing.teamFlagImageUrl} alt={`${standing.teamName} flag`} width={22} height={16} />
+              ) : null}
+              {standing.teamName}
+            </span>
+          </span>
+        </div>
         <div className="leaderboard-mobile-row-details">
           <div className="leaderboard-mobile-points">
             <strong>{standing.points}</strong>
@@ -422,18 +440,42 @@ function PlayerRow({
   player,
   position,
   onSelectTeam,
+  onSelectPlayer,
 }: {
   player: PlayerLeaderboardRow
   position: number
   onSelectTeam?: (teamName: string) => void
+  onSelectPlayer?: (player: PlayerLeaderboardRow) => void
 }) {
   const isLeading = position === 1
+  const photoUrl = playerPhotoUrl(player)
 
   return (
     <tr className={isLeading ? 'is-elite-team' : ''}>
       <td className="leaderboard-position">{position}</td>
       <td className="leaderboard-player-cell">
-        <PlayerIdentity player={player} />
+        <div className="leaderboard-owner">
+          {onSelectPlayer && photoUrl ? (
+            <button
+              type="button"
+              className="leaderboard-avatar leaderboard-avatar-button"
+              aria-label={`View ${player.playerName} profile photos`}
+              onClick={() => onSelectPlayer(player)}
+            >
+              <img src={photoUrl} alt="" />
+            </button>
+          ) : (
+            <PlayerIdentity player={player} />
+          )}
+          {onSelectPlayer && photoUrl ? (
+            <span className="leaderboard-owner-copy">
+              <strong>{player.playerName}</strong>
+              <span>
+                {player.aliveTeamCount} currently through of {player.totalTeamCount}
+              </span>
+            </span>
+          ) : null}
+        </div>
         <div className="leaderboard-mobile-row-details leaderboard-mobile-row-details--players">
           <dl className="leaderboard-player-mobile-stats">
             <div>
@@ -481,7 +523,13 @@ function PlayerRow({
   )
 }
 
-function GroupStageView({ data }: { data: LeaderboardData }) {
+function GroupStageView({
+  data,
+  onSelectTeam,
+}: {
+  data: LeaderboardData
+  onSelectTeam?: (teamName: string) => void
+}) {
   return (
     <section className="leaderboard-groups" aria-label="Group stage leaderboard">
       {data.groups.map((group) => (
@@ -506,7 +554,7 @@ function GroupStageView({ data }: { data: LeaderboardData }) {
               </thead>
               <tbody>
                 {group.standings.map((standing) => (
-                  <GroupRow key={standing.teamName} standing={standing} />
+                  <GroupRow key={standing.teamName} standing={standing} onSelectTeam={onSelectTeam} />
                 ))}
               </tbody>
             </table>
@@ -525,11 +573,47 @@ export function PlayerLeaderboardView({
   teamDetailsByName?: Record<string, AllocationTeamDetail>
 }) {
   const [selectedTeamDetail, setSelectedTeamDetail] = useState<AllocationTeamDetail | null>(null)
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerLeaderboardRow | null>(null)
+  const [activePhotoFrameIndex, setActivePhotoFrameIndex] = useState(0)
   const handleSelectTeam = teamDetailsByName
     ? (teamName: string) => {
         setSelectedTeamDetail(teamDetailsByName[normalizeTeamName(teamName)] ?? null)
       }
     : undefined
+  const activePhotoFrames = selectedPlayer ? buildPlayerPhotoFrames({
+    playerName: selectedPlayer.playerName,
+    sourcePhotoUrl: selectedPlayer.ownerSourcePhotoUrl,
+    neutralPhotoUrl: selectedPlayer.ownerNeutralPhotoUrl,
+    ecstaticPhotoUrl: selectedPlayer.ownerEcstaticPhotoUrl,
+    devastatedPhotoUrl: selectedPlayer.ownerDevastatedPhotoUrl,
+  }) : []
+  const currentPhotoFrame =
+    activePhotoFrames.length > 0
+      ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
+      : null
+  const nextMatchups =
+    selectedPlayer && teamDetailsByName
+      ? buildPlayerNextMatchups(
+          selectedPlayer.teams.map((team) => ({
+            teamName: team.teamName,
+            teamFlagImageUrl: team.teamFlagImageUrl ?? null,
+            teamRank: team.teamRank ?? null,
+          })),
+          teamDetailsByName,
+        )
+      : []
+
+  useEffect(() => {
+    if (!selectedPlayer || activePhotoFrames.length <= 1) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setActivePhotoFrameIndex((current) => (current + 1) % activePhotoFrames.length)
+    }, 1900)
+
+    return () => window.clearInterval(timer)
+  }, [activePhotoFrames.length, selectedPlayer])
 
   if (!data.players.length) {
     return (
@@ -565,6 +649,10 @@ export function PlayerLeaderboardView({
                     player={player}
                     position={index + 1}
                     onSelectTeam={handleSelectTeam}
+                    onSelectPlayer={(nextPlayer) => {
+                      setActivePhotoFrameIndex(0)
+                      setSelectedPlayer(nextPlayer)
+                    }}
                   />
                 ))}
               </tbody>
@@ -575,19 +663,51 @@ export function PlayerLeaderboardView({
       {selectedTeamDetail ? (
         <TeamDetailLightbox team={selectedTeamDetail} onClose={() => setSelectedTeamDetail(null)} />
       ) : null}
+      {selectedPlayer ? (
+        <PlayerPhotoLightbox
+          playerName={selectedPlayer.playerName}
+          currentFrame={currentPhotoFrame}
+          frameIndex={activePhotoFrames.length ? activePhotoFrameIndex % activePhotoFrames.length : 0}
+          frameCount={activePhotoFrames.length}
+          nextMatchups={nextMatchups}
+          onClose={() => {
+            setSelectedPlayer(null)
+            setActivePhotoFrameIndex(0)
+          }}
+        />
+      ) : null}
     </>
   )
 }
 
-function BracketEntrant({ side, score }: { side: TeamOwnerView; score?: number | null }) {
+function BracketEntrant({
+  side,
+  score,
+  onSelectTeam,
+}: {
+  side: TeamOwnerView
+  score?: number | null
+  onSelectTeam?: (teamName: string) => void
+}) {
   const photoUrl = ownerPhotoUrl(side)
   const code = teamCode(side)
 
   return (
     <div className={`leaderboard-bracket-entrant ${side.isAssigned ? '' : 'is-tbd'}`}>
-      <span className="leaderboard-bracket-photo">
-        {photoUrl ? <img src={photoUrl} alt="" /> : <span>{code === 'TBD' ? 'T' : code.slice(0, 1)}</span>}
-      </span>
+      {onSelectTeam && photoUrl ? (
+        <button
+          type="button"
+          className="leaderboard-bracket-photo leaderboard-bracket-photo-button"
+          aria-label={`View ${side.teamName} team stats`}
+          onClick={() => onSelectTeam(side.teamName)}
+        >
+          <img src={photoUrl} alt="" />
+        </button>
+      ) : (
+        <span className="leaderboard-bracket-photo">
+          {photoUrl ? <img src={photoUrl} alt="" /> : <span>{code === 'TBD' ? 'T' : code.slice(0, 1)}</span>}
+        </span>
+      )}
       <strong>{code}</strong>
       {typeof score === 'number' ? <strong>{score}</strong> : null}
     </div>
@@ -598,16 +718,18 @@ function CompactBracketMatch({
   match,
   className = '',
   style,
+  onSelectTeam,
 }: {
   match: BracketMatchView
   className?: string
   style?: CSSProperties
+  onSelectTeam?: (teamName: string) => void
 }) {
   return (
     <article className={`leaderboard-bracket-card ${className}`} style={style}>
       <div className="leaderboard-bracket-entrants">
-        <BracketEntrant side={match.home} score={match.homeScore} />
-        <BracketEntrant side={match.away} score={match.awayScore} />
+        <BracketEntrant side={match.home} score={match.homeScore} onSelectTeam={onSelectTeam} />
+        <BracketEntrant side={match.away} score={match.awayScore} onSelectTeam={onSelectTeam} />
       </div>
       <time>{formatMatchTime(match.startsAt)}</time>
     </article>
@@ -634,9 +756,11 @@ function wingCardStyle(roundIndex: number, matchIndex: number, count: number) {
 function BracketWing({
   rounds,
   side,
+  onSelectTeam,
 }: {
   rounds: Map<string, BracketMatchView[]>
   side: 'left' | 'right'
+  onSelectTeam?: (teamName: string) => void
 }) {
   return (
     <div className={`leaderboard-bracket-wing is-${side}`}>
@@ -653,6 +777,7 @@ function BracketWing({
               matches.length > 1 && matchIndex % 2 === 0 ? 'is-pair-start' : ''
             }`}
             style={wingCardStyle(visualRoundIndex, matchIndex, matches.length)}
+            onSelectTeam={onSelectTeam}
           />
         ))
       })}
@@ -669,22 +794,34 @@ function ChampionMark() {
   )
 }
 
-function DesktopBracket({ rounds }: { rounds: Map<string, BracketMatchView[]> }) {
+function DesktopBracket({
+  rounds,
+  onSelectTeam,
+}: {
+  rounds: Map<string, BracketMatchView[]>
+  onSelectTeam?: (teamName: string) => void
+}) {
   const final = rounds.get('Final')?.[0] ?? null
 
   return (
     <section className="leaderboard-bracket-desktop" aria-label="Knockout stage bracket">
-      <BracketWing rounds={rounds} side="left" />
+      <BracketWing rounds={rounds} side="left" onSelectTeam={onSelectTeam} />
       <div className="leaderboard-bracket-center">
         <ChampionMark />
-        {final ? <CompactBracketMatch match={final} className="is-final" /> : null}
+        {final ? <CompactBracketMatch match={final} className="is-final" onSelectTeam={onSelectTeam} /> : null}
       </div>
-      <BracketWing rounds={rounds} side="right" />
+      <BracketWing rounds={rounds} side="right" onSelectTeam={onSelectTeam} />
     </section>
   )
 }
 
-function MobileBracket({ rounds }: { rounds: Map<string, BracketMatchView[]> }) {
+function MobileBracket({
+  rounds,
+  onSelectTeam,
+}: {
+  rounds: Map<string, BracketMatchView[]>
+  onSelectTeam?: (teamName: string) => void
+}) {
   const roundOf16 = rounds.get('Round of 16') ?? []
   const quarterFinals = rounds.get('Quarter-finals') ?? []
   const semiFinals = rounds.get('Semi-finals') ?? []
@@ -725,7 +862,12 @@ function MobileBracket({ rounds }: { rounds: Map<string, BracketMatchView[]> }) 
         <div className="leaderboard-mobile-connector is-bottom-r16-left" aria-hidden="true" />
         <div className="leaderboard-mobile-connector is-bottom-r16-right" aria-hidden="true" />
         {treeMatches.map(({ match, slot }) => (
-          <CompactBracketMatch key={match.id} match={match} className={`is-mobile-${slot}`} />
+          <CompactBracketMatch
+            key={match.id}
+            match={match}
+            className={`is-mobile-${slot}`}
+            onSelectTeam={onSelectTeam}
+          />
         ))}
         <ChampionMark />
       </div>
@@ -733,7 +875,13 @@ function MobileBracket({ rounds }: { rounds: Map<string, BracketMatchView[]> }) 
   )
 }
 
-function KnockoutView({ data }: { data: LeaderboardData }) {
+function KnockoutView({
+  data,
+  onSelectTeam,
+}: {
+  data: LeaderboardData
+  onSelectTeam?: (teamName: string) => void
+}) {
   const rounds = new Map<string, BracketMatchView[]>()
 
   for (const match of data.bracket) {
@@ -753,8 +901,8 @@ function KnockoutView({ data }: { data: LeaderboardData }) {
 
   return (
     <>
-      <DesktopBracket rounds={rounds} />
-      <MobileBracket rounds={rounds} />
+      <DesktopBracket rounds={rounds} onSelectTeam={onSelectTeam} />
+      <MobileBracket rounds={rounds} onSelectTeam={onSelectTeam} />
     </>
   )
 }
@@ -811,8 +959,20 @@ export function HomePage({
   )
 }
 
-export function TournamentPage({ data }: { data: LeaderboardData }) {
+export function TournamentPage({
+  data,
+  teamDetailsByName,
+}: {
+  data: LeaderboardData
+  teamDetailsByName?: Record<string, AllocationTeamDetail>
+}) {
   const [activeTab, setActiveTab] = useState<TournamentTab>('groups')
+  const [selectedTeamDetail, setSelectedTeamDetail] = useState<AllocationTeamDetail | null>(null)
+  const handleSelectTeam = teamDetailsByName
+    ? (teamName: string) => {
+        setSelectedTeamDetail(teamDetailsByName[normalizeTeamName(teamName)] ?? null)
+      }
+    : undefined
 
   return (
     <LeaderboardPageShell title="Tournament">
@@ -839,9 +999,12 @@ export function TournamentPage({ data }: { data: LeaderboardData }) {
           </button>
         </div>
 
-        {activeTab === 'groups' ? <GroupStageView data={data} /> : null}
-        {activeTab === 'knockout' ? <KnockoutView data={data} /> : null}
+        {activeTab === 'groups' ? <GroupStageView data={data} onSelectTeam={handleSelectTeam} /> : null}
+        {activeTab === 'knockout' ? <KnockoutView data={data} onSelectTeam={handleSelectTeam} /> : null}
       </section>
+      {selectedTeamDetail ? (
+        <TeamDetailLightbox team={selectedTeamDetail} onClose={() => setSelectedTeamDetail(null)} />
+      ) : null}
     </LeaderboardPageShell>
   )
 }
