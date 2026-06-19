@@ -212,7 +212,7 @@ function getBundlePreviewImage(bundle: PersistedBundle, mood: 'neutral' | 'ecsta
   return null
 }
 
-function getBundlePhotoFrames(bundle: PersistedBundle): ParticipantPhotoFrame[] {
+function getBundlePhotoFrames(bundle: PersistedBundle) {
   return buildPlayerPhotoFrames({
     playerName: bundle.playerName,
     sourcePhotoUrl: bundle.sourcePhotoUrl,
