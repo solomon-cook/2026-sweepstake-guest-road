@@ -6,9 +6,8 @@ export const metadata: Metadata = {
   description:
     'Teams are grouped by strength and shared across players so each bundle gets a fair mix.',
   icons: {
-    icon: '/football.svg',
-    shortcut: '/football.svg',
-    apple: '/football.svg',
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
   },
 }
 
