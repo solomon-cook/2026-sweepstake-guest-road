@@ -2055,6 +2055,10 @@ button.leaderboard-player-chip:hover {
     padding: 13px 14px;
   }
 
+  .leaderboard-panel--plain .leaderboard-group h2 {
+    display: none;
+  }
+
   .leaderboard-table-scroll {
     overflow: visible;
   }
