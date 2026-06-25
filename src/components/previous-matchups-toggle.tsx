@@ -22,7 +22,7 @@ export function PreviousMatchupsToggle({
     <>
       {matchups.length > 0 && hasMore ? (
         <button
-          className="secondary-button previous-matchups-trigger"
+          className="secondary-button matchup-list-trigger"
           type="button"
           onClick={() => setVisibleCount((count) => count + LOAD_PREVIOUS_MATCHES_BATCH)}
         >

@@ -9,6 +9,8 @@ import type { AllocationTeamDetail } from '@/lib/allocation-status'
 import type { MatchupView, PlayerLeaderboardRow } from '@/lib/types'
 
 const DAY_MS = 24 * 60 * 60 * 1000
+const INITIAL_VISIBLE_MATCHUPS = 8
+const LOAD_MORE_MATCHUPS_BATCH = 4
 const MATCHUP_TIME_ZONE = 'Europe/London'
 
 type MatchupGroupId = 'yesterday' | 'today' | 'tomorrow' | 'future'
@@ -92,10 +94,13 @@ export function MatchupsPage({
   const now = new Date()
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerLeaderboardRow | null>(null)
   const [activePhotoFrameIndex, setActivePhotoFrameIndex] = useState(0)
+  const [visibleMatchupCount, setVisibleMatchupCount] = useState(INITIAL_VISIBLE_MATCHUPS)
   const yesterdayMatchups = previousMatchups.filter((matchup) => isYesterdayMatchup(matchup, now))
   const olderPreviousMatchups = previousMatchups.filter((matchup) => !isYesterdayMatchup(matchup, now))
-  const groupedMatchups = buildMatchupGroups([...yesterdayMatchups, ...matchups], now)
+  const visibleMatchups = matchups.slice(0, visibleMatchupCount)
+  const groupedMatchups = buildMatchupGroups([...yesterdayMatchups, ...visibleMatchups], now)
   const hasGroupedMatchups = groupedMatchups.length > 0
+  const hasMoreMatchups = visibleMatchupCount < matchups.length
   const playerByName = new Map(players.map((player) => [player.playerName, player]))
   const activePhotoFrames = selectedPlayer
     ? buildPlayerPhotoFrames({
@@ -152,6 +157,20 @@ export function MatchupsPage({
       ) : null}
 
       <section className="matchup-list" aria-label="Current and upcoming matchups">
+        <PreviousMatchupsToggle
+          matchups={olderPreviousMatchups}
+          onSelectPlayer={(playerName) => {
+            const nextPlayer = playerByName.get(playerName)
+
+            if (!nextPlayer) {
+              return
+            }
+
+            setActivePhotoFrameIndex(0)
+            setSelectedPlayer(nextPlayer)
+          }}
+        />
+
         {hasGroupedMatchups ? (
           groupedMatchups.map((group) => (
             <section className="matchup-day-group" aria-label={`${group.title} matchups`} key={group.id}>
@@ -185,19 +204,15 @@ export function MatchupsPage({
           </article>
         )}
 
-        <PreviousMatchupsToggle
-          matchups={olderPreviousMatchups}
-          onSelectPlayer={(playerName) => {
-            const nextPlayer = playerByName.get(playerName)
-
-            if (!nextPlayer) {
-              return
-            }
-
-            setActivePhotoFrameIndex(0)
-            setSelectedPlayer(nextPlayer)
-          }}
-        />
+        {hasMoreMatchups ? (
+          <button
+            className="secondary-button matchup-list-trigger"
+            type="button"
+            onClick={() => setVisibleMatchupCount((count) => count + LOAD_MORE_MATCHUPS_BATCH)}
+          >
+            Load more matches
+          </button>
+        ) : null}
       </section>
       {selectedPlayer ? (
         <PlayerPhotoLightbox

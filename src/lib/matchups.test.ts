@@ -267,6 +267,29 @@ describe('matchup mapping', () => {
     expect(selected.map((item) => item.id)).toEqual(['today-earlier'])
   })
 
+  test('does not display unresolved group placement fixtures', () => {
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    const selected = selectDisplayFixtures([
+      fixture({ id: 'resolved', startsAt: tomorrow }),
+      fixture({ id: 'unresolved-home', homeTeam: '2A', startsAt: tomorrow }),
+      fixture({ id: 'unresolved-away', awayTeam: '1C', startsAt: tomorrow }),
+      fixture({ id: 'unresolved-third-place', awayTeam: '3A/B/C/D/F', startsAt: tomorrow }),
+    ], 8)
+
+    expect(selected.map((item) => item.id)).toEqual(['resolved'])
+  })
+
+  test('does not display unresolved knockout winner or loser fixtures', () => {
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    const selected = selectDisplayFixtures([
+      fixture({ id: 'resolved', startsAt: tomorrow }),
+      fixture({ id: 'unresolved-winner', homeTeam: 'W49', startsAt: tomorrow }),
+      fixture({ id: 'unresolved-loser', awayTeam: 'L61', startsAt: tomorrow }),
+    ], 8)
+
+    expect(selected.map((item) => item.id)).toEqual(['resolved'])
+  })
+
   test('selects previous fixtures newest first', () => {
     const selected = selectPreviousFixtures([
       fixture({ id: 'upcoming', status: 'upcoming', startsAt: '2026-06-16T12:00:00.000Z' }),

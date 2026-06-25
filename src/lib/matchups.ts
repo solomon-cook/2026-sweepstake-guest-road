@@ -10,6 +10,7 @@ import type {
 const LIVE_STATUS_CODES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'])
 const UPCOMING_STATUS_CODES = new Set(['NS', 'TBD'])
 const FINISHED_STATUS_CODES = new Set(['FT', 'AET', 'PEN'])
+const UNRESOLVED_FIXTURE_TEAM_PATTERN = /^(?:[12][A-L]|3[A-L](?:\/[A-L])+|[WL]\d+)$/i
 const TEAM_NAME_ALIASES: Record<string, string> = {
   bosniaherzegovina: 'bosniaandherzegovina',
   czechia: 'czechrepublic',
@@ -57,14 +58,25 @@ export function getFixtureStatus(shortStatus: string | null | undefined): MatchF
   return 'unknown'
 }
 
+function hasResolvedFixtureTeams(fixture: MatchFixture) {
+  return !(
+    UNRESOLVED_FIXTURE_TEAM_PATTERN.test(fixture.homeTeam.trim()) ||
+    UNRESOLVED_FIXTURE_TEAM_PATTERN.test(fixture.awayTeam.trim())
+  )
+}
+
 export function selectDisplayFixtures(fixtures: MatchFixture[], limit = 8) {
   const now = Date.now()
   const todayKey = new Date(now).toISOString().slice(0, 10)
   const liveFixtures = fixtures
-    .filter((fixture) => fixture.status === 'live')
+    .filter((fixture) => fixture.status === 'live' && hasResolvedFixtureTeams(fixture))
     .sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt))
   const upcomingFixtures = fixtures
     .filter((fixture) => {
+      if (!hasResolvedFixtureTeams(fixture)) {
+        return false
+      }
+
       if (fixture.status !== 'upcoming') {
         return false
       }

@@ -41,7 +41,7 @@ export default async function MatchupsRoute() {
   try {
     const draw = await getOrCreateDraw(7, result.teams)
     const fixtureResult = await loadFixtures()
-    const displayFixtures = selectDisplayFixtures(fixtureResult.fixtures)
+    const displayFixtures = selectDisplayFixtures(fixtureResult.fixtures, fixtureResult.fixtures.length)
     const previousFixtures = selectPreviousFixtures(fixtureResult.fixtures)
     const currentMatchupResult = buildMatchups(draw, displayFixtures, {})
     const previousMatchupResult = buildMatchups(draw, previousFixtures, {})

@@ -61,4 +61,34 @@ describe('database URL selection', () => {
 
     expect(getRuntimeDatabaseUrl()).toBe('postgres://only-url')
   })
+
+  test('normalizes runtime pg sslmode=require to the explicit current pg behavior', () => {
+    setDatabaseEnv({
+      POSTGRES_URL: 'postgres://app-pool.local/sweepstake?sslmode=require',
+    })
+
+    expect(getRuntimeDatabaseUrl()).toBe(
+      'postgres://app-pool.local/sweepstake?sslmode=verify-full',
+    )
+  })
+
+  test('normalizes migration pg ssl modes that pg treats as verify-full', () => {
+    setDatabaseEnv({
+      PRISMA_DATABASE_URL: 'postgres://migration.local/sweepstake?sslmode=verify-ca',
+    })
+
+    expect(getMigrationDatabaseUrl()).toBe(
+      'postgres://migration.local/sweepstake?sslmode=verify-full',
+    )
+  })
+
+  test('leaves other pg ssl modes unchanged', () => {
+    setDatabaseEnv({
+      POSTGRES_URL: 'postgres://app-pool.local/sweepstake?sslmode=disable',
+    })
+
+    expect(getRuntimeDatabaseUrl()).toBe(
+      'postgres://app-pool.local/sweepstake?sslmode=disable',
+    )
+  })
 })

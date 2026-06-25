@@ -3163,7 +3163,7 @@ code {
   text-transform: uppercase;
 }
 
-.previous-matchups-trigger {
+.matchup-list-trigger {
   justify-self: start;
 }
 
@@ -3580,7 +3580,7 @@ code {
     padding: 4px 0 0;
   }
 
-  .matchup-shell .previous-matchups-trigger {
+  .matchup-shell .matchup-list-trigger {
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -3590,7 +3590,7 @@ code {
     padding: 0;
   }
 
-  .matchup-shell .previous-matchups-trigger:hover {
+  .matchup-shell .matchup-list-trigger:hover {
     background: transparent;
     color: var(--color-blue);
   }
