@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { PullRefresh } from '@/components/pull-refresh'
 import './globals.css'
 
 const appName = 'Guest Road Sweepstake'
@@ -50,7 +51,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/rbb0bct.css" />
       </head>
-      <body>{children}</body>
+      <body>
+        <PullRefresh>{children}</PullRefresh>
+      </body>
     </html>
   )
 }

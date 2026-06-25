@@ -1,7 +1,4 @@
 {
   "/api/participants/[slotId]/images/[kind]/route": "app/api/participants/[slotId]/images/[kind]/route.js",
-  "/page": "app/page.js",
-  "/allocation/page": "app/allocation/page.js",
-  "/leaderboard/page": "app/leaderboard/page.js",
-  "/matchups/page": "app/matchups/page.js"
+  "/page": "app/page.js"
 }

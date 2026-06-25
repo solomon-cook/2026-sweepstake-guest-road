@@ -37,6 +37,7 @@ html {
   background: var(--color-surface);
   color: var(--color-ink);
   font-family: var(--font-body);
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -47,6 +48,7 @@ body {
   font-family: var(--font-body);
   margin: 0;
   min-height: 100vh;
+  overscroll-behavior-y: none;
 }
 
 body,
@@ -67,6 +69,112 @@ svg text {
 
 #root {
   min-height: 100vh;
+}
+
+.pull-refresh-indicator {
+  --pull-refresh-distance: 0px;
+  --pull-refresh-progress: 0;
+  --pull-refresh-rotation: 0deg;
+  align-items: center;
+  background: rgba(239, 239, 236, 0.96);
+  border: 1px solid rgba(79, 82, 81, 0.14);
+  border-radius: 999px;
+  box-shadow:
+    0 16px 32px rgba(25, 33, 63, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.58);
+  display: grid;
+  height: 54px;
+  justify-items: center;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  transform:
+    translate3d(-50%, calc(-72px + var(--pull-refresh-distance)), 0)
+    scale(calc(0.82 + (var(--pull-refresh-progress) * 0.18)));
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  width: 54px;
+  z-index: 120;
+}
+
+.pull-refresh-indicator.is-visible {
+  opacity: calc(0.35 + (var(--pull-refresh-progress) * 0.65));
+}
+
+.pull-refresh-indicator.is-pulling {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 80ms linear;
+}
+
+.pull-refresh-indicator.is-ready,
+.pull-refresh-indicator.is-refreshing {
+  border-color: rgba(244, 196, 48, 0.86);
+  box-shadow:
+    0 18px 36px rgba(25, 33, 63, 0.18),
+    0 0 0 4px rgba(244, 196, 48, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.pull-refresh-football {
+  background-color: var(--color-blue);
+  display: block;
+  height: 31px;
+  mask: url('/football.svg') center / contain no-repeat;
+  transform: rotate(var(--pull-refresh-rotation));
+  transform-origin: center;
+  width: 32px;
+  -webkit-mask: url('/football.svg') center / contain no-repeat;
+}
+
+.pull-refresh-indicator.is-ready .pull-refresh-football,
+.pull-refresh-indicator.is-refreshing .pull-refresh-football {
+  background-color: var(--color-red);
+}
+
+.pull-refresh-indicator.is-refreshing .pull-refresh-football {
+  animation: pullRefreshFootballSpin 820ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
+}
+
+.pull-refresh-status {
+  clip: rect(0 0 0 0);
+  border: 0;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: fixed;
+  white-space: nowrap;
+  width: 1px;
+}
+
+@keyframes pullRefreshFootballSpin {
+  from {
+    transform: rotate(var(--pull-refresh-rotation));
+  }
+
+  to {
+    transform: rotate(calc(var(--pull-refresh-rotation) + 760deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pull-refresh-indicator,
+  .pull-refresh-football {
+    animation-duration: 1ms;
+    transition-duration: 1ms;
+  }
+
+  .pull-refresh-indicator.is-refreshing .pull-refresh-football {
+    animation: none;
+    transform: rotate(180deg);
+  }
 }
 
 .page-shell {
