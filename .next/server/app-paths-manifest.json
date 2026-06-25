@@ -1,5 +1,6 @@
 {
   "/api/participants/[slotId]/images/[kind]/route": "app/api/participants/[slotId]/images/[kind]/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
   "/allocation/page": "app/allocation/page.js",
   "/matchups/page": "app/matchups/page.js",

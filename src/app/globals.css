@@ -89,6 +89,15 @@ svg text {
   justify-content: space-between;
 }
 
+.top-bar > div::before {
+  background: url('/favicon.svg') center / contain no-repeat;
+  content: '';
+  display: block;
+  height: 42px;
+  margin: 0 0 10px;
+  width: 44px;
+}
+
 .header-links {
   display: flex;
   gap: 14px;
@@ -3533,6 +3542,12 @@ code {
 
   .top-bar > div {
     width: 100%;
+  }
+
+  .top-bar > div::before {
+    height: 40px;
+    margin: 0 auto 8px;
+    width: 42px;
   }
 
   .top-bar .eyebrow {
