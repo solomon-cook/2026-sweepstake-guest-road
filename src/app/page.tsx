@@ -8,7 +8,7 @@ import { loadTeamScores } from '@/lib/team-repository'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: 'Home',
+  title: 'Leaderboard',
 }
 
 function SetupState({
@@ -21,7 +21,7 @@ function SetupState({
   return (
     <main className="page-shell">
       <section className="setup-card">
-        <p className="eyebrow">Home</p>
+        <p className="eyebrow">Leaderboard</p>
         <h1>{title}</h1>
         <p className="intro">{body}</p>
       </section>

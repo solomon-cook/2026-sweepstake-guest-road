@@ -950,8 +950,8 @@ export function HomePage({
   teamDetailsByName?: Record<string, AllocationTeamDetail>
 }) {
   return (
-    <LeaderboardPageShell title="Sweepstake">
-      <LeaderboardWarnings data={data} label="Home" />
+    <LeaderboardPageShell title="Leaderboard">
+      <LeaderboardWarnings data={data} label="Leaderboard" />
       <section className="leaderboard-panel leaderboard-panel--plain">
         <PlayerLeaderboardView data={data} teamDetailsByName={teamDetailsByName} />
       </section>
