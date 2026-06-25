@@ -1199,6 +1199,10 @@ svg text {
   padding: 0;
 }
 
+.leaderboard-panel--plain .leaderboard-group h2 {
+  display: none;
+}
+
 .leaderboard-tabs {
   background: rgba(255, 255, 255, 0.28);
   border-bottom: 1px solid rgba(79, 82, 81, 0.12);
@@ -2019,10 +2023,6 @@ button.leaderboard-player-chip:hover {
     border-bottom: 1px solid rgba(79, 82, 81, 0.08);
     font-size: 1rem;
     padding: 13px 14px;
-  }
-
-  .leaderboard-panel--plain .leaderboard-group h2 {
-    display: none;
   }
 
   .leaderboard-table-scroll {
