@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const TOP_EDGE_SCROLL_MAX = 1
@@ -51,7 +51,6 @@ function shouldIgnoreGestureTarget(target: EventTarget | null) {
         '[role="button"]',
         '[role="dialog"]',
         '.photo-lightbox-overlay',
-        '.pull-refresh-indicator',
         '.reveal-overlay',
       ].join(','),
     ),
@@ -68,12 +67,30 @@ function dampenPullDistance(distance: number) {
   return Math.min(MAX_PULL_DISTANCE, Math.max(0, (distance - DRAG_START_SLOP) * PULL_DAMPING))
 }
 
+function clearDocumentPullRefreshState() {
+  document.documentElement.style.removeProperty('--pull-refresh-progress')
+  document.documentElement.style.removeProperty('--pull-refresh-rotation')
+  document.documentElement.style.removeProperty('--pull-refresh-scale')
+  document.body.classList.remove('is-pull-refresh-pulling', 'is-pull-refresh-ready', 'is-pull-refreshing')
+}
+
 export function PullRefresh({ children }: { children: ReactNode }) {
   const router = useRouter()
   const isRefreshingRef = useRef(false)
   const [phase, setPhase] = useState<PullPhase>('idle')
   const [pullDistance, setPullDistance] = useState(0)
-  const [spinKey, setSpinKey] = useState(0)
+  const progress = Math.min(1, pullDistance / REFRESH_THRESHOLD)
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--pull-refresh-progress', progress.toFixed(3))
+    document.documentElement.style.setProperty('--pull-refresh-rotation', `${Math.round(progress * 230)}deg`)
+    document.documentElement.style.setProperty('--pull-refresh-scale', (1 + progress * 0.08).toFixed(3))
+    document.body.classList.toggle('is-pull-refresh-pulling', phase === 'pulling')
+    document.body.classList.toggle('is-pull-refresh-ready', phase === 'pulling' && progress >= 1)
+    document.body.classList.toggle('is-pull-refreshing', phase === 'refreshing')
+  }, [phase, progress])
+
+  useEffect(() => clearDocumentPullRefreshState, [])
 
   useEffect(() => {
     let gesture = createGestureState()
@@ -114,7 +131,6 @@ export function PullRefresh({ children }: { children: ReactNode }) {
       clearResetTimer()
       setPullDistance(REFRESH_THRESHOLD)
       setPhase('refreshing')
-      setSpinKey((current) => current + 1)
       router.refresh()
 
       resetTimer = window.setTimeout(resetVisuals, SPIN_DURATION_MS)
@@ -221,29 +237,13 @@ export function PullRefresh({ children }: { children: ReactNode }) {
     }
   }, [router])
 
-  const progress = Math.min(1, pullDistance / REFRESH_THRESHOLD)
-  const indicatorStyle = {
-    '--pull-refresh-distance': `${Math.round(pullDistance)}px`,
-    '--pull-refresh-progress': progress.toFixed(3),
-    '--pull-refresh-rotation': `${Math.round(progress * 230)}deg`,
-  } as CSSProperties
-  const indicatorClassName = [
-    'pull-refresh-indicator',
-    phase !== 'idle' ? 'is-visible' : '',
-    phase === 'pulling' ? 'is-pulling' : '',
-    phase === 'refreshing' ? 'is-refreshing' : '',
-    progress >= 1 ? 'is-ready' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
+  const statusText =
+    phase === 'refreshing' ? 'Refreshing scores' : phase === 'pulling' && progress >= 1 ? 'Release to refresh scores' : ''
 
   return (
     <>
-      <div className={indicatorClassName} style={indicatorStyle} aria-hidden="true">
-        <span key={spinKey} className="pull-refresh-football" />
-      </div>
       <span className="pull-refresh-status" aria-live="polite" aria-atomic="true">
-        {phase === 'refreshing' ? 'Refreshing scores' : ''}
+        {statusText}
       </span>
       {children}
     </>
