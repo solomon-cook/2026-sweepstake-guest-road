@@ -31,6 +31,7 @@ type KnockoutState = {
 }
 
 const KNOCKOUT_ROUND_ORDER: Record<string, number> = {
+  knockout: 1,
   'round of 32': 1,
   'round of 16': 2,
   'quarter-finals': 3,
@@ -54,6 +55,7 @@ const KNOCKOUT_ROUND_ORDER: Record<string, number> = {
 }
 
 const KNOCKOUT_ROUND_LABELS: Record<string, string> = {
+  knockout: 'Knockout',
   'round of 32': 'Round of 32',
   'round of 16': 'Round of 16',
   'quarter-finals': 'Quarter-finals',
@@ -169,8 +171,12 @@ function isKnockoutFixture(fixture: MatchFixture, teamGroups: Map<string, string
   const homeGroup = teamGroups.get(normalizeTeamName(fixture.homeTeam))
   const awayGroup = teamGroups.get(normalizeTeamName(fixture.awayTeam))
 
-  if (homeGroup && awayGroup && homeGroup === awayGroup) {
-    return false
+  if (homeGroup && awayGroup) {
+    if (homeGroup === awayGroup) {
+      return false
+    }
+
+    return !fixture.round || !isGroupRound(fixture.round)
   }
 
   return !isGroupRound(fixture.round)

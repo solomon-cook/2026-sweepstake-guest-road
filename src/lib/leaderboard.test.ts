@@ -187,6 +187,34 @@ describe('leaderboard knockout bracket', () => {
       },
     })
   })
+
+  test('treats resolved cross-group fixtures without round labels as knockout matches', () => {
+    const matches = buildBracketMatches(
+      [team('Sweden'), team('Mexico')],
+      makeDraw(),
+      [
+        fixture({
+          id: 'espn-sweden-mexico',
+          round: null,
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Sweden',
+          awayTeam: 'Mexico',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(matches).toMatchObject([
+      {
+        id: 'espn-sweden-mexico',
+        round: 'Knockout',
+        home: { teamName: 'Sweden' },
+        away: { teamName: 'Mexico' },
+      },
+    ])
+  })
 })
 
 describe('player leaderboard', () => {
@@ -237,6 +265,51 @@ describe('player leaderboard', () => {
       },
     ])
     expect(players[0].aliveTeamCount + players[0].eliminatedTeamCount).toBeLessThan(players[0].totalTeamCount)
+  })
+
+  test('keeps third-place teams alive when they have an upcoming knockout fixture without round metadata', () => {
+    const players = buildPlayerLeaderboard(
+      [team('Netherlands'), team('Japan'), team('Sweden'), team('Tunisia'), team('Mexico')],
+      toPersistedDraw(7, [
+        {
+          id: 'slot-sweden',
+          slotIndex: 0,
+          playerName: 'Alice',
+          totalScore: 10,
+          isRevealed: true,
+          teamAssignments: [{ teamOrder: 0, team: team('Sweden') }],
+        },
+      ]),
+      [
+        fixture({ id: 'f1', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Sweden', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'f2', round: 'Group F', homeTeam: 'Japan', awayTeam: 'Tunisia', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f3', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Japan', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f4', round: 'Group F', homeTeam: 'Sweden', awayTeam: 'Tunisia', homeScore: 1, awayScore: 0 }),
+        fixture({ id: 'f5', round: 'Group F', homeTeam: 'Netherlands', awayTeam: 'Tunisia', homeScore: 2, awayScore: 0 }),
+        fixture({ id: 'f6', round: 'Group F', homeTeam: 'Japan', awayTeam: 'Sweden', homeScore: 1, awayScore: 0 }),
+        fixture({
+          id: 'espn-sweden-mexico',
+          startsAt: '2026-06-30T19:00:00.000Z',
+          round: null,
+          status: 'upcoming',
+          statusLabel: 'Scheduled',
+          homeTeam: 'Sweden',
+          awayTeam: 'Mexico',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(players).toMatchObject([
+      {
+        playerName: 'Alice',
+        mood: 'ecstatic',
+        aliveTeamCount: 1,
+        eliminatedTeamCount: 0,
+        teams: [{ teamName: 'Sweden', status: 'alive' }],
+      },
+    ])
   })
 
   test('ranks players by alive teams first and alive score second', () => {
