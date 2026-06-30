@@ -287,6 +287,7 @@ export function SweepstakeClient({
     activePhotoFrames.length > 0
       ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
       : null
+  const selectedTeamLastMatchup = selectedTeamDetail?.previousMatchups[0] ?? null
 
   useEffect(() => {
     if (!activePhotoPreview || activePhotoFrames.length <= 1) {
@@ -910,6 +911,17 @@ export function SweepstakeClient({
                 />
               ) : (
                 <p className="team-lightbox-empty">No next matchup found.</p>
+              )}
+            </section>
+
+            <section className="team-lightbox-section">
+              <div className="team-lightbox-section-heading">
+                <p className="section-kicker">Last matchup</p>
+              </div>
+              {selectedTeamLastMatchup ? (
+                <TeamMatchupRow matchup={selectedTeamLastMatchup} />
+              ) : (
+                <p className="team-lightbox-empty">No last matchup found.</p>
               )}
             </section>
           </div>
