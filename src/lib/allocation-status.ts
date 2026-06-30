@@ -1,6 +1,16 @@
 import { buildGroupTables, buildTeamDisplayStates } from './leaderboard'
-import { normalizeTeamName } from './matchups'
-import type { FanImageKind, FixtureStatus, FormResult, MatchFixture, PersistedDraw, TeamScore } from './types'
+import { getFixtureSideResult, normalizeTeamName } from './matchups'
+import type {
+  FanImageKind,
+  FixtureResult,
+  FixtureSide,
+  FixtureStatus,
+  FormResult,
+  MatchFixture,
+  PersistedDraw,
+  TeamScore,
+  TeamSurvivalStatus,
+} from './types'
 
 export type AllocationTeamFixtureSummary = {
   id: string
@@ -14,7 +24,7 @@ export type AllocationTeamFixtureSummary = {
   isHome: boolean
   teamScore?: number | null
   opponentScore?: number | null
-  result: 'win' | 'draw' | 'loss' | 'pending'
+  result: FixtureResult
 }
 
 export type AllocationTeamDetail = {
@@ -31,6 +41,7 @@ export type AllocationTeamDetail = {
   goalDifference: number
   points: number
   form: FormResult[]
+  status: TeamSurvivalStatus
   isAlive: boolean
   isDimmed: boolean
   nextMatchup: AllocationTeamFixtureSummary | null
@@ -44,7 +55,6 @@ export type AllocationDisplayState = {
 }
 
 type AllocationTeamDisplayState = ReturnType<typeof buildTeamDisplayStates>[string]
-type FixtureSide = 'home' | 'away'
 
 const PREVIOUS_MATCHUP_LIMIT = 5
 const EMPTY_FORM: FormResult[] = ['empty', 'empty', 'empty']
@@ -75,22 +85,6 @@ function fixtureSideForTeam(fixture: MatchFixture, teamName: string): FixtureSid
   return null
 }
 
-function resultForScore(teamScore?: number | null, opponentScore?: number | null) {
-  if (typeof teamScore !== 'number' || typeof opponentScore !== 'number') {
-    return 'pending' as const
-  }
-
-  if (teamScore > opponentScore) {
-    return 'win' as const
-  }
-
-  if (teamScore < opponentScore) {
-    return 'loss' as const
-  }
-
-  return 'draw' as const
-}
-
 function summarizeFixtureForTeam(
   fixture: MatchFixture,
   side: FixtureSide,
@@ -114,7 +108,7 @@ function summarizeFixtureForTeam(
     isHome,
     teamScore,
     opponentScore,
-    result: resultForScore(teamScore, opponentScore),
+    result: getFixtureSideResult(fixture, side),
   }
 }
 
@@ -188,6 +182,7 @@ function buildTeamDetails(
           goalDifference: standing?.goalDifference ?? 0,
           points: standing?.points ?? 0,
           form: standing?.form ?? EMPTY_FORM,
+          status: displayState?.status ?? 'pending',
           isAlive: displayState?.isAlive ?? false,
           isDimmed: displayState?.isDimmed ?? false,
           nextMatchup: selectNextMatchup(team.name, fixtures, teamsByName),

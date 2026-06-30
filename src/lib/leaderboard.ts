@@ -1,4 +1,4 @@
-import { buildOwnerLookup, normalizeTeamName, unassignedSide } from './matchups'
+import { buildOwnerLookup, getFinishedFixtureWinner, normalizeTeamName, unassignedSide } from './matchups'
 import type {
   BracketMatchView,
   FanImageKind,
@@ -189,10 +189,6 @@ function attachFixtureSide(teamName: string, teamsByName: Map<string, TeamScore>
   }
 }
 
-function isResolvedMatch(homeScore?: number | null, awayScore?: number | null) {
-  return typeof homeScore === 'number' && typeof awayScore === 'number' && homeScore !== awayScore
-}
-
 function survivalStatusValue(status: TeamSurvivalStatus) {
   if (status === 'alive') {
     return 2
@@ -350,17 +346,21 @@ export function buildTeamDisplayStates(
       continue
     }
 
-    if (isResolvedMatch(match.homeScore, match.awayScore)) {
-      const homeWon = match.homeScore! > match.awayScore!
+    const winner = getFinishedFixtureWinner(match)
 
+    if (winner) {
       setKnockoutState(knockoutStates, match.home.teamName, {
-        isAlive: homeWon,
+        isAlive: winner === 'home',
         roundValue: nextRoundValue,
       })
       setKnockoutState(knockoutStates, match.away.teamName, {
-        isAlive: !homeWon,
+        isAlive: winner === 'away',
         roundValue: nextRoundValue,
       })
+      continue
+    }
+
+    if (match.status === 'finished') {
       continue
     }
 
@@ -495,6 +495,8 @@ export function buildBracketMatches(
       statusLabel: fixture.statusLabel,
       homeScore: fixture.homeScore,
       awayScore: fixture.awayScore,
+      homeWinner: fixture.homeWinner,
+      awayWinner: fixture.awayWinner,
       home: attachFixtureSide(fixture.homeTeam, teamsByName, owners),
       away: attachFixtureSide(fixture.awayTeam, teamsByName, owners),
     }))

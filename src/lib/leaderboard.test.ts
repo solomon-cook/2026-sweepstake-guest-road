@@ -355,6 +355,59 @@ describe('player leaderboard', () => {
     expect(players[2].aliveScoreTotal).toBe(team('Czech Republic').score)
   })
 
+  test('uses penalty winner flags to resolve tied knockout matches', () => {
+    const players = buildPlayerLeaderboard(
+      [team('Germany'), team('Paraguay')],
+      toPersistedDraw(7, [
+        {
+          id: 'slot-germany',
+          slotIndex: 0,
+          playerName: 'Alice',
+          totalScore: 8,
+          isRevealed: true,
+          teamAssignments: [{ teamOrder: 0, team: team('Germany') }],
+        },
+        {
+          id: 'slot-paraguay',
+          slotIndex: 1,
+          playerName: 'Bob',
+          totalScore: 7,
+          isRevealed: true,
+          teamAssignments: [{ teamOrder: 0, team: team('Paraguay') }],
+        },
+      ]),
+      [
+        fixture({
+          id: 'r32-germany-paraguay',
+          round: 'Round of 32',
+          status: 'finished',
+          statusLabel: 'FT-Pens',
+          homeTeam: 'Germany',
+          awayTeam: 'Paraguay',
+          homeScore: 1,
+          awayScore: 1,
+          homeWinner: false,
+          awayWinner: true,
+        }),
+      ],
+    )
+
+    expect(players).toMatchObject([
+      {
+        playerName: 'Bob',
+        aliveTeamCount: 1,
+        eliminatedTeamCount: 0,
+        teams: [{ teamName: 'Paraguay', status: 'alive' }],
+      },
+      {
+        playerName: 'Alice',
+        aliveTeamCount: 0,
+        eliminatedTeamCount: 1,
+        teams: [{ teamName: 'Germany', status: 'out' }],
+      },
+    ])
+  })
+
   test('breaks ties deterministically and carries players through leaderboard data', () => {
     const draw = toPersistedDraw(7, [
       {

@@ -97,6 +97,8 @@ export type MatchFixture = {
   awayTeam: string
   homeScore?: number | null
   awayScore?: number | null
+  homeWinner?: boolean | null
+  awayWinner?: boolean | null
 }
 
 export type MatchOdds = {
@@ -129,6 +131,8 @@ export type MatchupView = {
 }
 
 export type FormResult = 'win' | 'draw' | 'loss' | 'empty'
+export type FixtureSide = 'home' | 'away'
+export type FixtureResult = 'win' | 'draw' | 'loss' | 'pending'
 export type TeamSurvivalStatus = 'alive' | 'pending' | 'out'
 
 export type TeamOwnerView = {
@@ -195,6 +199,8 @@ export type BracketMatchView = {
   statusLabel: string
   homeScore?: number | null
   awayScore?: number | null
+  homeWinner?: boolean | null
+  awayWinner?: boolean | null
   home: TeamOwnerView
   away: TeamOwnerView
 }

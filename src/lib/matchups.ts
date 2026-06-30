@@ -1,4 +1,6 @@
 import type {
+  FixtureResult,
+  FixtureSide,
   MatchFixture,
   MatchOdds,
   MatchupSide,
@@ -11,6 +13,10 @@ const LIVE_STATUS_CODES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'I
 const UPCOMING_STATUS_CODES = new Set(['NS', 'TBD'])
 const FINISHED_STATUS_CODES = new Set(['FT', 'AET', 'PEN'])
 const UNRESOLVED_FIXTURE_TEAM_PATTERN = /^(?:[12][A-L]|3[A-L](?:\/[A-L])+|[WL]\d+)$/i
+type FixtureOutcomeInput = Pick<
+  MatchFixture,
+  'status' | 'homeScore' | 'awayScore' | 'homeWinner' | 'awayWinner'
+>
 const TEAM_NAME_ALIASES: Record<string, string> = {
   bosniaherzegovina: 'bosniaandherzegovina',
   czechia: 'czechrepublic',
@@ -56,6 +62,63 @@ export function getFixtureStatus(shortStatus: string | null | undefined): MatchF
   }
 
   return 'unknown'
+}
+
+export function getFinishedFixtureWinner(fixture: FixtureOutcomeInput): FixtureSide | null {
+  if (fixture.status !== 'finished') {
+    return null
+  }
+
+  if (fixture.homeWinner === true && fixture.awayWinner !== true) {
+    return 'home'
+  }
+
+  if (fixture.awayWinner === true && fixture.homeWinner !== true) {
+    return 'away'
+  }
+
+  if (typeof fixture.homeScore !== 'number' || typeof fixture.awayScore !== 'number') {
+    return null
+  }
+
+  if (fixture.homeScore > fixture.awayScore) {
+    return 'home'
+  }
+
+  if (fixture.awayScore > fixture.homeScore) {
+    return 'away'
+  }
+
+  return null
+}
+
+export function getFixtureSideResult(fixture: FixtureOutcomeInput, side: FixtureSide): FixtureResult {
+  const winner = getFinishedFixtureWinner(fixture)
+
+  if (winner) {
+    return side === winner ? 'win' : 'loss'
+  }
+
+  if (fixture.status === 'upcoming') {
+    return 'pending'
+  }
+
+  const teamScore = side === 'home' ? fixture.homeScore : fixture.awayScore
+  const opponentScore = side === 'home' ? fixture.awayScore : fixture.homeScore
+
+  if (typeof teamScore !== 'number' || typeof opponentScore !== 'number') {
+    return 'pending'
+  }
+
+  if (teamScore > opponentScore) {
+    return 'win'
+  }
+
+  if (teamScore < opponentScore) {
+    return 'loss'
+  }
+
+  return 'draw'
 }
 
 function hasResolvedFixtureTeams(fixture: MatchFixture) {
@@ -143,7 +206,16 @@ export function selectMatchupOwnerPhoto(
   side: MatchupSide,
   ownScore?: number | null,
   opponentScore?: number | null,
+  result?: FixtureResult,
 ) {
+  if (result === 'win') {
+    return side.ownerEcstaticPhotoUrl || side.ownerNeutralPhotoUrl || side.ownerSourcePhotoUrl || null
+  }
+
+  if (result === 'loss') {
+    return side.ownerDevastatedPhotoUrl || side.ownerNeutralPhotoUrl || side.ownerSourcePhotoUrl || null
+  }
+
   if (typeof ownScore === 'number' && typeof opponentScore === 'number') {
     if (ownScore > opponentScore) {
       return side.ownerEcstaticPhotoUrl || side.ownerNeutralPhotoUrl || side.ownerSourcePhotoUrl || null

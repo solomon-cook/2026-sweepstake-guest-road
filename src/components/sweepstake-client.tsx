@@ -89,6 +89,18 @@ function formatResultLabel(result: AllocationTeamFixtureSummary['result']) {
   return result.charAt(0).toUpperCase()
 }
 
+function formatTeamStatus(status: AllocationTeamDetail['status']) {
+  if (status === 'alive') {
+    return 'Still alive'
+  }
+
+  if (status === 'out') {
+    return 'Eliminated'
+  }
+
+  return 'Pending'
+}
+
 function TeamMatchupRow({
   matchup,
   label,
@@ -852,7 +864,7 @@ export function SweepstakeClient({
                 ) : null}
                 <div>
                   <p className="section-kicker">
-                    Group {selectedTeamDetail.group} · #{selectedTeamDetail.rank}
+                    {formatTeamStatus(selectedTeamDetail.status)} · #{selectedTeamDetail.rank} seed
                   </p>
                   <h2 id="team-lightbox-title">{selectedTeamDetail.teamName}</h2>
                 </div>
@@ -898,21 +910,6 @@ export function SweepstakeClient({
                 />
               ) : (
                 <p className="team-lightbox-empty">No next matchup found.</p>
-              )}
-            </section>
-
-            <section className="team-lightbox-section">
-              <div className="team-lightbox-section-heading">
-                <p className="section-kicker">Previous matchups</p>
-              </div>
-              {selectedTeamDetail.previousMatchups.length ? (
-                <div className="team-matchup-list">
-                  {selectedTeamDetail.previousMatchups.map((matchup) => (
-                    <TeamMatchupRow key={matchup.id} matchup={matchup} />
-                  ))}
-                </div>
-              ) : (
-                <p className="team-lightbox-empty">No previous matchups yet.</p>
               )}
             </section>
           </div>

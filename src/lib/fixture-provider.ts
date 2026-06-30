@@ -11,8 +11,8 @@ import type { MatchFixture, MatchupView, PersistedDraw } from './types'
 const ESPN_SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
 const OPENFOOTBALL_WORLD_CUP_URL =
   'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json'
-const ESPN_FIXTURE_CACHE_KEY = 'espn:fifa-world-cup-2026:scoreboard'
-const OPENFOOTBALL_FIXTURE_CACHE_KEY = 'openfootball:world-cup-2026:fixtures'
+const ESPN_FIXTURE_CACHE_KEY = 'espn:fifa-world-cup-2026:scoreboard:v2'
+const OPENFOOTBALL_FIXTURE_CACHE_KEY = 'openfootball:world-cup-2026:fixtures:v2'
 const ESPN_CACHE_MS = 90 * 1000
 const OPENFOOTBALL_CACHE_MS = 30 * 60 * 1000
 
@@ -41,6 +41,7 @@ type EspnScoreboard = {
       }
       competitors?: Array<{
         homeAway?: string
+        winner?: boolean
         score?: string
         team?: {
           displayName?: string
@@ -59,6 +60,8 @@ type OpenFootballSchedule = {
     team2?: string
     score?: {
       ft?: [number, number]
+      et?: [number, number]
+      p?: [number, number]
     }
     group?: string
     ground?: string
@@ -134,6 +137,8 @@ function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[numbe
   const competition = event.competitions?.[0]
   const home = competition?.competitors?.find((competitor) => competitor.homeAway === 'home')
   const away = competition?.competitors?.find((competitor) => competitor.homeAway === 'away')
+  const status = normalizeEspnStatus(event.status?.type?.state, event.status?.type?.completed)
+  const showScore = status === 'live' || status === 'finished'
 
   if (!event.id || !event.date || !home?.team?.displayName || !away?.team?.displayName) {
     return null
@@ -142,7 +147,7 @@ function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[numbe
   return {
     id: `espn-${event.id}`,
     startsAt: event.date,
-    status: normalizeEspnStatus(event.status?.type?.state, event.status?.type?.completed),
+    status,
     statusLabel:
       event.status?.type?.shortDetail ??
       event.status?.type?.detail ??
@@ -152,8 +157,10 @@ function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[numbe
     venue: competition?.venue?.fullName ?? null,
     homeTeam: home.team.displayName,
     awayTeam: away.team.displayName,
-    homeScore: home.score ? Number(home.score) : null,
-    awayScore: away.score ? Number(away.score) : null,
+    homeScore: showScore && home.score ? Number(home.score) : null,
+    awayScore: showScore && away.score ? Number(away.score) : null,
+    homeWinner: status === 'finished' && typeof home.winner === 'boolean' ? home.winner : null,
+    awayWinner: status === 'finished' && typeof away.winner === 'boolean' ? away.winner : null,
   }
 }
 
@@ -180,18 +187,26 @@ function normalizeOpenFootballFixture(
   }
 
   const hasScore = Array.isArray(match.score?.ft)
+  const penaltyScore = match.score?.p
+  const hasPenaltyScore = Array.isArray(penaltyScore)
+  const extraTimeScore = match.score?.et
+  const statusLabel = hasPenaltyScore ? 'FT-Pens' : Array.isArray(extraTimeScore) ? 'AET' : hasScore ? 'FT' : 'Scheduled'
+  const homePenaltyWon = hasPenaltyScore ? penaltyScore[0] > penaltyScore[1] : null
+  const awayPenaltyWon = hasPenaltyScore ? penaltyScore[1] > penaltyScore[0] : null
 
   return {
     id: `openfootball-${index + 1}`,
     startsAt: parseOpenFootballDate(match.date, match.time),
     status: hasScore ? 'finished' : getFixtureStatus('NS'),
-    statusLabel: hasScore ? 'FT' : 'Scheduled',
+    statusLabel,
     round: match.round ?? match.group ?? null,
     venue: match.ground ?? null,
     homeTeam: match.team1,
     awayTeam: match.team2,
     homeScore: match.score?.ft?.[0] ?? null,
     awayScore: match.score?.ft?.[1] ?? null,
+    homeWinner: homePenaltyWon,
+    awayWinner: awayPenaltyWon,
   }
 }
 

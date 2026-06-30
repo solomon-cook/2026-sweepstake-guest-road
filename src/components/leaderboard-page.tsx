@@ -134,6 +134,18 @@ function formatResultLabel(result: AllocationTeamFixtureSummary['result']) {
   return result.charAt(0).toUpperCase()
 }
 
+function formatTeamStatus(status: AllocationTeamDetail['status']) {
+  if (status === 'alive') {
+    return 'Still alive'
+  }
+
+  if (status === 'out') {
+    return 'Eliminated'
+  }
+
+  return 'Pending'
+}
+
 function TeamMatchupRow({
   matchup,
   label,
@@ -188,7 +200,7 @@ function TeamDetailLightbox({
             ) : null}
             <div>
               <p className="section-kicker">
-                Group {team.group} · #{team.rank}
+                {formatTeamStatus(team.status)} · #{team.rank} seed
               </p>
               <h2 id="team-lightbox-title">{team.teamName}</h2>
             </div>
@@ -223,15 +235,6 @@ function TeamDetailLightbox({
           </div>
         </dl>
 
-        <section className="team-form-strip" aria-label="Group stage form">
-          <p className="section-kicker">Group stage form</p>
-          <div className="leaderboard-form">
-            {team.form.map((result, index) => (
-              <FormChip key={`${team.teamName}-detail-form-${index}`} result={result} />
-            ))}
-          </div>
-        </section>
-
         <section className="team-lightbox-section">
           <div className="team-lightbox-section-heading">
             <p className="section-kicker">Next matchup</p>
@@ -240,21 +243,6 @@ function TeamDetailLightbox({
             <TeamMatchupRow matchup={team.nextMatchup} label={formatTeamDetailMatchTime(team.nextMatchup.startsAt)} />
           ) : (
             <p className="team-lightbox-empty">No next matchup found.</p>
-          )}
-        </section>
-
-        <section className="team-lightbox-section">
-          <div className="team-lightbox-section-heading">
-            <p className="section-kicker">Previous matchups</p>
-          </div>
-          {team.previousMatchups.length ? (
-            <div className="team-matchup-list">
-              {team.previousMatchups.map((matchup) => (
-                <TeamMatchupRow key={matchup.id} matchup={matchup} />
-              ))}
-            </div>
-          ) : (
-            <p className="team-lightbox-empty">No previous matchups yet.</p>
           )}
         </section>
       </div>

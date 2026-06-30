@@ -1,4 +1,4 @@
-import { selectMatchupOwnerPhoto } from '@/lib/matchups'
+import { getFixtureSideResult, selectMatchupOwnerPhoto } from '@/lib/matchups'
 import type { MatchupSide, MatchupView } from '@/lib/types'
 
 const MATCHUP_TIME_ZONE = 'Europe/London'
@@ -147,15 +147,19 @@ export function MatchupCard({
   const homeProbability = formatProbability(matchup.odds?.homeProbability)
   const awayProbability = formatProbability(matchup.odds?.awayProbability)
   const detailLine = [matchup.fixture.round, matchup.fixture.venue, matchup.odds?.source].filter(Boolean).join(' · ')
+  const homeResult = getFixtureSideResult(matchup.fixture, 'home')
+  const awayResult = getFixtureSideResult(matchup.fixture, 'away')
   const homePhotoUrl = selectMatchupOwnerPhoto(
     matchup.home,
     matchup.fixture.homeScore,
     matchup.fixture.awayScore,
+    homeResult,
   )
   const awayPhotoUrl = selectMatchupOwnerPhoto(
     matchup.away,
     matchup.fixture.awayScore,
     matchup.fixture.homeScore,
+    awayResult,
   )
 
   return (

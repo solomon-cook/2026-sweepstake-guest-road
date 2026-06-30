@@ -298,6 +298,52 @@ describe('buildAllocationDisplayState', () => {
     })
   })
 
+  test('summarizes penalty shootout losses as losses in team details', () => {
+    const state = buildAllocationDisplayState(
+      [team('Germany'), team('Paraguay')],
+      makeDraw(),
+      [
+        fixture({
+          id: 'r32-germany-paraguay',
+          round: 'Round of 32',
+          status: 'finished',
+          statusLabel: 'FT-Pens',
+          homeTeam: 'Germany',
+          awayTeam: 'Paraguay',
+          homeScore: 1,
+          awayScore: 1,
+          homeWinner: false,
+          awayWinner: true,
+        }),
+      ],
+    )
+
+    expect(state.teamDetailsByName.germany).toMatchObject({
+      status: 'out',
+      isDimmed: true,
+      previousMatchups: [
+        {
+          id: 'r32-germany-paraguay',
+          opponentName: 'Paraguay',
+          teamScore: 1,
+          opponentScore: 1,
+          result: 'loss',
+        },
+      ],
+    })
+    expect(state.teamDetailsByName.paraguay).toMatchObject({
+      status: 'alive',
+      isAlive: true,
+      previousMatchups: [
+        {
+          id: 'r32-germany-paraguay',
+          opponentName: 'Germany',
+          result: 'win',
+        },
+      ],
+    })
+  })
+
   test('limits previous matchups to the newest five and handles teams with no fixtures', () => {
     const previousFixtures = Array.from({ length: 6 }, (_, index) =>
       fixture({
