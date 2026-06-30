@@ -344,7 +344,7 @@ describe('buildAllocationDisplayState', () => {
     })
   })
 
-  test('limits previous matchups to the newest five and handles teams with no fixtures', () => {
+  test('orders every previous matchup newest first and handles teams with no fixtures', () => {
     const previousFixtures = Array.from({ length: 6 }, (_, index) =>
       fixture({
         id: `mex-${index + 1}`,
@@ -367,6 +367,7 @@ describe('buildAllocationDisplayState', () => {
       'mex-4',
       'mex-3',
       'mex-2',
+      'mex-1',
     ])
     expect(state.teamDetailsByName.japan).toMatchObject({
       played: 0,

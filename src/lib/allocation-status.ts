@@ -56,7 +56,6 @@ export type AllocationDisplayState = {
 
 type AllocationTeamDisplayState = ReturnType<typeof buildTeamDisplayStates>[string]
 
-const PREVIOUS_MATCHUP_LIMIT = 5
 const EMPTY_FORM: FormResult[] = ['empty', 'empty', 'empty']
 
 function selectBundleMood(draw: PersistedDraw, teamsByName: Record<string, AllocationTeamDisplayState>) {
@@ -144,7 +143,6 @@ function selectPreviousMatchups(
       return side ? [summarizeFixtureForTeam(fixture, side, teamsByName)] : []
     })
     .sort((left, right) => Date.parse(right.startsAt) - Date.parse(left.startsAt))
-    .slice(0, PREVIOUS_MATCHUP_LIMIT)
 }
 
 function buildTeamDetails(

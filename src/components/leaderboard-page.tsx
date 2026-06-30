@@ -184,8 +184,6 @@ function TeamDetailLightbox({
   team: AllocationTeamDetail
   onClose: () => void
 }) {
-  const lastMatchup = team.previousMatchups[0] ?? null
-
   return (
     <div
       className="photo-lightbox-overlay"
@@ -250,12 +248,16 @@ function TeamDetailLightbox({
 
         <section className="team-lightbox-section">
           <div className="team-lightbox-section-heading">
-            <p className="section-kicker">Last matchup</p>
+            <p className="section-kicker">Last matchups</p>
           </div>
-          {lastMatchup ? (
-            <TeamMatchupRow matchup={lastMatchup} />
+          {team.previousMatchups.length ? (
+            <div className="team-matchup-list">
+              {team.previousMatchups.map((matchup) => (
+                <TeamMatchupRow key={matchup.id} matchup={matchup} />
+              ))}
+            </div>
           ) : (
-            <p className="team-lightbox-empty">No last matchup found.</p>
+            <p className="team-lightbox-empty">No last matchups found.</p>
           )}
         </section>
       </div>
