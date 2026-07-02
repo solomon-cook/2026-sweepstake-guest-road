@@ -11,15 +11,12 @@ import type { AllocationTeamDetail, AllocationTeamFixtureSummary } from '@/lib/a
 import { normalizeTeamName } from '@/lib/matchups'
 import type {
   BracketMatchView,
-  FormResult,
-  GroupStandingView,
   LeaderboardData,
   PlayerLeaderboardRow,
   TeamSurvivalStatus,
   TeamOwnerView,
 } from '@/lib/types'
 
-type TournamentTab = 'groups' | 'knockout'
 const MATCH_TIME_ZONE = 'Europe/London'
 const WING_ROUNDS = ['Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals'] as const
 const MOBILE_TREE_SLOTS = [
@@ -265,117 +262,12 @@ function TeamDetailLightbox({
   )
 }
 
-function FormChip({ result }: { result: FormResult }) {
-  const label = result === 'win' ? 'W' : result === 'draw' ? 'D' : result === 'loss' ? 'L' : ''
-
-  return (
-    <span className={`leaderboard-form-chip is-${result}`} aria-label={result === 'empty' ? 'No result' : result}>
-      {label}
-    </span>
-  )
-}
-
 function formatAliveScore(value: number) {
   return value.toFixed(2)
 }
 
 function playerChipClass(status: TeamSurvivalStatus) {
   return status === 'alive' ? 'is-alive' : status === 'pending' ? 'is-pending' : 'is-out'
-}
-
-function GroupRow({
-  standing,
-  onSelectTeam,
-}: {
-  standing: GroupStandingView
-  onSelectTeam?: (teamName: string) => void
-}) {
-  const isEliteTeam = standing.position <= 2
-  const photoUrl = ownerPhotoUrl(standing)
-  const avatar = (
-    <span className="leaderboard-avatar">
-      {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials(standing.ownerName)}</span>}
-    </span>
-  )
-
-  return (
-    <tr className={isEliteTeam ? 'is-elite-team' : ''}>
-      <td className="leaderboard-position">{standing.position}</td>
-      <td className="leaderboard-team-cell">
-        <div className={`leaderboard-owner ${standing.isAssigned ? '' : 'is-unassigned'}`}>
-          {onSelectTeam && photoUrl ? (
-            <button
-              type="button"
-              className="leaderboard-avatar leaderboard-avatar-button"
-              aria-label={`View ${standing.teamName} team stats`}
-              onClick={() => onSelectTeam(standing.teamName)}
-            >
-              <img src={photoUrl} alt="" />
-            </button>
-          ) : (
-            avatar
-          )}
-          <span className="leaderboard-owner-copy">
-            <strong>{standing.ownerName}</strong>
-            <span>
-              {standing.teamFlagImageUrl ? (
-                <img src={standing.teamFlagImageUrl} alt={`${standing.teamName} flag`} width={22} height={16} />
-              ) : null}
-              {standing.teamName}
-            </span>
-          </span>
-        </div>
-        <div className="leaderboard-mobile-row-details">
-          <div className="leaderboard-mobile-points">
-            <strong>{standing.points}</strong>
-            <span>Pts</span>
-          </div>
-          <div className="leaderboard-mobile-form">
-            {standing.form.map((result, index) => (
-              <FormChip key={`${standing.teamName}-mobile-${index}`} result={result} />
-            ))}
-          </div>
-          <dl className="leaderboard-mobile-stats">
-            <div>
-              <dt>MP</dt>
-              <dd>{standing.played}</dd>
-            </div>
-            <div>
-              <dt>W</dt>
-              <dd>{standing.won}</dd>
-            </div>
-            <div>
-              <dt>D</dt>
-              <dd>{standing.drawn}</dd>
-            </div>
-            <div>
-              <dt>L</dt>
-              <dd>{standing.lost}</dd>
-            </div>
-            <div>
-              <dt>GD</dt>
-              <dd>{standing.goalDifference}</dd>
-            </div>
-          </dl>
-        </div>
-      </td>
-      <td>{standing.played}</td>
-      <td>{standing.won}</td>
-      <td>{standing.drawn}</td>
-      <td>{standing.lost}</td>
-      <td>{standing.goalsFor}</td>
-      <td>{standing.goalsAgainst}</td>
-      <td>{standing.goalDifference}</td>
-      <td className="leaderboard-points">{standing.points}</td>
-      <td>
-        <div className="leaderboard-form">
-          {standing.form.map((result, index) => (
-            <FormChip key={`${standing.teamName}-${index}`} result={result} />
-          ))}
-        </div>
-      </td>
-    </tr>
-  )
 }
 
 function PlayerIdentity({ player }: { player: PlayerLeaderboardRow }) {
@@ -523,48 +415,6 @@ function PlayerRow({
         </div>
       </td>
     </tr>
-  )
-}
-
-function GroupStageView({
-  data,
-  onSelectTeam,
-}: {
-  data: LeaderboardData
-  onSelectTeam?: (teamName: string) => void
-}) {
-  return (
-    <section className="leaderboard-groups" aria-label="Group stage leaderboard">
-      {data.groups.map((group) => (
-        <article key={group.group} className="leaderboard-group">
-          <h2>Group {group.group}</h2>
-          <div className="leaderboard-table-scroll">
-            <table className="leaderboard-table">
-              <thead>
-                <tr>
-                  <th aria-label="Position" />
-                  <th>Owner / Team</th>
-                  <th>MP</th>
-                  <th>W</th>
-                  <th>D</th>
-                  <th>L</th>
-                  <th>GF</th>
-                  <th>GA</th>
-                  <th>GD</th>
-                  <th>Pts</th>
-                  <th>Last 3</th>
-                </tr>
-              </thead>
-              <tbody>
-                {group.standings.map((standing) => (
-                  <GroupRow key={standing.teamName} standing={standing} onSelectTeam={onSelectTeam} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
-      ))}
-    </section>
   )
 }
 
@@ -969,7 +819,6 @@ export function TournamentPage({
   data: LeaderboardData
   teamDetailsByName?: Record<string, AllocationTeamDetail>
 }) {
-  const [activeTab, setActiveTab] = useState<TournamentTab>('groups')
   const [selectedTeamDetail, setSelectedTeamDetail] = useState<AllocationTeamDetail | null>(null)
   const handleSelectTeam = teamDetailsByName
     ? (teamName: string) => {
@@ -981,29 +830,7 @@ export function TournamentPage({
     <LeaderboardPageShell title="Tournament">
       <LeaderboardWarnings data={data} label="Tournament" />
       <section className="leaderboard-panel">
-        <div className="leaderboard-tabs" role="tablist" aria-label="Tournament views">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'groups'}
-            className={activeTab === 'groups' ? 'is-active' : ''}
-            onClick={() => setActiveTab('groups')}
-          >
-            Group Stage
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'knockout'}
-            className={activeTab === 'knockout' ? 'is-active' : ''}
-            onClick={() => setActiveTab('knockout')}
-          >
-            Knockout Stage
-          </button>
-        </div>
-
-        {activeTab === 'groups' ? <GroupStageView data={data} onSelectTeam={handleSelectTeam} /> : null}
-        {activeTab === 'knockout' ? <KnockoutView data={data} onSelectTeam={handleSelectTeam} /> : null}
+        <KnockoutView data={data} onSelectTeam={handleSelectTeam} />
       </section>
       {selectedTeamDetail ? (
         <TeamDetailLightbox team={selectedTeamDetail} onClose={() => setSelectedTeamDetail(null)} />
