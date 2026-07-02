@@ -97,6 +97,8 @@ export type MatchFixture = {
   awayTeam: string
   homeScore?: number | null
   awayScore?: number | null
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   homeWinner?: boolean | null
   awayWinner?: boolean | null
 }

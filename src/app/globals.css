@@ -3439,6 +3439,15 @@ code {
   line-height: 0.9;
 }
 
+.compact-matchup-center .compact-matchup-penalties {
+  color: var(--color-ink);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+}
+
 @media (min-width: 700px) {
   .page-shell {
     padding: 28px 24px 72px;
@@ -3556,6 +3565,10 @@ code {
   .matchup-card .compact-matchup-center span,
   .matchup-card .compact-matchup-center em {
     font-size: 0.64rem;
+  }
+
+  .matchup-card .compact-matchup-center .compact-matchup-penalties {
+    font-size: 0.76rem;
   }
 
   .results-heading {

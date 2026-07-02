@@ -101,7 +101,7 @@ describe('participant fan image generation flow', () => {
     ])
 
     const firstBody = fetchImpl.mock.calls[0][1]?.body as FormData
-    expect(firstBody.get('model')).toBe('gpt-image-2')
+    expect(firstBody.get('model')).toBe('gpt-image-1')
     expect(firstBody.get('size')).toBe('1024x1024')
     expect(firstBody.get('output_format')).toBe('jpeg')
     expect(firstBody.get('output_compression')).toBe('70')

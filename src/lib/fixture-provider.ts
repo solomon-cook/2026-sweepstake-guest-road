@@ -159,6 +159,8 @@ function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[numbe
     awayTeam: away.team.displayName,
     homeScore: showScore && home.score ? Number(home.score) : null,
     awayScore: showScore && away.score ? Number(away.score) : null,
+    homePenaltyScore: null,
+    awayPenaltyScore: null,
     homeWinner: status === 'finished' && typeof home.winner === 'boolean' ? home.winner : null,
     awayWinner: status === 'finished' && typeof away.winner === 'boolean' ? away.winner : null,
   }
@@ -205,6 +207,8 @@ function normalizeOpenFootballFixture(
     awayTeam: match.team2,
     homeScore: match.score?.ft?.[0] ?? null,
     awayScore: match.score?.ft?.[1] ?? null,
+    homePenaltyScore: penaltyScore?.[0] ?? null,
+    awayPenaltyScore: penaltyScore?.[1] ?? null,
     homeWinner: homePenaltyWon,
     awayWinner: awayPenaltyWon,
   }
@@ -243,7 +247,18 @@ async function loadCachedFixtures<T>(
   }
 }
 
-function mergeFixtures(primaryFixtures: MatchFixture[], fallbackFixtures: MatchFixture[]) {
+function mergeFixtureData(fallbackFixture: MatchFixture, primaryFixture: MatchFixture): MatchFixture {
+  return {
+    ...fallbackFixture,
+    ...primaryFixture,
+    homePenaltyScore: primaryFixture.homePenaltyScore ?? fallbackFixture.homePenaltyScore ?? null,
+    awayPenaltyScore: primaryFixture.awayPenaltyScore ?? fallbackFixture.awayPenaltyScore ?? null,
+    homeWinner: primaryFixture.homeWinner ?? fallbackFixture.homeWinner ?? null,
+    awayWinner: primaryFixture.awayWinner ?? fallbackFixture.awayWinner ?? null,
+  }
+}
+
+export function mergeFixtures(primaryFixtures: MatchFixture[], fallbackFixtures: MatchFixture[]) {
   const merged = new Map<string, MatchFixture>()
 
   for (const fixture of fallbackFixtures) {
@@ -251,7 +266,10 @@ function mergeFixtures(primaryFixtures: MatchFixture[], fallbackFixtures: MatchF
   }
 
   for (const fixture of primaryFixtures) {
-    merged.set(buildFixtureMergeKey(fixture), fixture)
+    const key = buildFixtureMergeKey(fixture)
+    const fallbackFixture = merged.get(key)
+
+    merged.set(key, fallbackFixture ? mergeFixtureData(fallbackFixture, fixture) : fixture)
   }
 
   return [...merged.values()]

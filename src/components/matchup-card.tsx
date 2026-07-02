@@ -1,5 +1,5 @@
 import { getFixtureSideResult, selectMatchupOwnerPhoto } from '@/lib/matchups'
-import type { MatchupSide, MatchupView } from '@/lib/types'
+import type { MatchFixture, MatchupSide, MatchupView } from '@/lib/types'
 
 const MATCHUP_TIME_ZONE = 'Europe/London'
 
@@ -79,6 +79,22 @@ function formatProbability(value?: number | null) {
   return value ? `${Math.round(value * 100)}%` : '-'
 }
 
+function hasFixtureScore(fixture: MatchFixture) {
+  return typeof fixture.homeScore === 'number' && typeof fixture.awayScore === 'number'
+}
+
+function formatFixtureScore(fixture: MatchFixture) {
+  return hasFixtureScore(fixture) ? `${fixture.homeScore} - ${fixture.awayScore}` : fixture.statusLabel
+}
+
+function formatPenaltyScore(fixture: MatchFixture) {
+  if (typeof fixture.homePenaltyScore !== 'number' || typeof fixture.awayPenaltyScore !== 'number') {
+    return null
+  }
+
+  return `Pens ${fixture.homePenaltyScore} - ${fixture.awayPenaltyScore}`
+}
+
 function CompactMatchupSide({
   side,
   align,
@@ -141,9 +157,10 @@ export function MatchupCard({
   onSelectPlayer?: (playerName: string) => void
 }) {
   const isFinished = matchup.fixture.status === 'finished'
-  const hasScore = matchup.fixture.homeScore !== null && matchup.fixture.awayScore !== null
+  const hasScore = hasFixtureScore(matchup.fixture)
   const compactShowsScore = matchup.fixture.status !== 'upcoming' && hasScore
   const compactDetail = compactShowsScore ? matchup.fixture.statusLabel : compactDateLabel(matchup.fixture.startsAt)
+  const penaltyScore = isFinished && hasScore ? formatPenaltyScore(matchup.fixture) : null
   const homeProbability = formatProbability(matchup.odds?.homeProbability)
   const awayProbability = formatProbability(matchup.odds?.awayProbability)
   const detailLine = [matchup.fixture.round, matchup.fixture.venue, matchup.odds?.source].filter(Boolean).join(' · ')
@@ -175,11 +192,7 @@ export function MatchupCard({
         </div>
         {!isFinished ? (
           <div className="matchup-status">
-            <strong>
-              {hasScore
-                ? `${matchup.fixture.homeScore} - ${matchup.fixture.awayScore}`
-                : matchup.fixture.statusLabel}
-            </strong>
+            <strong>{formatFixtureScore(matchup.fixture)}</strong>
             <span>{formatMatchTime(matchup.fixture.startsAt)}</span>
           </div>
         ) : null}
@@ -190,10 +203,9 @@ export function MatchupCard({
         <div className="compact-matchup-center">
           <span>{compactShowsScore ? 'Score' : 'Kickoff'}</span>
           <strong>
-            {compactShowsScore
-              ? `${matchup.fixture.homeScore} - ${matchup.fixture.awayScore}`
-              : formatCompactMatchTime(matchup.fixture.startsAt)}
+            {compactShowsScore ? formatFixtureScore(matchup.fixture) : formatCompactMatchTime(matchup.fixture.startsAt)}
           </strong>
+          {penaltyScore ? <span className="compact-matchup-penalties">{penaltyScore}</span> : null}
           <em>{compactDetail}</em>
         </div>
         <CompactMatchupSide side={matchup.away} align="away" photoUrl={awayPhotoUrl} onSelectPlayer={onSelectPlayer} />
