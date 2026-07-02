@@ -180,7 +180,7 @@ function parseOpenFootballDate(date: string, time: string | undefined) {
   return new Date(`${date}T${hour.padStart(2, '0')}:${minute}:00${offsetString}`).toISOString()
 }
 
-function normalizeOpenFootballFixture(
+export function normalizeOpenFootballFixture(
   match: NonNullable<OpenFootballSchedule['matches']>[number],
   index: number,
 ): MatchFixture | null {
@@ -192,6 +192,7 @@ function normalizeOpenFootballFixture(
   const penaltyScore = match.score?.p
   const hasPenaltyScore = Array.isArray(penaltyScore)
   const extraTimeScore = match.score?.et
+  const finalScore = Array.isArray(extraTimeScore) ? extraTimeScore : match.score?.ft
   const statusLabel = hasPenaltyScore ? 'FT-Pens' : Array.isArray(extraTimeScore) ? 'AET' : hasScore ? 'FT' : 'Scheduled'
   const homePenaltyWon = hasPenaltyScore ? penaltyScore[0] > penaltyScore[1] : null
   const awayPenaltyWon = hasPenaltyScore ? penaltyScore[1] > penaltyScore[0] : null
@@ -205,8 +206,8 @@ function normalizeOpenFootballFixture(
     venue: match.ground ?? null,
     homeTeam: match.team1,
     awayTeam: match.team2,
-    homeScore: match.score?.ft?.[0] ?? null,
-    awayScore: match.score?.ft?.[1] ?? null,
+    homeScore: finalScore?.[0] ?? null,
+    awayScore: finalScore?.[1] ?? null,
     homePenaltyScore: penaltyScore?.[0] ?? null,
     awayPenaltyScore: penaltyScore?.[1] ?? null,
     homeWinner: homePenaltyWon,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { mergeFixtures } from './fixture-provider'
+import { mergeFixtures, normalizeOpenFootballFixture } from './fixture-provider'
 import type { MatchFixture } from './types'
 
 function fixture(overrides: Partial<MatchFixture>): MatchFixture {
@@ -40,6 +40,61 @@ describe('fixture provider merge', () => {
     expect(merged).toMatchObject({
       id: 'espn-1',
       statusLabel: 'Final',
+      homePenaltyScore: 5,
+      awayPenaltyScore: 4,
+      homeWinner: true,
+      awayWinner: false,
+    })
+  })
+})
+
+describe('OpenFootball fixture normalization', () => {
+  test('uses the final extra-time score for AET fixtures', () => {
+    const normalized = normalizeOpenFootballFixture(
+      {
+        round: 'Round of 16',
+        date: '2026-07-05',
+        time: '20:00 UTC-4',
+        team1: 'France',
+        team2: 'Spain',
+        score: {
+          ft: [1, 1],
+          et: [2, 1],
+        },
+      },
+      0,
+    )
+
+    expect(normalized).toMatchObject({
+      status: 'finished',
+      statusLabel: 'AET',
+      homeScore: 2,
+      awayScore: 1,
+    })
+  })
+
+  test('uses the score after extra time before showing penalties', () => {
+    const normalized = normalizeOpenFootballFixture(
+      {
+        round: 'Quarter-finals',
+        date: '2026-07-11',
+        time: '20:00 UTC-4',
+        team1: 'Brazil',
+        team2: 'Argentina',
+        score: {
+          ft: [1, 1],
+          et: [2, 2],
+          p: [5, 4],
+        },
+      },
+      1,
+    )
+
+    expect(normalized).toMatchObject({
+      status: 'finished',
+      statusLabel: 'FT-Pens',
+      homeScore: 2,
+      awayScore: 2,
       homePenaltyScore: 5,
       awayPenaltyScore: 4,
       homeWinner: true,
