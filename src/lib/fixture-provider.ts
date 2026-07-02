@@ -12,7 +12,7 @@ const ESPN_SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/socce
 const OPENFOOTBALL_WORLD_CUP_URL =
   'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json'
 const ESPN_FIXTURE_CACHE_KEY = 'espn:fifa-world-cup-2026:scoreboard:v2'
-const OPENFOOTBALL_FIXTURE_CACHE_KEY = 'openfootball:world-cup-2026:fixtures:v2'
+const OPENFOOTBALL_FIXTURE_CACHE_KEY = 'openfootball:world-cup-2026:fixtures:v3'
 const ESPN_CACHE_MS = 90 * 1000
 const OPENFOOTBALL_CACHE_MS = 30 * 60 * 1000
 
@@ -248,10 +248,38 @@ async function loadCachedFixtures<T>(
   }
 }
 
+function hasFixtureScore(fixture: MatchFixture) {
+  return typeof fixture.homeScore === 'number' && typeof fixture.awayScore === 'number'
+}
+
+function hasExtraTimeFinalScore(fixture: MatchFixture) {
+  return fixture.statusLabel === 'AET' || fixture.statusLabel === 'FT-Pens'
+}
+
+function shouldPreferFallbackFinalScore(fallbackFixture: MatchFixture, primaryFixture: MatchFixture) {
+  return (
+    hasExtraTimeFinalScore(fallbackFixture) &&
+    hasFixtureScore(fallbackFixture) &&
+    !(fallbackFixture.homeScore === primaryFixture.homeScore && fallbackFixture.awayScore === primaryFixture.awayScore)
+  )
+}
+
 function mergeFixtureData(fallbackFixture: MatchFixture, primaryFixture: MatchFixture): MatchFixture {
+  const useFallbackFinalScore = shouldPreferFallbackFinalScore(fallbackFixture, primaryFixture)
+
   return {
     ...fallbackFixture,
     ...primaryFixture,
+    statusLabel:
+      hasExtraTimeFinalScore(fallbackFixture) && !hasExtraTimeFinalScore(primaryFixture)
+        ? fallbackFixture.statusLabel
+        : primaryFixture.statusLabel,
+    homeScore: useFallbackFinalScore
+      ? fallbackFixture.homeScore
+      : primaryFixture.homeScore ?? fallbackFixture.homeScore ?? null,
+    awayScore: useFallbackFinalScore
+      ? fallbackFixture.awayScore
+      : primaryFixture.awayScore ?? fallbackFixture.awayScore ?? null,
     homePenaltyScore: primaryFixture.homePenaltyScore ?? fallbackFixture.homePenaltyScore ?? null,
     awayPenaltyScore: primaryFixture.awayPenaltyScore ?? fallbackFixture.awayPenaltyScore ?? null,
     homeWinner: primaryFixture.homeWinner ?? fallbackFixture.homeWinner ?? null,

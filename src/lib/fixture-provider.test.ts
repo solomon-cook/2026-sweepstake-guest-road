@@ -39,11 +39,41 @@ describe('fixture provider merge', () => {
 
     expect(merged).toMatchObject({
       id: 'espn-1',
-      statusLabel: 'Final',
+      statusLabel: 'FT-Pens',
       homePenaltyScore: 5,
       awayPenaltyScore: 4,
       homeWinner: true,
       awayWinner: false,
+    })
+  })
+
+  test('keeps fallback extra-time final score when primary score is only level after full time', () => {
+    const primaryFixture = fixture({
+      id: 'espn-1',
+      statusLabel: 'Final',
+      homeTeam: 'Belgium',
+      awayTeam: 'Senegal',
+      homeScore: 2,
+      awayScore: 2,
+    })
+    const fallbackFixture = fixture({
+      id: 'openfootball-1',
+      statusLabel: 'AET',
+      homeTeam: 'Belgium',
+      awayTeam: 'Senegal',
+      homeScore: 3,
+      awayScore: 2,
+    })
+
+    const [merged] = mergeFixtures([primaryFixture], [fallbackFixture])
+
+    expect(merged).toMatchObject({
+      id: 'espn-1',
+      statusLabel: 'AET',
+      homeTeam: 'Belgium',
+      awayTeam: 'Senegal',
+      homeScore: 3,
+      awayScore: 2,
     })
   })
 })
