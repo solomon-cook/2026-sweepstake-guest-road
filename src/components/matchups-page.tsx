@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useState } from 'react'
+import { HeaderLinks } from '@/components/header-links'
 import { MatchupCard } from '@/components/matchup-card'
-import { PageChrome } from '@/components/page-chrome'
 import { buildPlayerNextMatchups, buildPlayerPhotoFrames } from '@/lib/player-photo-frames'
 import { PreviousMatchupsToggle } from '@/components/previous-matchups-toggle'
 import type { AllocationTeamDetail } from '@/lib/allocation-status'
@@ -178,7 +178,15 @@ export function MatchupsPage({
   }, [activePhotoFrames.length, selectedPlayer])
 
   return (
-    <PageChrome title="Matchups" className="matchup-shell">
+    <main className="page-shell matchup-shell">
+      <section className="top-bar">
+        <div>
+          <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
+          <h1>Matchups</h1>
+        </div>
+        <HeaderLinks />
+      </section>
+
       {warnings.length ? (
         <section className="matchup-warning" aria-label="Matchup warnings">
           {warnings.slice(0, 4).map((warning) => (
@@ -245,6 +253,6 @@ export function MatchupsPage({
       {selectedTeamDetail ? (
         <TeamDetailLightbox team={selectedTeamDetail} onClose={() => setSelectedTeamDetail(null)} />
       ) : null}
-    </PageChrome>
+    </main>
   )
 }

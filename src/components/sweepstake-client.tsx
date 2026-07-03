@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import type { FormEvent } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AllocationDisplayState, AllocationTeamDetail } from '@/lib/allocation-status'
-import { PageChrome } from '@/components/page-chrome'
+import { HeaderLinks } from '@/components/header-links'
 import {
   buildPlayerNextMatchups,
   buildPlayerPhotoFrames,
@@ -559,7 +559,15 @@ export function SweepstakeClient({
   }
 
   return (
-    <PageChrome title="Sweepstake" eyebrow="2026 World Cup - Guest Road">
+    <main className="page-shell">
+      <section className="top-bar">
+        <div>
+          <p className="eyebrow">2026 World Cup - Guest Road</p>
+          <h1>Sweepstake</h1>
+        </div>
+        <HeaderLinks />
+      </section>
+
       <section className="results-panel">
         <div className="results-heading">
           <div>
@@ -800,6 +808,6 @@ export function SweepstakeClient({
       ) : null}
 
       {selectedTeamDetail ? <TeamDetailLightbox team={selectedTeamDetail} onClose={closeTeamDetail} /> : null}
-    </PageChrome>
+    </main>
   )
 }

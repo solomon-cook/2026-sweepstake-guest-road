@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { PageChrome } from '@/components/page-chrome'
+import { HeaderLinks } from '@/components/header-links'
 import {
   buildPlayerNextMatchups,
   buildPlayerPhotoFrames,
@@ -636,9 +636,16 @@ function LeaderboardPageShell({
   children: React.ReactNode
 }) {
   return (
-    <PageChrome title={title} className="leaderboard-shell">
+    <main className="page-shell leaderboard-shell">
+      <section className="top-bar leaderboard-top-bar">
+        <div>
+          <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
+          <h1>{title}</h1>
+        </div>
+        <HeaderLinks />
+      </section>
       {children}
-    </PageChrome>
+    </main>
   )
 }
 
