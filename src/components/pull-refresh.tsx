@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const TOP_EDGE_SCROLL_MAX = 1
@@ -74,7 +74,7 @@ function clearDocumentPullRefreshState() {
   document.body.classList.remove('is-pull-refresh-pulling', 'is-pull-refresh-ready', 'is-pull-refreshing')
 }
 
-export function PullRefresh({ children }: { children: ReactNode }) {
+export function PullRefresh() {
   const router = useRouter()
   const isRefreshingRef = useRef(false)
   const [phase, setPhase] = useState<PullPhase>('idle')
@@ -241,11 +241,8 @@ export function PullRefresh({ children }: { children: ReactNode }) {
     phase === 'refreshing' ? 'Refreshing scores' : phase === 'pulling' && progress >= 1 ? 'Release to refresh scores' : ''
 
   return (
-    <>
-      <span className="pull-refresh-status" aria-live="polite" aria-atomic="true">
-        {statusText}
-      </span>
-      {children}
-    </>
+    <span className="pull-refresh-status" aria-live="polite" aria-atomic="true">
+      {statusText}
+    </span>
   )
 }

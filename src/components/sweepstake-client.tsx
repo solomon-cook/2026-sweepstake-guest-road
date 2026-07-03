@@ -1,18 +1,27 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import type { FormEvent } from 'react'
-import { useEffect, useRef, useState } from 'react'
-import type { AllocationDisplayState, AllocationTeamDetail, AllocationTeamFixtureSummary } from '@/lib/allocation-status'
-import { CardPackOpening } from '@/components/card-pack-opening'
-import { HeaderLinks } from '@/components/header-links'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { AllocationDisplayState, AllocationTeamDetail } from '@/lib/allocation-status'
+import { PageChrome } from '@/components/page-chrome'
 import {
   buildPlayerNextMatchups,
   buildPlayerPhotoFrames,
-  PlayerPhotoLightbox,
-} from '@/components/player-photo-lightbox'
+} from '@/lib/player-photo-frames'
 import { openPack as requestOpenPack } from '@/lib/card-pack'
 import { normalizeTeamName } from '@/lib/matchups'
 import type { PersistedBundle, PersistedDraw, PlayerCount } from '@/lib/types'
+
+const CardPackOpening = dynamic(() =>
+  import('@/components/card-pack-opening').then((module) => module.CardPackOpening),
+)
+const PlayerPhotoLightbox = dynamic(() =>
+  import('@/components/player-photo-lightbox').then((module) => module.PlayerPhotoLightbox),
+)
+const TeamDetailLightbox = dynamic(() =>
+  import('@/components/team-detail-lightbox').then((module) => module.TeamDetailLightbox),
+)
 
 type ImageOperation = 'uploading' | 'uploading-and-generating' | 'generating'
 type ParticipantPhotoPreview = {
@@ -30,7 +39,6 @@ const ALLOWED_UPLOAD_TYPES = new Set([
 ])
 const ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.heics', '.heifs']
 const MAX_UPLOAD_FILE_BYTES = 4 * 1024 * 1024
-const MATCH_TIME_ZONE = 'Europe/London'
 const READY_STATUS_DISPLAY_MS = 3600
 const PHOTO_CYCLE_INTERVAL_MS = 1900
 
@@ -58,76 +66,18 @@ function getBundleTeamRowClass(rank: number, isDimmed: boolean) {
   return [rank <= 10 ? 'is-great-team' : '', isDimmed ? 'is-dimmed-team' : ''].filter(Boolean).join(' ')
 }
 
-function formatMatchTime(value: string) {
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: MATCH_TIME_ZONE,
-  }).format(new Date(value))
-}
+function getDisplayedBundleTeams(
+  bundle: PersistedBundle,
+  teamsByName: AllocationDisplayState['teamsByName'],
+) {
+  return [...bundle.teams].sort((left, right) => {
+    const leftState = teamsByName[normalizeTeamName(left.name)]
+    const rightState = teamsByName[normalizeTeamName(right.name)]
+    const leftScore = leftState?.sortOrder ?? 0
+    const rightScore = rightState?.sortOrder ?? 0
 
-function formatGoalDifference(value: number) {
-  return value > 0 ? `+${value}` : String(value)
-}
-
-function formatMatchScore(matchup: AllocationTeamFixtureSummary) {
-  if (typeof matchup.teamScore !== 'number' || typeof matchup.opponentScore !== 'number') {
-    return matchup.statusLabel
-  }
-
-  return `${matchup.teamScore} - ${matchup.opponentScore}`
-}
-
-function formatResultLabel(result: AllocationTeamFixtureSummary['result']) {
-  if (result === 'pending') {
-    return 'Next'
-  }
-
-  return result.charAt(0).toUpperCase()
-}
-
-function formatTeamStatus(status: AllocationTeamDetail['status']) {
-  if (status === 'alive') {
-    return 'Still alive'
-  }
-
-  if (status === 'out') {
-    return 'Eliminated'
-  }
-
-  return 'Pending'
-}
-
-function TeamMatchupRow({
-  matchup,
-  label,
-}: {
-  matchup: AllocationTeamFixtureSummary
-  label?: string
-}) {
-  const detailLine = [matchup.round, matchup.venue].filter(Boolean).join(' · ')
-
-  return (
-    <article className={`team-matchup-row is-${matchup.result}`}>
-      <div className="team-matchup-opponent">
-        {matchup.opponentFlagImageUrl ? (
-          <img src={matchup.opponentFlagImageUrl} alt="" width={24} height={18} />
-        ) : null}
-        <div>
-          <p>{matchup.isHome ? 'vs' : '@'} {matchup.opponentName}</p>
-          <span>{label ?? formatMatchTime(matchup.startsAt)}</span>
-        </div>
-      </div>
-      <div className="team-matchup-score">
-        <strong>{formatMatchScore(matchup)}</strong>
-        <span>{formatResultLabel(matchup.result)}</span>
-      </div>
-      {detailLine ? <p className="team-matchup-detail">{detailLine}</p> : null}
-    </article>
-  )
+    return rightScore - leftScore || left.rank - right.rank || left.name.localeCompare(right.name)
+  })
 }
 
 function mergeBundleImageState(draw: PersistedDraw, slotId: string, imageState: Partial<PersistedBundle>) {
@@ -257,9 +207,13 @@ export function SweepstakeClient({
   const readyStatusTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const allocation = draw.allocation
-  const claimedBundles = allocation.bundles
-    .filter(hasPlayerName)
-    .sort((left, right) => left.slotIndex - right.slotIndex)
+  const claimedBundles = useMemo(
+    () =>
+      allocation.bundles
+        .filter(hasPlayerName)
+        .sort((left, right) => left.slotIndex - right.slotIndex),
+    [allocation.bundles],
+  )
   const claimedPlayerCount = claimedBundles.length
   const availableSlots = playerCount - claimedPlayerCount
   const canAddPlayer = availableSlots > 0
@@ -272,17 +226,34 @@ export function SweepstakeClient({
     }
   }, [])
 
-  const activePhotoFrames = activePhotoPreview ? getBundlePhotoFrames(activePhotoPreview.bundle) : []
-  const activePhotoNextMatchups = activePhotoPreview
-    ? buildPlayerNextMatchups(
-        activePhotoPreview.bundle.teams.map((team) => ({
-          teamName: team.name,
-          teamFlagImageUrl: team.flagImageUrl ?? team.flag ?? null,
-          teamRank: team.rank,
-        })),
-        allocationDisplayState.teamDetailsByName,
-      )
-    : []
+  const activePhotoFrames = useMemo(
+    () => (activePhotoPreview ? getBundlePhotoFrames(activePhotoPreview.bundle) : []),
+    [activePhotoPreview],
+  )
+  const activePhotoNextMatchups = useMemo(
+    () =>
+      activePhotoPreview
+        ? buildPlayerNextMatchups(
+            activePhotoPreview.bundle.teams.map((team) => ({
+              teamName: team.name,
+              teamFlagImageUrl: team.flagImageUrl ?? team.flag ?? null,
+              teamRank: team.rank,
+            })),
+            allocationDisplayState.teamDetailsByName,
+          )
+        : [],
+    [activePhotoPreview, allocationDisplayState.teamDetailsByName],
+  )
+  const displayedTeamsBySlotId = useMemo(
+    () =>
+      Object.fromEntries(
+        claimedBundles.map((bundle) => [
+          bundle.slotId,
+          getDisplayedBundleTeams(bundle, allocationDisplayState.teamsByName),
+        ]),
+      ),
+    [claimedBundles, allocationDisplayState.teamsByName],
+  )
   const currentPhotoFrame =
     activePhotoFrames.length > 0
       ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
@@ -588,15 +559,7 @@ export function SweepstakeClient({
   }
 
   return (
-    <main className="page-shell">
-      <section className="top-bar">
-        <div>
-          <p className="eyebrow">2026 World Cup - Guest Road</p>
-          <h1>Sweepstake</h1>
-        </div>
-        <HeaderLinks />
-      </section>
-
+    <PageChrome title="Sweepstake" eyebrow="2026 World Cup - Guest Road">
       <section className="results-panel">
         <div className="results-heading">
           <div>
@@ -614,14 +577,7 @@ export function SweepstakeClient({
               const photoStatus = bundlePhotoStatus(bundle, imageOperation, isReadyStatusTransient)
               const bundleMood = allocationDisplayState.bundleMoodBySlotId[bundle.slotId] ?? 'neutral'
               const previewImage = getBundlePreviewImage(bundle, bundleMood)
-              const displayedTeams = [...bundle.teams].sort((left, right) => {
-                const leftState = allocationDisplayState.teamsByName[normalizeTeamName(left.name)]
-                const rightState = allocationDisplayState.teamsByName[normalizeTeamName(right.name)]
-                const leftScore = leftState?.sortOrder ?? 0
-                const rightScore = rightState?.sortOrder ?? 0
-
-                return rightScore - leftScore || left.rank - right.rank || left.name.localeCompare(right.name)
-              })
+              const displayedTeams = displayedTeamsBySlotId[bundle.slotId] ?? bundle.teams
 
               return (
                 <article
@@ -843,93 +799,7 @@ export function SweepstakeClient({
         />
       ) : null}
 
-      {selectedTeamDetail ? (
-        <div
-          className="photo-lightbox-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="team-lightbox-title"
-          onClick={closeTeamDetail}
-        >
-          <div className="photo-lightbox team-lightbox" onClick={(event) => event.stopPropagation()}>
-            <div className="photo-lightbox-header team-lightbox-header">
-              <div className="team-lightbox-title-row">
-                {selectedTeamDetail.teamFlagImageUrl ? (
-                  <img
-                    src={selectedTeamDetail.teamFlagImageUrl}
-                    alt={`${selectedTeamDetail.teamName} flag`}
-                    width={48}
-                    height={36}
-                  />
-                ) : null}
-                <div>
-                  <p className="section-kicker">
-                    {formatTeamStatus(selectedTeamDetail.status)} · #{selectedTeamDetail.rank} seed
-                  </p>
-                  <h2 id="team-lightbox-title">{selectedTeamDetail.teamName}</h2>
-                </div>
-              </div>
-              <button type="button" className="photo-lightbox-close" onClick={closeTeamDetail}>
-                Close
-              </button>
-            </div>
-
-            <dl className="team-stat-grid">
-              <div>
-                <dt>Record</dt>
-                <dd>
-                  {selectedTeamDetail.won}-{selectedTeamDetail.drawn}-{selectedTeamDetail.lost}
-                </dd>
-              </div>
-              <div>
-                <dt>Goals for</dt>
-                <dd>{selectedTeamDetail.goalsFor}</dd>
-              </div>
-              <div>
-                <dt>Goals against</dt>
-                <dd>{selectedTeamDetail.goalsAgainst}</dd>
-              </div>
-              <div>
-                <dt>Goal diff</dt>
-                <dd>{formatGoalDifference(selectedTeamDetail.goalDifference)}</dd>
-              </div>
-              <div>
-                <dt>Points</dt>
-                <dd>{selectedTeamDetail.points}</dd>
-              </div>
-            </dl>
-
-            <section className="team-lightbox-section">
-              <div className="team-lightbox-section-heading">
-                <p className="section-kicker">Next matchup</p>
-              </div>
-              {selectedTeamDetail.nextMatchup ? (
-                <TeamMatchupRow
-                  matchup={selectedTeamDetail.nextMatchup}
-                  label={formatMatchTime(selectedTeamDetail.nextMatchup.startsAt)}
-                />
-              ) : (
-                <p className="team-lightbox-empty">No next matchup found.</p>
-              )}
-            </section>
-
-            <section className="team-lightbox-section">
-              <div className="team-lightbox-section-heading">
-                <p className="section-kicker">Last matchups</p>
-              </div>
-              {selectedTeamDetail.previousMatchups.length ? (
-                <div className="team-matchup-list">
-                  {selectedTeamDetail.previousMatchups.map((matchup) => (
-                    <TeamMatchupRow key={matchup.id} matchup={matchup} />
-                  ))}
-                </div>
-              ) : (
-                <p className="team-lightbox-empty">No last matchups found.</p>
-              )}
-            </section>
-          </div>
-        </div>
-      ) : null}
-    </main>
+      {selectedTeamDetail ? <TeamDetailLightbox team={selectedTeamDetail} onClose={closeTeamDetail} /> : null}
+    </PageChrome>
   )
 }

@@ -1,12 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { HeaderLinks } from '@/components/header-links'
+import dynamic from 'next/dynamic'
+import { useEffect, useMemo, useState } from 'react'
 import { MatchupCard } from '@/components/matchup-card'
-import { PlayerPhotoLightbox, buildPlayerNextMatchups, buildPlayerPhotoFrames } from '@/components/player-photo-lightbox'
+import { PageChrome } from '@/components/page-chrome'
+import { buildPlayerNextMatchups, buildPlayerPhotoFrames } from '@/lib/player-photo-frames'
 import { PreviousMatchupsToggle } from '@/components/previous-matchups-toggle'
 import type { AllocationTeamDetail } from '@/lib/allocation-status'
+import { normalizeTeamName } from '@/lib/matchups'
 import type { MatchupView, PlayerLeaderboardRow } from '@/lib/types'
+
+const PlayerPhotoLightbox = dynamic(() =>
+  import('@/components/player-photo-lightbox').then((module) => module.PlayerPhotoLightbox),
+)
+const TeamDetailLightbox = dynamic(() =>
+  import('@/components/team-detail-lightbox').then((module) => module.TeamDetailLightbox),
+)
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const INITIAL_VISIBLE_MATCHUPS = 8
@@ -91,40 +100,70 @@ export function MatchupsPage({
   players: PlayerLeaderboardRow[]
   teamDetailsByName: Record<string, AllocationTeamDetail>
 }) {
-  const now = new Date()
+  const [now] = useState(() => new Date())
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerLeaderboardRow | null>(null)
+  const [selectedTeamDetail, setSelectedTeamDetail] = useState<AllocationTeamDetail | null>(null)
   const [activePhotoFrameIndex, setActivePhotoFrameIndex] = useState(0)
   const [visibleMatchupCount, setVisibleMatchupCount] = useState(INITIAL_VISIBLE_MATCHUPS)
-  const yesterdayMatchups = previousMatchups.filter((matchup) => isYesterdayMatchup(matchup, now))
-  const olderPreviousMatchups = previousMatchups.filter((matchup) => !isYesterdayMatchup(matchup, now))
-  const visibleMatchups = matchups.slice(0, visibleMatchupCount)
-  const groupedMatchups = buildMatchupGroups([...yesterdayMatchups, ...visibleMatchups], now)
+  const { groupedMatchups, olderPreviousMatchups } = useMemo(() => {
+    const yesterdayMatchups = previousMatchups.filter((matchup) => isYesterdayMatchup(matchup, now))
+    const nextOlderPreviousMatchups = previousMatchups.filter((matchup) => !isYesterdayMatchup(matchup, now))
+    const nextVisibleMatchups = matchups.slice(0, visibleMatchupCount)
+
+    return {
+      groupedMatchups: buildMatchupGroups([...yesterdayMatchups, ...nextVisibleMatchups], now),
+      olderPreviousMatchups: nextOlderPreviousMatchups,
+    }
+  }, [matchups, now, previousMatchups, visibleMatchupCount])
   const hasGroupedMatchups = groupedMatchups.length > 0
   const hasMoreMatchups = visibleMatchupCount < matchups.length
-  const playerByName = new Map(players.map((player) => [player.playerName, player]))
-  const activePhotoFrames = selectedPlayer
-    ? buildPlayerPhotoFrames({
-        playerName: selectedPlayer.playerName,
-        sourcePhotoUrl: selectedPlayer.ownerSourcePhotoUrl,
-        neutralPhotoUrl: selectedPlayer.ownerNeutralPhotoUrl,
-        ecstaticPhotoUrl: selectedPlayer.ownerEcstaticPhotoUrl,
-        devastatedPhotoUrl: selectedPlayer.ownerDevastatedPhotoUrl,
-      })
-    : []
+  const playerByName = useMemo(() => new Map(players.map((player) => [player.playerName, player])), [players])
+  const activePhotoFrames = useMemo(
+    () =>
+      selectedPlayer
+        ? buildPlayerPhotoFrames({
+            playerName: selectedPlayer.playerName,
+            sourcePhotoUrl: selectedPlayer.ownerSourcePhotoUrl,
+            neutralPhotoUrl: selectedPlayer.ownerNeutralPhotoUrl,
+            ecstaticPhotoUrl: selectedPlayer.ownerEcstaticPhotoUrl,
+            devastatedPhotoUrl: selectedPlayer.ownerDevastatedPhotoUrl,
+          })
+        : [],
+    [selectedPlayer],
+  )
   const currentPhotoFrame =
     activePhotoFrames.length > 0
       ? activePhotoFrames[activePhotoFrameIndex % activePhotoFrames.length]
       : null
-  const nextMatchups = selectedPlayer
-    ? buildPlayerNextMatchups(
-        selectedPlayer.teams.map((team) => ({
-          teamName: team.teamName,
-          teamFlagImageUrl: team.teamFlagImageUrl ?? null,
-          teamRank: team.teamRank ?? null,
-        })),
-        teamDetailsByName,
-      )
-    : []
+  const nextMatchups = useMemo(
+    () =>
+      selectedPlayer
+        ? buildPlayerNextMatchups(
+            selectedPlayer.teams.map((team) => ({
+              teamName: team.teamName,
+              teamFlagImageUrl: team.teamFlagImageUrl ?? null,
+              teamRank: team.teamRank ?? null,
+            })),
+            teamDetailsByName,
+          )
+        : [],
+    [selectedPlayer, teamDetailsByName],
+  )
+
+  function selectPlayerByName(playerName: string) {
+    const nextPlayer = playerByName.get(playerName)
+
+    if (!nextPlayer) {
+      return
+    }
+
+    setActivePhotoFrameIndex(0)
+    setSelectedPlayer(nextPlayer)
+  }
+
+  function selectTeamByName(teamName: string) {
+    setSelectedTeamDetail(teamDetailsByName[normalizeTeamName(teamName)] ?? null)
+  }
 
   useEffect(() => {
     if (!selectedPlayer || activePhotoFrames.length <= 1) {
@@ -139,15 +178,7 @@ export function MatchupsPage({
   }, [activePhotoFrames.length, selectedPlayer])
 
   return (
-    <main className="page-shell matchup-shell">
-      <section className="top-bar">
-        <div>
-          <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
-          <h1>Matchups</h1>
-        </div>
-        <HeaderLinks />
-      </section>
-
+    <PageChrome title="Matchups" className="matchup-shell">
       {warnings.length ? (
         <section className="matchup-warning" aria-label="Matchup warnings">
           {warnings.slice(0, 4).map((warning) => (
@@ -159,16 +190,8 @@ export function MatchupsPage({
       <section className="matchup-list" aria-label="Current and upcoming matchups">
         <PreviousMatchupsToggle
           matchups={olderPreviousMatchups}
-          onSelectPlayer={(playerName) => {
-            const nextPlayer = playerByName.get(playerName)
-
-            if (!nextPlayer) {
-              return
-            }
-
-            setActivePhotoFrameIndex(0)
-            setSelectedPlayer(nextPlayer)
-          }}
+          onSelectPlayer={selectPlayerByName}
+          onSelectTeam={selectTeamByName}
         />
 
         {hasGroupedMatchups ? (
@@ -181,16 +204,8 @@ export function MatchupsPage({
                     key={matchup.fixture.id}
                     matchup={matchup}
                     label={labelForMatchup(matchup)}
-                    onSelectPlayer={(playerName) => {
-                      const nextPlayer = playerByName.get(playerName)
-
-                      if (!nextPlayer) {
-                        return
-                      }
-
-                      setActivePhotoFrameIndex(0)
-                      setSelectedPlayer(nextPlayer)
-                    }}
+                    onSelectPlayer={selectPlayerByName}
+                    onSelectTeam={selectTeamByName}
                   />
                 ))}
               </div>
@@ -227,6 +242,9 @@ export function MatchupsPage({
           }}
         />
       ) : null}
-    </main>
+      {selectedTeamDetail ? (
+        <TeamDetailLightbox team={selectedTeamDetail} onClose={() => setSelectedTeamDetail(null)} />
+      ) : null}
+    </PageChrome>
   )
 }

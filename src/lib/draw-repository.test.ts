@@ -61,12 +61,8 @@ describe('draw repository helpers', () => {
       firstTeam.name,
       secondTeam.name,
     ])
-    expect(draw.allocation.bundles[1].teams[0].flagImageUrl).toBe(
-      `data:image/png;base64,${Buffer.from('first-flag').toString('base64')}`,
-    )
-    expect(draw.allocation.bundles[1].teams[1].flagImageUrl).toBe(
-      `https://flagcdn.com/w320/${secondTeam.flagCode}.png`,
-    )
+    expect(draw.allocation.bundles[1].teams[0].flagImageUrl).toBe('/api/team-flags/team-1')
+    expect(draw.allocation.bundles[1].teams[1].flagImageUrl).toBe('/api/team-flags/team-2')
     expect(draw.allocation.bundles[1].teams[0]).not.toHaveProperty('flagImageBytes')
     expect(draw.allocation.bundles[1].teams[0]).not.toHaveProperty('flagImageMimeType')
     expect(draw.allocation.bundles[1].fanImageUrls).toEqual({

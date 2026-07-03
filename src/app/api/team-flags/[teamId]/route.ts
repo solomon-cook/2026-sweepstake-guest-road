@@ -11,12 +11,21 @@ export async function GET(
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       select: {
+        flagCode: true,
         flagImageBytes: true,
         flagImageMimeType: true,
       },
     })
 
     if (!team?.flagImageBytes) {
+      if (team?.flagCode) {
+        return NextResponse.redirect(`https://flagcdn.com/w320/${team.flagCode}.png`, {
+          headers: {
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          },
+        })
+      }
+
       return new NextResponse('Flag not found.', { status: 404 })
     }
 

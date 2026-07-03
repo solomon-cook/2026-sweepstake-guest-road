@@ -14,7 +14,17 @@ describe('flag image helpers', () => {
     )
   })
 
-  test('falls back to the external flag URL when database bytes are missing', () => {
-    expect(buildFlagImageUrl('gb-eng', null, 'image/png')).toBe('https://flagcdn.com/w320/gb-eng.png')
+  test('builds the cached team flag route for seeded teams', () => {
+    expect(buildFlagImageUrl('team-1', 'gb-eng')).toBe('/api/team-flags/team-1')
+  })
+
+  test('adds an immutable cache-busting version when supplied', () => {
+    expect(buildFlagImageUrl('team-1', 'gb-eng', new Date('2026-06-01T12:00:00.000Z'))).toBe(
+      '/api/team-flags/team-1?v=1780315200000',
+    )
+  })
+
+  test('falls back to the external flag URL when a team id is missing', () => {
+    expect(buildFlagImageUrl(null, 'gb-eng')).toBe('https://flagcdn.com/w320/gb-eng.png')
   })
 })

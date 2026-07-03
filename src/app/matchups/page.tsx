@@ -39,8 +39,10 @@ export default async function MatchupsRoute() {
   let teamDetailsByName
 
   try {
-    const draw = await getOrCreateDraw(7, result.teams)
-    const fixtureResult = await loadFixtures()
+    const [draw, fixtureResult] = await Promise.all([
+      getOrCreateDraw(7, result.teams),
+      loadFixtures(),
+    ])
     const displayFixtures = selectDisplayFixtures(fixtureResult.fixtures, fixtureResult.fixtures.length)
     const previousFixtures = selectPreviousFixtures(fixtureResult.fixtures)
     const currentMatchupResult = buildMatchups(draw, displayFixtures, {})

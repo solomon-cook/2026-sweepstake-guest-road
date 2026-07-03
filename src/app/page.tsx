@@ -45,8 +45,10 @@ export default async function Page() {
   let teamDetailsByName
 
   try {
-    const draw = await getOrCreateDraw(7, result.teams)
-    const fixtureResult = await loadFixtures()
+    const [draw, fixtureResult] = await Promise.all([
+      getOrCreateDraw(7, result.teams),
+      loadFixtures(),
+    ])
     data = buildLeaderboardData(result.teams, draw, fixtureResult.fixtures, fixtureResult.warnings)
     teamDetailsByName = buildAllocationDisplayState(result.teams, draw, fixtureResult.fixtures).teamDetailsByName
   } catch (error) {

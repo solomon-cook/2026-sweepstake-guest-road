@@ -10,9 +10,11 @@ const LOAD_PREVIOUS_MATCHES_BATCH = 4
 export function PreviousMatchupsToggle({
   matchups,
   onSelectPlayer,
+  onSelectTeam,
 }: {
   matchups: MatchupView[]
   onSelectPlayer?: (playerName: string) => void
+  onSelectTeam?: (teamName: string) => void
 }) {
   const [visibleCount, setVisibleCount] = useState(0)
   const visibleMatchups = matchups.slice(0, visibleCount)
@@ -38,6 +40,7 @@ export function PreviousMatchupsToggle({
               matchup={matchup}
               label="Previous match"
               onSelectPlayer={onSelectPlayer}
+              onSelectTeam={onSelectTeam}
             />
           ))}
         </div>

@@ -36,10 +36,16 @@ export default async function AllocationPage() {
   const result = await loadTeamScores()
 
   if (result.status === 'ready') {
-    let initialDraw
+    let initialDraw: Awaited<ReturnType<typeof getOrCreateDraw>>
+    let fixtureResult: Awaited<ReturnType<typeof loadFixtures>>
 
     try {
-      initialDraw = await getOrCreateDraw(playerCount, result.teams)
+      const loadedState = await Promise.all([
+        getOrCreateDraw(playerCount, result.teams),
+        loadFixtures(),
+      ])
+      initialDraw = loadedState[0]
+      fixtureResult = loadedState[1]
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown database error while loading the draw.'
@@ -57,7 +63,6 @@ export default async function AllocationPage() {
       )
     }
 
-    const fixtureResult = await loadFixtures()
     const allocationDisplayState = buildAllocationDisplayState(result.teams, initialDraw, fixtureResult.fixtures)
 
     return <SweepstakeClient initialDraw={initialDraw} allocationDisplayState={allocationDisplayState} />

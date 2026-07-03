@@ -10,14 +10,15 @@ export function buildFlagDataUrl(
 }
 
 export function buildFlagImageUrl(
+  teamId?: string | null,
   flagCode?: string | null,
-  bytes?: Uint8Array<ArrayBufferLike> | null,
-  mimeType?: string | null,
+  version?: string | number | Date | null,
 ) {
-  const dataUrl = buildFlagDataUrl(bytes, mimeType)
+  if (teamId) {
+    const versionValue = version instanceof Date ? version.getTime() : version
+    const query = versionValue ? `?v=${encodeURIComponent(String(versionValue))}` : ''
 
-  if (dataUrl) {
-    return dataUrl
+    return `/api/team-flags/${encodeURIComponent(teamId)}${query}`
   }
 
   if (!flagCode) {

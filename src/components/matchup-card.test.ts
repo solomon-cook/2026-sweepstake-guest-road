@@ -1,8 +1,10 @@
-import { createElement } from 'react'
+import { createElement, type ComponentProps } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, test } from 'vitest'
 import { MatchupCard } from './matchup-card'
 import type { MatchFixture, MatchupView } from '@/lib/types'
+
+type MatchupCardCallbackProps = Pick<ComponentProps<typeof MatchupCard>, 'onSelectPlayer' | 'onSelectTeam'>
 
 const homeSide = {
   teamName: 'France',
@@ -57,8 +59,8 @@ function matchup(fixtureOverrides: Partial<MatchFixture>): MatchupView {
   }
 }
 
-function renderMatchupCard(view: MatchupView) {
-  return renderToStaticMarkup(createElement(MatchupCard, { matchup: view, label: 'Previous match' }))
+function renderMatchupCard(view: MatchupView, props: MatchupCardCallbackProps = {}) {
+  return renderToStaticMarkup(createElement(MatchupCard, { matchup: view, label: 'Previous match', ...props }))
 }
 
 describe('MatchupCard penalty scores', () => {
@@ -89,5 +91,23 @@ describe('MatchupCard penalty scores', () => {
     expect(html).toContain('2 - 0')
     expect(html).not.toContain('Pens')
     expect(html).not.toContain('compact-matchup-penalties')
+  })
+
+  test('renders separate team and profile buttons when both callbacks are available', () => {
+    const view = matchup({})
+    view.home = {
+      ...view.home,
+      ownerSourcePhotoUrl: '/sam.jpg',
+    }
+
+    const html = renderMatchupCard(view, {
+      onSelectPlayer: () => undefined,
+      onSelectTeam: () => undefined,
+    })
+
+    expect(html).toContain('aria-label="View Sam profile photos"')
+    expect(html).toContain('aria-label="View France team stats"')
+    expect(html).toContain('compact-matchup-photo-button')
+    expect(html).toContain('compact-matchup-team-button')
   })
 })

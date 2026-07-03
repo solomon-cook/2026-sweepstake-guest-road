@@ -164,7 +164,7 @@ export function toPersistedDraw(
     isRevealed: boolean
     teamAssignments: Array<{
       teamOrder: number
-      team: TeamScore
+      team: TeamScore & { updatedAt?: Date | string | number | null }
     }>
   }>,
 ): PersistedDraw {
@@ -174,15 +174,29 @@ export function toPersistedDraw(
       const orderedTeams = [...slot.teamAssignments]
         .sort((left, right) => left.teamOrder - right.teamOrder)
         .map((assignment) => {
-          const { flagImageBytes, flagImageMimeType, ...team } = assignment.team
+          const team = assignment.team
 
           return {
-            ...team,
-            flagImageUrl: buildFlagImageUrl(team.flagCode, flagImageBytes, flagImageMimeType),
+            id: team.id,
+            name: team.name,
+            flag: team.flag,
+            flagCode: team.flagCode,
+            group: team.group,
+            odds: team.odds,
+            impliedProbability: team.impliedProbability,
+            score: team.score,
+            rank: team.rank,
+            flagImageUrl: buildFlagImageUrl(team.id, team.flagCode, 'updatedAt' in team ? team.updatedAt : null),
           }
         })
-      const hasSourcePhoto = Boolean(slot.photoData && slot.photoMimeType)
+      const hasSourcePhoto = Boolean((slot.photoData || slot.photoMimeType) && slot.photoMimeType)
       const generatedImageMimeType = slot.generatedImageMimeType || 'image/jpeg'
+      const hasGeneratedImages = Boolean(
+        slot.generatedImageMimeType ||
+          slot.neutralImageData ||
+          slot.ecstaticImageData ||
+          slot.devastatedImageData,
+      )
       const fanImageTeamName =
         orderedTeams.find((team) => team.id === slot.fanImageTeamId)?.name ?? null
 
@@ -197,17 +211,11 @@ export function toPersistedDraw(
         fanImageError: slot.fanImageError ?? null,
         fanImageTeamName,
         fanImageUrls:
-          slot.neutralImageData || slot.ecstaticImageData || slot.devastatedImageData
+          hasGeneratedImages
             ? {
-                neutral: slot.neutralImageData
-                  ? buildParticipantImageUrl(slot.id, 'neutral')
-                  : null,
-                ecstatic: slot.ecstaticImageData
-                  ? buildParticipantImageUrl(slot.id, 'ecstatic')
-                  : null,
-                devastated: slot.devastatedImageData
-                  ? buildParticipantImageUrl(slot.id, 'devastated')
-                  : null,
+                neutral: buildParticipantImageUrl(slot.id, 'neutral'),
+                ecstatic: buildParticipantImageUrl(slot.id, 'ecstatic'),
+                devastated: buildParticipantImageUrl(slot.id, 'devastated'),
               }
             : generatedImageMimeType
               ? null
@@ -273,11 +281,24 @@ async function loadPersistedDraw(playerCount: PlayerCount) {
   const prisma = getPrismaClient()
   return prisma.draw.findUnique({
     where: { playerCount },
-    include: {
+    select: {
+      id: true,
+      playerCount: true,
       slots: {
-        include: {
+        select: {
+          id: true,
+          playerName: true,
+          photoMimeType: true,
+          generatedImageMimeType: true,
+          fanImageStatus: true,
+          fanImageError: true,
+          fanImageTeamId: true,
+          totalScore: true,
+          slotIndex: true,
+          isRevealed: true,
           teamAssignments: {
-            include: {
+            select: {
+              teamOrder: true,
               team: {
                 select: {
                   id: true,
@@ -289,8 +310,7 @@ async function loadPersistedDraw(playerCount: PlayerCount) {
                   impliedProbability: true,
                   score: true,
                   rank: true,
-                  flagImageBytes: true,
-                  flagImageMimeType: true,
+                  updatedAt: true,
                 },
               },
             },

@@ -24,8 +24,7 @@ export async function loadTeamScores(): Promise<TeamLoadResult> {
         impliedProbability: true,
         score: true,
         rank: true,
-        flagImageBytes: true,
-        flagImageMimeType: true,
+        updatedAt: true,
       },
     })
 
@@ -40,7 +39,7 @@ export async function loadTeamScores(): Promise<TeamLoadResult> {
         name: team.name,
         flag: team.flag,
         flagCode: team.flagCode,
-        flagImageUrl: buildFlagImageUrl(team.flagCode, team.flagImageBytes, team.flagImageMimeType),
+        flagImageUrl: buildFlagImageUrl(team.id, team.flagCode, team.updatedAt),
         group: team.group,
         odds: team.odds,
         impliedProbability: team.impliedProbability,

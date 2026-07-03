@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties, MouseEvent } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CardResult, PrizeCard } from '@/lib/types'
 
 export type CardPackPhase = 'idle' | 'opening' | 'revealing' | 'revealed' | 'error'
@@ -139,7 +139,7 @@ export function CardPackOpening({
   const [mobileRevealIndex, setMobileRevealIndex] = useState(0)
   const timeoutIds = useRef<number[]>([])
 
-  const revealCards = result ? buildRevealCards(result) : []
+  const revealCards = useMemo(() => (result ? buildRevealCards(result) : []), [result])
   const revealLayout = getRevealLayout(revealCards.length)
   const activeMobileRevealCard = revealCards[mobileRevealIndex] ?? null
 

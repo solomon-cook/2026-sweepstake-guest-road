@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { HeaderLinks } from '@/components/header-links'
+import { PageChrome } from '@/components/page-chrome'
 import { formatScore } from '@/lib/formatters'
 import { SCORE_SNAPSHOT } from '@/lib/team-source'
 import type { PersistedDraw, TeamScore } from '@/lib/types'
@@ -70,15 +70,7 @@ export function MoreInfoPage({
   }
 
   return (
-    <main className="page-shell">
-      <section className="top-bar">
-        <div>
-          <p className="eyebrow">Guest Road 2026 World Cup Sweepstake</p>
-          <h1>More info</h1>
-        </div>
-        <HeaderLinks />
-      </section>
-
+    <PageChrome title="More info">
       <section className="details-panel">
         <div className="metrics-card">
           <div className="panel-heading">
@@ -190,6 +182,6 @@ export function MoreInfoPage({
           {error ? <p className="error-copy">{error}</p> : null}
         </div>
       </section>
-    </main>
+    </PageChrome>
   )
 }

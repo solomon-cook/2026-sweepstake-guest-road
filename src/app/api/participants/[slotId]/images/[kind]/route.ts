@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { loadParticipantImageSlot, readParticipantImageBytes } from '@/lib/participant-image-repository'
+import { loadParticipantImageBytes } from '@/lib/participant-image-repository'
 
 export async function GET(
   _request: Request,
@@ -12,16 +12,13 @@ export async function GET(
       return new NextResponse('Unknown participant image kind.', { status: 404 })
     }
 
-    const slot = await loadParticipantImageSlot(slotId)
+    const image = await loadParticipantImageBytes(slotId, kind)
 
-    if (!slot) {
-      return new NextResponse('Participant slot not found.', { status: 404 })
-    }
-
-    const image = readParticipantImageBytes(slot, kind)
-
-    if (!image) {
-      return new NextResponse('Participant image not found.', { status: 404 })
+    if (image.status !== 'ready') {
+      return new NextResponse(
+        image.status === 'missing-slot' ? 'Participant slot not found.' : 'Participant image not found.',
+        { status: 404 },
+      )
     }
 
     return new NextResponse(image.bytes, {

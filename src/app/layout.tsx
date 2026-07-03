@@ -52,7 +52,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="stylesheet" href="https://use.typekit.net/rbb0bct.css" />
       </head>
       <body>
-        <PullRefresh>{children}</PullRefresh>
+        <PullRefresh />
+        {children}
       </body>
     </html>
   )

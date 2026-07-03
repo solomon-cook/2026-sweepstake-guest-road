@@ -1,1 +1,44 @@
-{}
+{
+  "components/leaderboard-page.tsx -> @/components/player-photo-lightbox": {
+    "id": 8525,
+    "files": [
+      "static/chunks/525.73b8fe1c5f4f92e0.js"
+    ]
+  },
+  "components/leaderboard-page.tsx -> @/components/team-detail-lightbox": {
+    "id": 6862,
+    "files": [
+      "static/chunks/862.93cadc6f4df602dc.js"
+    ]
+  },
+  "components/matchups-page.tsx -> @/components/player-photo-lightbox": {
+    "id": 8525,
+    "files": [
+      "static/chunks/525.73b8fe1c5f4f92e0.js"
+    ]
+  },
+  "components/matchups-page.tsx -> @/components/team-detail-lightbox": {
+    "id": 6862,
+    "files": [
+      "static/chunks/862.93cadc6f4df602dc.js"
+    ]
+  },
+  "components/sweepstake-client.tsx -> @/components/card-pack-opening": {
+    "id": 5004,
+    "files": [
+      "static/chunks/4.b20232af749ba883.js"
+    ]
+  },
+  "components/sweepstake-client.tsx -> @/components/player-photo-lightbox": {
+    "id": 8525,
+    "files": [
+      "static/chunks/525.73b8fe1c5f4f92e0.js"
+    ]
+  },
+  "components/sweepstake-client.tsx -> @/components/team-detail-lightbox": {
+    "id": 6862,
+    "files": [
+      "static/chunks/862.93cadc6f4df602dc.js"
+    ]
+  }
+}

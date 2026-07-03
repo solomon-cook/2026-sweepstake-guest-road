@@ -41,6 +41,16 @@ export type ParticipantImageSlot = {
   }>
 }
 
+export type ParticipantImageReadResult =
+  | {
+      status: 'ready'
+      bytes: Uint8Array<ArrayBuffer>
+      mimeType: string
+    }
+  | {
+      status: 'missing-slot' | 'missing-image'
+    }
+
 function normalizeFanImageStatus(value: string | null | undefined): FanImageStatus {
   if (value === 'pending' || value === 'ready' || value === 'failed') {
     return value
@@ -183,6 +193,107 @@ export async function markParticipantFanImagesFailed(slotId: string, message: st
     },
     select: { id: true },
   })
+}
+
+export async function loadParticipantImageBytes(
+  slotId: string,
+  kind: FanImageKind | 'source',
+): Promise<ParticipantImageReadResult> {
+  const prisma = getPrismaClient()
+
+  if (kind === 'source') {
+    const slot = await prisma.drawSlot.findUnique({
+      where: { id: slotId },
+      select: {
+        photoData: true,
+        photoMimeType: true,
+      },
+    })
+
+    if (!slot) {
+      return { status: 'missing-slot' }
+    }
+
+    if (!slot.photoData) {
+      return { status: 'missing-image' }
+    }
+
+    return {
+      status: 'ready',
+      bytes: slot.photoData,
+      mimeType: slot.photoMimeType || 'image/jpeg',
+    }
+  }
+
+  if (kind === 'neutral') {
+    const slot = await prisma.drawSlot.findUnique({
+      where: { id: slotId },
+      select: {
+        generatedImageMimeType: true,
+        neutralImageData: true,
+      },
+    })
+
+    if (!slot) {
+      return { status: 'missing-slot' }
+    }
+
+    if (!slot.neutralImageData) {
+      return { status: 'missing-image' }
+    }
+
+    return {
+      status: 'ready',
+      bytes: slot.neutralImageData,
+      mimeType: slot.generatedImageMimeType || 'image/jpeg',
+    }
+  }
+
+  if (kind === 'ecstatic') {
+    const slot = await prisma.drawSlot.findUnique({
+      where: { id: slotId },
+      select: {
+        generatedImageMimeType: true,
+        ecstaticImageData: true,
+      },
+    })
+
+    if (!slot) {
+      return { status: 'missing-slot' }
+    }
+
+    if (!slot.ecstaticImageData) {
+      return { status: 'missing-image' }
+    }
+
+    return {
+      status: 'ready',
+      bytes: slot.ecstaticImageData,
+      mimeType: slot.generatedImageMimeType || 'image/jpeg',
+    }
+  }
+
+  const slot = await prisma.drawSlot.findUnique({
+    where: { id: slotId },
+    select: {
+      generatedImageMimeType: true,
+      devastatedImageData: true,
+    },
+  })
+
+  if (!slot) {
+    return { status: 'missing-slot' }
+  }
+
+  if (!slot.devastatedImageData) {
+    return { status: 'missing-image' }
+  }
+
+  return {
+    status: 'ready',
+    bytes: slot.devastatedImageData,
+    mimeType: slot.generatedImageMimeType || 'image/jpeg',
+  }
 }
 
 export function readParticipantImageBytes(
