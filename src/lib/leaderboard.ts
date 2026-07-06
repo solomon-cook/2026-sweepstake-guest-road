@@ -156,6 +156,100 @@ function normalizeKnockoutRound(round: string | null | undefined) {
   return KNOCKOUT_ROUND_LABELS[normalized] ?? round ?? 'Knockout'
 }
 
+function nextRoundFor(round: string) {
+  if (round === 'Round of 32') {
+    return 'Round of 16'
+  }
+
+  if (round === 'Round of 16') {
+    return 'Quarter-finals'
+  }
+
+  if (round === 'Quarter-finals') {
+    return 'Semi-finals'
+  }
+
+  if (round === 'Semi-finals') {
+    return 'Final'
+  }
+
+  return null
+}
+
+function winnerReference(value: string) {
+  const match = /^W(\d+)$/i.exec(value.trim())
+
+  return match ? Number(match[1]) : null
+}
+
+function fixtureKnockoutOrder(fixture: MatchFixture) {
+  if (typeof fixture.knockoutOrder === 'number') {
+    return fixture.knockoutOrder
+  }
+
+  const match = /^openfootball-(\d+)$/.exec(fixture.id)
+
+  return match ? Number(match[1]) : null
+}
+
+function buildBracketReferenceOrders(fixtures: MatchFixture[]) {
+  const fixturesByRound = new Map<string, MatchFixture[]>()
+  const referenceOrders = new Map<string, Map<number, number>>()
+
+  for (const fixture of fixtures) {
+    const round = normalizeKnockoutRound(fixture.round)
+    const roundFixtures = fixturesByRound.get(round) ?? []
+    roundFixtures.push(fixture)
+    fixturesByRound.set(round, roundFixtures)
+  }
+
+  for (const round of fixturesByRound.keys()) {
+    const nextRound = nextRoundFor(round)
+
+    if (!nextRound) {
+      continue
+    }
+
+    const currentRoundFixtures = fixturesByRound.get(round) ?? []
+    const nextRoundFixtures = fixturesByRound.get(nextRound) ?? []
+    const currentRoundOrderByTeam = new Map<string, number>()
+
+    for (const fixture of currentRoundFixtures) {
+      const order = fixtureKnockoutOrder(fixture)
+
+      if (typeof order !== 'number') {
+        continue
+      }
+
+      currentRoundOrderByTeam.set(normalizeTeamName(fixture.homeTeam), order)
+      currentRoundOrderByTeam.set(normalizeTeamName(fixture.awayTeam), order)
+    }
+
+    const resolveReference = (teamName: string) =>
+      winnerReference(teamName) ?? currentRoundOrderByTeam.get(normalizeTeamName(teamName)) ?? null
+    const orderedReferences = nextRoundFixtures
+      .slice()
+      .sort(compareFixturesByRoundPosition)
+      .flatMap((fixture) => [resolveReference(fixture.homeTeam), resolveReference(fixture.awayTeam)])
+      .filter((value): value is number => typeof value === 'number')
+
+    if (!orderedReferences.length) {
+      continue
+    }
+
+    referenceOrders.set(round, new Map(orderedReferences.map((value, index) => [value, index])))
+  }
+
+  return referenceOrders
+}
+
+function compareFixturesByRoundPosition(left: MatchFixture, right: MatchFixture) {
+  const leftOrder = fixtureKnockoutOrder(left) ?? Number.POSITIVE_INFINITY
+  const rightOrder = fixtureKnockoutOrder(right) ?? Number.POSITIVE_INFINITY
+
+  return leftOrder - rightOrder || Date.parse(left.startsAt) - Date.parse(right.startsAt)
+}
+
 function isGroupRound(round?: string | null) {
   return !round || /^group\b/i.test(round)
 }
@@ -485,13 +579,27 @@ export function buildBracketMatches(
   const owners = buildOwnerLookup(draw)
   const teamsByName = new Map(teams.map((team) => [normalizeTeamName(team.name), team]))
   const teamGroups = new Map(teams.map((team) => [normalizeTeamName(team.name), team.group]))
+  const knockoutFixtures = fixtures.filter((fixture) => isKnockoutFixture(fixture, teamGroups))
+  const referenceOrders = buildBracketReferenceOrders(knockoutFixtures)
 
-  return fixtures
-    .filter((fixture) => isKnockoutFixture(fixture, teamGroups))
+  return knockoutFixtures
     .sort((left, right) => {
-      const roundComparison = roundSortValue(left.round ?? '') - roundSortValue(right.round ?? '')
+      const leftRound = normalizeKnockoutRound(left.round)
+      const rightRound = normalizeKnockoutRound(right.round)
+      const roundComparison = roundSortValue(leftRound) - roundSortValue(rightRound)
+      const leftKnockoutOrder = fixtureKnockoutOrder(left)
+      const rightKnockoutOrder = fixtureKnockoutOrder(right)
+      const leftReferenceOrder =
+        typeof leftKnockoutOrder === 'number' ? referenceOrders.get(leftRound)?.get(leftKnockoutOrder) : undefined
+      const rightReferenceOrder =
+        typeof rightKnockoutOrder === 'number' ? referenceOrders.get(rightRound)?.get(rightKnockoutOrder) : undefined
 
-      return roundComparison || Date.parse(left.startsAt) - Date.parse(right.startsAt)
+      return (
+        roundComparison ||
+        (leftReferenceOrder ?? Number.POSITIVE_INFINITY) -
+          (rightReferenceOrder ?? Number.POSITIVE_INFINITY) ||
+        compareFixturesByRoundPosition(left, right)
+      )
     })
     .map((fixture) => ({
       id: fixture.id,

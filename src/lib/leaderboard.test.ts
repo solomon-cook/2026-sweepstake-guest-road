@@ -215,6 +215,118 @@ describe('leaderboard knockout bracket', () => {
       },
     ])
   })
+
+  test('orders knockout matches by next-round winner references', () => {
+    const matches = buildBracketMatches(
+      [],
+      makeDraw(),
+      [
+        fixture({
+          id: 'r16-90',
+          round: 'Round of 16',
+          knockoutOrder: 90,
+          startsAt: '2026-07-04T17:00:00.000Z',
+          homeTeam: 'Canada',
+          awayTeam: 'Morocco',
+        }),
+        fixture({
+          id: 'r16-89',
+          round: 'Round of 16',
+          knockoutOrder: 89,
+          startsAt: '2026-07-04T21:00:00.000Z',
+          homeTeam: 'Paraguay',
+          awayTeam: 'France',
+        }),
+        fixture({
+          id: 'r16-91',
+          round: 'Round of 16',
+          knockoutOrder: 91,
+          startsAt: '2026-07-05T20:00:00.000Z',
+          homeTeam: 'Brazil',
+          awayTeam: 'Norway',
+        }),
+        fixture({
+          id: 'r16-92',
+          round: 'Round of 16',
+          knockoutOrder: 92,
+          startsAt: '2026-07-06T00:00:00.000Z',
+          homeTeam: 'Mexico',
+          awayTeam: 'England',
+        }),
+        fixture({
+          id: 'espn-93',
+          round: 'Round of 16',
+          knockoutOrder: 93,
+          startsAt: '2026-07-06T19:00:00.000Z',
+          homeTeam: 'Portugal',
+          awayTeam: 'Spain',
+        }),
+        fixture({
+          id: 'espn-94',
+          round: 'Round of 16',
+          knockoutOrder: 94,
+          startsAt: '2026-07-07T00:00:00.000Z',
+          homeTeam: 'United States',
+          awayTeam: 'Belgium',
+        }),
+        fixture({
+          id: 'r16-95',
+          round: 'Round of 16',
+          knockoutOrder: 95,
+          startsAt: '2026-07-07T16:00:00.000Z',
+          homeTeam: 'Argentina',
+          awayTeam: 'Egypt',
+        }),
+        fixture({
+          id: 'r16-96',
+          round: 'Round of 16',
+          knockoutOrder: 96,
+          startsAt: '2026-07-07T20:00:00.000Z',
+          homeTeam: 'Switzerland',
+          awayTeam: 'Colombia',
+        }),
+        fixture({
+          id: 'qf-97',
+          round: 'Quarter-finals',
+          knockoutOrder: 97,
+          homeTeam: 'W89',
+          awayTeam: 'W90',
+        }),
+        fixture({
+          id: 'qf-98',
+          round: 'Quarter-finals',
+          knockoutOrder: 98,
+          homeTeam: 'W93',
+          awayTeam: 'W94',
+        }),
+        fixture({
+          id: 'qf-99',
+          round: 'Quarter-finals',
+          knockoutOrder: 99,
+          homeTeam: 'W91',
+          awayTeam: 'W92',
+        }),
+        fixture({
+          id: 'qf-100',
+          round: 'Quarter-finals',
+          knockoutOrder: 100,
+          homeTeam: 'W95',
+          awayTeam: 'W96',
+        }),
+      ],
+    )
+
+    expect(matches.filter((match) => match.round === 'Round of 16').map((match) => match.id)).toEqual([
+      'r16-89',
+      'r16-90',
+      'espn-93',
+      'espn-94',
+      'r16-91',
+      'r16-92',
+      'r16-95',
+      'r16-96',
+    ])
+  })
 })
 
 describe('player leaderboard', () => {

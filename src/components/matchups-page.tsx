@@ -231,7 +231,9 @@ export function MatchupsPage({
           <button
             className="secondary-button matchup-list-trigger"
             type="button"
-            onClick={() => setVisibleMatchupCount((count) => count + LOAD_MORE_MATCHUPS_BATCH)}
+            onClick={() =>
+              setVisibleMatchupCount((count) => Math.min(count + LOAD_MORE_MATCHUPS_BATCH, matchups.length))
+            }
           >
             Load more matches
           </button>

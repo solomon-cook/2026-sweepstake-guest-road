@@ -133,7 +133,16 @@ function normalizeEspnStatus(state: string | undefined, completed: boolean | und
   return 'unknown'
 }
 
-function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[number]): MatchFixture | null {
+function parseEspnScore(score: string | undefined, showScore: boolean) {
+  if (!showScore || score === undefined || score === '') {
+    return null
+  }
+
+  const numericScore = Number(score)
+  return Number.isFinite(numericScore) ? numericScore : null
+}
+
+export function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[number]): MatchFixture | null {
   const competition = event.competitions?.[0]
   const home = competition?.competitors?.find((competitor) => competitor.homeAway === 'home')
   const away = competition?.competitors?.find((competitor) => competitor.homeAway === 'away')
@@ -157,8 +166,8 @@ function normalizeEspnFixture(event: NonNullable<EspnScoreboard['events']>[numbe
     venue: competition?.venue?.fullName ?? null,
     homeTeam: home.team.displayName,
     awayTeam: away.team.displayName,
-    homeScore: showScore && home.score ? Number(home.score) : null,
-    awayScore: showScore && away.score ? Number(away.score) : null,
+    homeScore: parseEspnScore(home.score, showScore),
+    awayScore: parseEspnScore(away.score, showScore),
     homePenaltyScore: null,
     awayPenaltyScore: null,
     homeWinner: status === 'finished' && typeof home.winner === 'boolean' ? home.winner : null,
@@ -204,6 +213,7 @@ export function normalizeOpenFootballFixture(
     statusLabel,
     round: match.round ?? match.group ?? null,
     venue: match.ground ?? null,
+    knockoutOrder: index + 1,
     homeTeam: match.team1,
     awayTeam: match.team2,
     homeScore: finalScore?.[0] ?? null,
@@ -264,12 +274,24 @@ function shouldPreferFallbackFinalScore(fallbackFixture: MatchFixture, primaryFi
   )
 }
 
+function parseOpenFootballFixtureOrder(fixture: MatchFixture) {
+  const match = /^openfootball-(\d+)$/.exec(fixture.id)
+
+  return match ? Number(match[1]) : null
+}
+
 function mergeFixtureData(fallbackFixture: MatchFixture, primaryFixture: MatchFixture): MatchFixture {
   const useFallbackFinalScore = shouldPreferFallbackFinalScore(fallbackFixture, primaryFixture)
 
   return {
     ...fallbackFixture,
     ...primaryFixture,
+    round: primaryFixture.round ?? fallbackFixture.round ?? null,
+    venue: primaryFixture.venue ?? fallbackFixture.venue ?? null,
+    knockoutOrder:
+      primaryFixture.knockoutOrder ??
+      fallbackFixture.knockoutOrder ??
+      parseOpenFootballFixtureOrder(fallbackFixture),
     statusLabel:
       hasExtraTimeFinalScore(fallbackFixture) && !hasExtraTimeFinalScore(primaryFixture)
         ? fallbackFixture.statusLabel

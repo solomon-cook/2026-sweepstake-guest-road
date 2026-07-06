@@ -93,6 +93,7 @@ export type MatchFixture = {
   statusLabel: string
   round?: string | null
   venue?: string | null
+  knockoutOrder?: number | null
   homeTeam: string
   awayTeam: string
   homeScore?: number | null

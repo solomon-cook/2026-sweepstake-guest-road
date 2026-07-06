@@ -76,7 +76,7 @@ function initials(side: MatchupSide) {
 }
 
 function formatProbability(value?: number | null) {
-  return value ? `${Math.round(value * 100)}%` : '-'
+  return typeof value === 'number' ? `${Math.round(value * 100)}%` : '-'
 }
 
 function hasFixtureScore(fixture: MatchFixture) {

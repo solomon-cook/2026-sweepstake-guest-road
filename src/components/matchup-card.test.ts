@@ -110,4 +110,22 @@ describe('MatchupCard penalty scores', () => {
     expect(html).toContain('compact-matchup-photo-button')
     expect(html).toContain('compact-matchup-team-button')
   })
+
+  test('renders zero percent odds instead of treating them as missing', () => {
+    const html = renderMatchupCard({
+      ...matchup({
+        status: 'upcoming',
+        statusLabel: '19:00',
+        homeScore: null,
+        awayScore: null,
+      }),
+      odds: {
+        homeProbability: 0,
+        awayProbability: 1,
+        source: 'test odds',
+      },
+    })
+
+    expect(html).toContain('Calculated chance: France 0%, Spain 100%.')
+  })
 })

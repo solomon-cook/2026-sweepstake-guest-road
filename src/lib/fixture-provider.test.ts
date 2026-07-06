@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { mergeFixtures, normalizeOpenFootballFixture } from './fixture-provider'
+import { mergeFixtures, normalizeEspnFixture, normalizeOpenFootballFixture } from './fixture-provider'
 import type { MatchFixture } from './types'
 
 function fixture(overrides: Partial<MatchFixture>): MatchFixture {
@@ -76,6 +76,45 @@ describe('fixture provider merge', () => {
       awayScore: 2,
     })
   })
+
+  test('keeps fallback round and venue when primary fixtures omit them', () => {
+    const primaryFixture = fixture({
+      id: 'espn-1',
+      round: null,
+      venue: null,
+      homeTeam: 'Portugal',
+      awayTeam: 'Spain',
+      status: 'live',
+      statusLabel: "45'",
+      homeScore: 1,
+      awayScore: 0,
+    })
+    const fallbackFixture = fixture({
+      id: 'openfootball-1',
+      round: 'Round of 16',
+      venue: 'Dallas Stadium',
+      knockoutOrder: 93,
+      homeTeam: 'Portugal',
+      awayTeam: 'Spain',
+      status: 'upcoming',
+      statusLabel: 'Scheduled',
+      homeScore: null,
+      awayScore: null,
+    })
+
+    const [merged] = mergeFixtures([primaryFixture], [fallbackFixture])
+
+    expect(merged).toMatchObject({
+      id: 'espn-1',
+      round: 'Round of 16',
+      venue: 'Dallas Stadium',
+      knockoutOrder: 93,
+      status: 'live',
+      statusLabel: "45'",
+      homeScore: 1,
+      awayScore: 0,
+    })
+  })
 })
 
 describe('OpenFootball fixture normalization', () => {
@@ -129,6 +168,47 @@ describe('OpenFootball fixture normalization', () => {
       awayPenaltyScore: 4,
       homeWinner: true,
       awayWinner: false,
+    })
+  })
+})
+
+describe('ESPN fixture normalization', () => {
+  test('keeps zero scores for live and finished fixtures', () => {
+    const normalized = normalizeEspnFixture({
+      id: '123',
+      date: '2026-06-14T20:00:00.000Z',
+      status: {
+        type: {
+          completed: true,
+          shortDetail: 'FT',
+          state: 'post',
+        },
+      },
+      competitions: [
+        {
+          competitors: [
+            {
+              homeAway: 'home',
+              score: '0',
+              team: {
+                displayName: 'France',
+              },
+            },
+            {
+              homeAway: 'away',
+              score: '2',
+              team: {
+                displayName: 'Spain',
+              },
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(normalized).toMatchObject({
+      homeScore: 0,
+      awayScore: 2,
     })
   })
 })
