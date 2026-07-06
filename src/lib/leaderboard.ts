@@ -182,6 +182,12 @@ function winnerReference(value: string) {
   return match ? Number(match[1]) : null
 }
 
+function loserReference(value: string) {
+  const match = /^L(\d+)$/i.exec(value.trim())
+
+  return match ? Number(match[1]) : null
+}
+
 function fixtureKnockoutOrder(fixture: MatchFixture) {
   if (typeof fixture.knockoutOrder === 'number') {
     return fixture.knockoutOrder
@@ -248,6 +254,43 @@ function compareFixturesByRoundPosition(left: MatchFixture, right: MatchFixture)
   const rightOrder = fixtureKnockoutOrder(right) ?? Number.POSITIVE_INFINITY
 
   return leftOrder - rightOrder || Date.parse(left.startsAt) - Date.parse(right.startsAt)
+}
+
+function buildFixtureByKnockoutOrder(fixtures: MatchFixture[]) {
+  const byOrder = new Map<number, MatchFixture>()
+
+  for (const fixture of fixtures) {
+    const order = fixtureKnockoutOrder(fixture)
+
+    if (typeof order === 'number') {
+      byOrder.set(order, fixture)
+    }
+  }
+
+  return byOrder
+}
+
+function resolveReferencedTeamName(teamName: string, fixturesByKnockoutOrder: Map<number, MatchFixture>) {
+  const winnerOrder = winnerReference(teamName)
+  const loserOrder = loserReference(teamName)
+  const referenceOrder = winnerOrder ?? loserOrder
+
+  if (typeof referenceOrder !== 'number') {
+    return teamName
+  }
+
+  const sourceFixture = fixturesByKnockoutOrder.get(referenceOrder)
+  const winner = sourceFixture ? getFinishedFixtureWinner(sourceFixture) : null
+
+  if (!sourceFixture || !winner) {
+    return teamName
+  }
+
+  if (winnerOrder !== null) {
+    return winner === 'home' ? sourceFixture.homeTeam : sourceFixture.awayTeam
+  }
+
+  return winner === 'home' ? sourceFixture.awayTeam : sourceFixture.homeTeam
 }
 
 function isGroupRound(round?: string | null) {
@@ -581,6 +624,7 @@ export function buildBracketMatches(
   const teamGroups = new Map(teams.map((team) => [normalizeTeamName(team.name), team.group]))
   const knockoutFixtures = fixtures.filter((fixture) => isKnockoutFixture(fixture, teamGroups))
   const referenceOrders = buildBracketReferenceOrders(knockoutFixtures)
+  const fixturesByKnockoutOrder = buildFixtureByKnockoutOrder(knockoutFixtures)
 
   return knockoutFixtures
     .sort((left, right) => {
@@ -611,8 +655,8 @@ export function buildBracketMatches(
       awayScore: fixture.awayScore,
       homeWinner: fixture.homeWinner,
       awayWinner: fixture.awayWinner,
-      home: attachFixtureSide(fixture.homeTeam, teamsByName, owners),
-      away: attachFixtureSide(fixture.awayTeam, teamsByName, owners),
+      home: attachFixtureSide(resolveReferencedTeamName(fixture.homeTeam, fixturesByKnockoutOrder), teamsByName, owners),
+      away: attachFixtureSide(resolveReferencedTeamName(fixture.awayTeam, fixturesByKnockoutOrder), teamsByName, owners),
     }))
 }
 

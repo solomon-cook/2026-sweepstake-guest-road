@@ -327,6 +327,74 @@ describe('leaderboard knockout bracket', () => {
       'r16-96',
     ])
   })
+
+  test('resolves next-round placeholder teams from finished previous matches', () => {
+    const matches = buildBracketMatches(
+      [team('France'), team('Morocco'), team('Argentina'), team('Colombia')],
+      makeDraw(),
+      [
+        fixture({
+          id: 'r16-89',
+          round: 'Round of 16',
+          knockoutOrder: 89,
+          status: 'finished',
+          homeTeam: 'Paraguay',
+          awayTeam: 'France',
+          homeScore: 0,
+          awayScore: 2,
+        }),
+        fixture({
+          id: 'r16-90',
+          round: 'Round of 16',
+          knockoutOrder: 90,
+          status: 'finished',
+          homeTeam: 'Canada',
+          awayTeam: 'Morocco',
+          homeScore: 0,
+          awayScore: 1,
+        }),
+        fixture({
+          id: 'qf-97',
+          round: 'Quarter-finals',
+          knockoutOrder: 97,
+          status: 'upcoming',
+          homeTeam: 'W89',
+          awayTeam: 'W90',
+          homeScore: null,
+          awayScore: null,
+        }),
+        fixture({
+          id: 'sf-101',
+          round: 'Semi-finals',
+          knockoutOrder: 101,
+          status: 'finished',
+          homeTeam: 'Argentina',
+          awayTeam: 'Colombia',
+          homeScore: 3,
+          awayScore: 1,
+        }),
+        fixture({
+          id: 'third-place',
+          round: 'Third place',
+          knockoutOrder: 103,
+          status: 'upcoming',
+          homeTeam: 'L101',
+          awayTeam: 'L102',
+          homeScore: null,
+          awayScore: null,
+        }),
+      ],
+    )
+
+    expect(matches.find((match) => match.id === 'qf-97')).toMatchObject({
+      home: { teamName: 'France' },
+      away: { teamName: 'Morocco' },
+    })
+    expect(matches.find((match) => match.id === 'third-place')).toMatchObject({
+      home: { teamName: 'Colombia' },
+      away: { teamName: 'L102' },
+    })
+  })
 })
 
 describe('player leaderboard', () => {
